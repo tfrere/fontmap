@@ -88,7 +88,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     const ns = 'http://www.w3.org/2000/svg';
 
     fonts.forEach(font => {
-      const pathD = hasSprite ? glyphPaths[font.id] : null;
+      const pathD = hasSprite ? (glyphPaths[`${font.id}_a`] || glyphPaths[font.id]) : null;
       if (!pathD) return;
 
       const x = mapX(font.x);

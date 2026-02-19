@@ -1,0 +1,61 @@
+/* CSS Variables for style normalization */
+:root {
+  /* Primary colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-tertiary: #e9ecef;
+  --color-text-primary: #000000;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  --color-border-primary: #e0e0e0;
+  --color-border-secondary: #d1d5db;
+  --color-accent: #007acc;
+  --color-accent-hover: #005a9e;
+  
+  /* Dark mode colors */
+  --color-bg-primary-dark: #000000;
+  --color-bg-secondary-dark: #1a1a1a;
+  --color-bg-tertiary-dark: #333333;
+  --color-text-primary-dark: #ffffff;
+  --color-text-secondary-dark: #cccccc;
+  --color-text-tertiary-dark: #999999;
+  --color-border-primary-dark: #404040;
+  --color-border-secondary-dark: #555555;
+  --color-accent-dark: #4fc3f7;
+  --color-accent-hover-dark: #29b6f6;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  
+  /* Borders */
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  
+  /* Light shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* Overlay opacities */
+  --overlay-opacity-light: 0.6;
+  --overlay-opacity-dark: 0.5;
+  
+  /* Logo font */
+  --font-logo: 'Source Sans Pro', 'Times New Roman', serif;
+}
+
+/* Spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

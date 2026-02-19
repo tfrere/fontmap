@@ -1,9 +1,11 @@
 ---
-title: Fontmap
-short_desc: FontMap uses FontCLIP to surface visual relationships across fonts
-emoji: 🐠
+title: FontMap
+short_description: Visual font explorer powered by FontCLIP
+emoji: 🗺️
 colorFrom: indigo
-colorTo: red
+colorTo: blue
 sdk: static
 pinned: false
+app_build_command: "CI=false npm run build"
+app_file: "build/index.html"
 ---

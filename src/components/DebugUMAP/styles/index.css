@@ -1,0 +1,305 @@
+.debug-umap-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-color, #000);
+  color: var(--text-color, white);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.map-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+.debug-umap-svg {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-color, #000);
+  cursor: grab;
+  /* Rendu vectoriel optimisé */
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+  image-rendering: crisp-edges;
+  /* Zoom and pan */
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.debug-umap-svg:active {
+  cursor: grabbing;
+}
+
+/* Groupe viewport pour le zoom */
+.viewport-group {
+  will-change: transform;
+  /* Force le rendu vectoriel sur le groupe de viewport */
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+  image-rendering: crisp-edges;
+  /* Optimisation pour les transformations matrix */
+  transform-origin: 0 0;
+}
+
+.tweakpane-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.config-display {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: var(--config-bg, rgba(0, 0, 0, 0.85));
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--config-border, #333);
+  backdrop-filter: blur(15px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-width: 280px;
+  max-width: 350px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.config-display:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.config-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--config-border, #333);
+}
+
+.config-icon {
+  font-size: 16px;
+  margin-right: 8px;
+  opacity: 0.8;
+}
+
+.config-title {
+  color: var(--config-title, #667eea);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.config-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.config-label {
+  color: var(--config-text, #ccc);
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.config-value {
+  color: var(--config-value, #ffffff);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', monospace;
+  background: var(--config-value-bg, rgba(102, 126, 234, 0.1));
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--config-value-border, rgba(102, 126, 234, 0.2));
+}
+
+.config-section {
+  margin-bottom: 16px;
+}
+
+.config-section:last-child {
+  margin-bottom: 0;
+}
+
+.config-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--config-accent, #888);
+  border-bottom: 1px solid var(--config-border, #333);
+  padding-bottom: 4px;
+}
+
+.loading, .error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  padding: 40px;
+}
+
+.loading {
+  color: var(--accent-color, #667eea);
+  font-size: 18px;
+}
+
+.error {
+  background: var(--error-bg, rgba(0, 0, 0, 0.9));
+  color: var(--error-text, #e74c3c);
+}
+
+.error h2 {
+  margin-bottom: 20px;
+  color: var(--error-title, #e74c3c);
+}
+
+.error p {
+  margin-bottom: 15px;
+  color: var(--text-secondary, #ccc);
+}
+
+.error code {
+  background: var(--code-bg, #333);
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: var(--code-text, #667eea);
+}
+
+.error pre {
+  background: var(--pre-bg, #1a1a1a);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--pre-border, #333);
+  color: var(--pre-text, #ccc);
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+
+/* Light mode styles */
+.debug-umap-container:not(.dark-mode) {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --text-secondary: #666666;
+  --accent-color: #667eea;
+  --error-bg: rgba(255, 255, 255, 0.9);
+  --error-text: #000000;
+  --error-title: #e74c3c;
+  --code-bg: #f5f5f5;
+  --code-text: #667eea;
+  --pre-bg: #f5f5f5;
+  --pre-border: #ddd;
+  --pre-text: #333;
+  --config-bg: rgba(255, 255, 255, 0.95);
+  --config-border: #ddd;
+  --config-title: #667eea;
+  --config-text: #666666;
+  --config-value: #333333;
+  --config-value-bg: rgba(102, 126, 234, 0.1);
+  --config-value-border: rgba(102, 126, 234, 0.3);
+}
+
+/* Dark mode styles */
+.debug-umap-container.dark-mode {
+  --bg-color: #1a1a1a;
+  --text-color: #ffffff;
+  --text-secondary: #cccccc;
+  --accent-color: #667eea;
+  --error-bg: rgba(26, 26, 26, 0.9);
+  --error-text: #ffffff;
+  --error-title: #e74c3c;
+  --code-bg: #2a2a2a;
+  --code-text: #667eea;
+  --pre-bg: #2a2a2a;
+  --pre-border: #444;
+  --pre-text: #ccc;
+  --config-bg: rgba(0, 0, 0, 0.85);
+  --config-border: #333;
+  --config-title: #667eea;
+  --config-text: #cccccc;
+  --config-value: #ffffff;
+  --config-value-bg: rgba(102, 126, 234, 0.1);
+  --config-value-border: rgba(102, 126, 234, 0.2);
+}
+
+/* ConfigDisplay dark mode styles */
+.config-display.dark-mode {
+  background: rgba(0, 0, 0, 0.85) !important;
+  color: #ffffff !important;
+  border-color: #333 !important;
+}
+
+.config-display.dark-mode .config-label {
+  color: #cccccc !important;
+}
+
+.config-display.dark-mode .config-value {
+  color: #ffffff !important;
+  background: rgba(102, 126, 234, 0.1) !important;
+  border: 1px solid rgba(102, 126, 234, 0.2) !important;
+}
+
+.config-display.dark-mode h4 {
+  color: #888 !important;
+  border-bottom-color: #333 !important;
+}
+
+/* ConfigDisplay light mode styles */
+.config-display:not(.dark-mode) {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #000000 !important;
+  border-color: #ddd !important;
+}
+
+.config-display:not(.dark-mode) .config-label {
+  color: #666666 !important;
+}
+
+.config-display:not(.dark-mode) .config-value {
+  color: #333333 !important;
+  background: rgba(102, 126, 234, 0.1) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+.config-display:not(.dark-mode) h4 {
+  color: #888 !important;
+  border-bottom-color: #ddd !important;
+}
+
+.config-display:not(.dark-mode) .config-value {
+  color: #333333 !important;
+  background: rgba(102, 126, 234, 0.1) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+}
+
+.config-display:not(.dark-mode) h4 {
+  color: #888 !important;
+  border-bottom-color: #ddd !important;
+}

@@ -98,6 +98,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
       const g = document.createElementNS(ns, 'g');
       g.setAttribute('transform', `translate(${x}, ${y}) scale(${GLYPH_SCALE})`);
       g.setAttribute('data-original-transform', `translate(${x}, ${y})`);
+      g.setAttribute('data-font', font.name);
       g.setAttribute('data-font-id', font.id);
       g.setAttribute('data-font-name', font.name);
       g.setAttribute('data-category', font.family);

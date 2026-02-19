@@ -28,6 +28,15 @@
   transform: none;
 }
 
+.unified-overlay .overlay-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top: 3px solid #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 .dark-mode .unified-overlay .loading {
   color: #ffffff;
 }

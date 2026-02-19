@@ -212,14 +212,6 @@ const FontMap = ({ darkMode = false }) => {
 
         <div className="map-container">
           <svg ref={svgRef} className="fontmap-svg"></svg>
-          {appState === 'loading' && (
-            <div className="map-loading-overlay">
-              <div className="map-loading-spinner">
-                <div className="spinner-large"></div>
-                <div className="loading-text">Loading font map...</div>
-              </div>
-            </div>
-          )}
         </div>
 
         {!loading && fonts.length > 0 && (
@@ -236,7 +228,7 @@ const FontMap = ({ darkMode = false }) => {
       {/* Overlays */}
       {appState === 'loading' && (
         <div className="unified-overlay">
-          <div className="loading">Initializing...</div>
+          <div className="overlay-spinner" />
         </div>
       )}
 

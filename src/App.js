@@ -11,12 +11,13 @@ function FullPageSpinner() {
     <div style={{
       position: 'fixed', inset: 0,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#fff'
+      background: 'rgba(0, 0, 0, 0.6)',
+      zIndex: 99999
     }}>
       <div style={{
         width: 32, height: 32,
-        border: '3px solid #e0e0e0',
-        borderTop: '3px solid #333',
+        border: '3px solid rgba(255,255,255,0.2)',
+        borderTop: '3px solid #fff',
         borderRadius: '50%',
         animation: 'spin 0.8s linear infinite'
       }} />

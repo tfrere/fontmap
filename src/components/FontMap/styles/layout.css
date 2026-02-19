@@ -69,49 +69,6 @@
   height: 100%;
 }
 
-/* Overlay de chargement pour la carte */
-.map-loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, var(--overlay-opacity-light));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
-
-.dark-mode .map-loading-overlay {
-  background: rgba(0, 0, 0, var(--overlay-opacity-dark));
-}
-
-.map-loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.spinner-large {
-  width: 32px;
-  height: 32px;
-  border: 3px solid transparent;
-  border-top: 3px solid var(--color-text-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.dark-mode .spinner-large {
-  border-top-color: var(--color-text-primary-dark);
-}
-
-.loading-text {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
 
 .dark-mode .loading-text {
   color: var(--color-text-secondary-dark);

@@ -1,8 +1,14 @@
 {
-  "name": "react-template",
-  "version": "0.1.0",
-  "private": true,
+  "name": "fontmap",
+  "version": "1.0.0",
+  "description": "Interactive map of 1,100+ Google Fonts organized by visual similarity using FontCLIP + UMAP",
+  "author": "Thibaud Frere",
+  "license": "MIT",
   "homepage": ".",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tfrere/fontmap"
+  },
   "dependencies": {
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",

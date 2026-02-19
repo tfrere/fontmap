@@ -45,11 +45,12 @@ const FontMap = ({ darkMode = false }) => {
   // ── Data : polices + chemins de glyphes (pour la sidebar ActiveFont) ──
   const { fonts, glyphPaths, loading, error } = useStaticFontData();
 
-  // ── Moteur de rendu DebugUMAP (viewBox + SVGs individuels + batch) ──
+  // ── Moteur de rendu (sprite SVG, 0 requêtes réseau supplémentaires) ──
   const svgReady = !loading && fonts.length > 0;
   useMapRenderer({
     svgRef,
     fonts,
+    glyphPaths,
     filter,
     searchTerm,
     darkMode,

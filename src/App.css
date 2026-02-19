@@ -1,3 +1,7 @@
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .App {
   position: relative;
   width: 100vw;

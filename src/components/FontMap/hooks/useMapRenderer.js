@@ -2,8 +2,6 @@ import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { useFontMapStore } from '../../../store/fontMapStore';
 
-const BATCH_SIZE = 50;
-const BATCH_DELAY = 10;
 const GLYPH_SCALE = 0.25;
 
 const CATEGORY_COLORS = {
@@ -36,10 +34,6 @@ function calculateMappingDimensions(fonts, width, height, padding = 40) {
   return { mapX, mapY };
 }
 
-/**
- * Retourne ou crée le viewport-group (partagé avec useMapZoom).
- * Ne touche PAS au reste du SVG pour ne pas casser le zoom D3.
- */
 function getOrCreateViewportGroup(svg) {
   let vg = svg.select('.viewport-group');
   if (vg.empty()) {
@@ -49,12 +43,9 @@ function getOrCreateViewportGroup(svg) {
 }
 
 /**
- * Hook de rendu de la carte — moteur DebugUMAP
- * (viewBox + SVGs individuels + batch loading) avec interactions FontMap.
+ * Hook de rendu — utilise le sprite SVG pré-chargé (0 requête réseau).
  */
-export function useMapRenderer({ svgRef, fonts, filter, searchTerm, darkMode, loading, enabled = true }) {
-  const abortControllerRef = useRef(null);
-  const timeoutRefs = useRef([]);
+export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, darkMode, loading, enabled = true }) {
   const mappingRef = useRef({ mapX: null, mapY: null });
   const dimensionsRef = useRef({ width: 0, height: 0 });
   const hasRenderedRef = useRef(false);
@@ -67,19 +58,11 @@ export function useMapRenderer({ svgRef, fonts, filter, searchTerm, darkMode, lo
     useCategoryColors
   } = useFontMapStore();
 
-  // Ref synchronisée pour éviter de rebind les event listeners à chaque sélection
   selectedFontRef.current = selectedFont;
 
-  // ── Rendu principal : configurer le viewBox et charger les glyphes ──
+  // ── Rendu principal : synchrone depuis le sprite, aucun fetch ──
   useEffect(() => {
     if (!enabled || !fonts || fonts.length === 0 || !svgRef.current) return;
-
-    // Cleanup des opérations précédentes
-    if (abortControllerRef.current) abortControllerRef.current.abort();
-    timeoutRefs.current.forEach(t => clearTimeout(t));
-    timeoutRefs.current = [];
-
-    abortControllerRef.current = new AbortController();
 
     const svg = d3.select(svgRef.current);
     const parentEl = svgRef.current.parentElement;
@@ -89,62 +72,48 @@ export function useMapRenderer({ svgRef, fonts, filter, searchTerm, darkMode, lo
     const height = parentEl.clientHeight || window.innerHeight;
     dimensionsRef.current = { width, height };
 
-    // viewBox = clé de l'antialiasing (comme DebugUMAP MapContainer)
     svg
       .attr('width', '100%')
       .attr('height', '100%')
       .attr('viewBox', `0 0 ${width} ${height}`);
 
-    // Créer ou récupérer le viewport-group — NE PAS supprimer le SVG entier
     const viewportGroup = getOrCreateViewportGroup(svg);
-
-    // Nettoyer uniquement les glyphes existants (pas le zoom/viewport)
     viewportGroup.selectAll('g.glyph-group').remove();
 
-    // Calculer le mapping
     const { mapX, mapY } = calculateMappingDimensions(fonts, width, height);
     mappingRef.current = { mapX, mapY };
 
-    // Charger les glyphes par batch
-    const loadBatch = (startIndex) => {
-      const endIndex = Math.min(startIndex + BATCH_SIZE, fonts.length);
-      const batch = fonts.slice(startIndex, endIndex);
+    const hasSprite = glyphPaths && Object.keys(glyphPaths).length > 0;
+    const vgNode = viewportGroup.node();
+    const ns = 'http://www.w3.org/2000/svg';
 
-      const promises = batch.map(font =>
-        fetch(`/data/char/${font.id}_a.svg`, {
-          signal: abortControllerRef.current.signal
-        })
-          .then(res => res.text())
-          .then(svgContent => {
-            if (!svgRef.current || abortControllerRef.current.signal.aborted) return;
-            renderGlyph(viewportGroup, svgContent, font, mapX, mapY, darkMode, useCategoryColors);
-          })
-          .catch(err => {
-            if (err.name !== 'AbortError') {
-              console.warn('Glyph load error:', font.id, err);
-            }
-          })
-      );
+    fonts.forEach(font => {
+      const pathD = hasSprite ? glyphPaths[font.id] : null;
+      if (!pathD) return;
 
-      Promise.all(promises).then(() => {
-        if (!svgRef.current || abortControllerRef.current.signal.aborted) return;
-        if (endIndex < fonts.length) {
-          const timeout = setTimeout(() => loadBatch(endIndex), BATCH_DELAY);
-          timeoutRefs.current.push(timeout);
-        } else {
-          hasRenderedRef.current = true;
-        }
-      });
-    };
+      const x = mapX(font.x);
+      const y = mapY(font.y);
+      const color = getGlyphColor(font.family, useCategoryColors, darkMode);
 
-    loadBatch(0);
+      const g = document.createElementNS(ns, 'g');
+      g.setAttribute('transform', `translate(${x}, ${y}) scale(${GLYPH_SCALE})`);
+      g.setAttribute('data-original-transform', `translate(${x}, ${y})`);
+      g.setAttribute('data-font-id', font.id);
+      g.setAttribute('data-font-name', font.name);
+      g.setAttribute('data-category', font.family);
+      g.setAttribute('class', 'glyph-group');
+      g.style.cursor = 'pointer';
 
-    return () => {
-      if (abortControllerRef.current) abortControllerRef.current.abort();
-      timeoutRefs.current.forEach(t => clearTimeout(t));
-      timeoutRefs.current = [];
-    };
-  }, [enabled, fonts, darkMode, useCategoryColors, svgRef]);
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', pathD);
+      path.setAttribute('fill', color);
+      g.appendChild(path);
+
+      vgNode.appendChild(g);
+    });
+
+    hasRenderedRef.current = true;
+  }, [enabled, fonts, glyphPaths, darkMode, useCategoryColors, svgRef]);
 
   // ── Mise à jour des couleurs (dark mode / category colors toggle) ──
   useEffect(() => {
@@ -344,40 +313,4 @@ export function useMapRenderer({ svgRef, fonts, filter, searchTerm, darkMode, lo
   }, [fonts, setSelectedFont, setHoveredFont, svgRef]);
 
   return { mappingRef, dimensionsRef };
-}
-
-// ── Rendu d'un glyphe individuel ──
-
-function renderGlyph(viewportGroup, svgContent, font, mapX, mapY, darkMode, useCategoryColors) {
-  const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  const x = mapX(font.x);
-  const y = mapY(font.y);
-
-  group.setAttribute('transform', `translate(${x}, ${y}) scale(${GLYPH_SCALE})`);
-  group.setAttribute('data-original-transform', `translate(${x}, ${y})`);
-  group.setAttribute('data-font', font.name);
-  group.setAttribute('data-font-id', font.id);
-  group.setAttribute('data-font-name', font.name);
-  group.setAttribute('data-category', font.family);
-  group.setAttribute('class', 'glyph-group');
-  group.style.cursor = 'pointer';
-
-  const parser = new DOMParser();
-  const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
-  const svgElement = svgDoc.querySelector('svg');
-
-  if (svgElement) {
-    while (svgElement.firstChild) {
-      group.appendChild(svgElement.firstChild);
-    }
-  }
-
-  const color = getGlyphColor(font.family, useCategoryColors, darkMode);
-  group.querySelectorAll('*').forEach(el => {
-    if (el.nodeType === Node.ELEMENT_NODE) {
-      el.setAttribute('fill', color);
-    }
-  });
-
-  viewportGroup.node().appendChild(group);
 }

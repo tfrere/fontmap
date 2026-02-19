@@ -7,8 +7,8 @@ import ModalPortal from './ModalPortal';
 const IntroModal = ({ onStartExploring, darkMode }) => {
   return (
     <ModalPortal isOpen={true}>
-      <div className="unified-overlay">
-        <div className="intro-modal">
+      <div className="unified-overlay" onClick={onStartExploring}>
+        <div className="intro-modal" onClick={(e) => e.stopPropagation()}>
           <div className="intro-modal-content">
             <h1 className="intro-title">FontMap</h1>
             <p className="intro-subtitle">

@@ -1,0 +1,35 @@
+{
+  "name": "fontmap-new-pipe",
+  "version": "1.0.0",
+  "description": "Pipeline de traitement des polices pour FontMap",
+  "type": "module",
+  "main": "1-download-font.mjs",
+  "scripts": {
+    "download": "node 1-download-font.mjs",
+    "generate-svgs": "node 2-generate-svgs.mjs",
+    "generate-pngs": "node 3-generate-pngs.mjs",
+    "generate-embeddings": "node 4-generate-embeddings.mjs",
+    "batch-umap": "node 5-batch-umap.mjs",
+    "copy-to-debug": "node 6-copy-to-debug.mjs",
+    "generate-sprite": "node 7-generate-sprite.mjs",
+    "deploy": "node 8-deploy-to-prod.mjs",
+    "test-clip": "node test-clip-compatibility.mjs",
+    "start": "node 1-download-font.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.7.5",
+    "chalk": "^4.1.2",
+    "cli-progress": "^3.12.0",
+    "ml-matrix": "^6.10.4",
+    "opentype.js": "^1.3.4",
+    "sharp": "^0.33.0",
+    "umap-js": "^1.3.0"
+  },
+  "keywords": [
+    "fonts",
+    "typography",
+    "download"
+  ],
+  "author": "FontMap Team",
+  "license": "MIT"
+}

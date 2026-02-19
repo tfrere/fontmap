@@ -1,0 +1,154 @@
+{
+  "generated_at": "2026-02-18T16:00:00.000Z",
+  "total_configs": 8,
+  "configs": [
+    {
+      "filename": "fontclip-spectral_2026-02-18T15-31-31.json",
+      "testName": "fontclip-spectral",
+      "config": {
+        "nNeighbors": 15,
+        "minDist": 0.5,
+        "metric": "cosine",
+        "enableFontFusion": false,
+        "testName": "fontclip-spectral",
+        "randomSeed": 42
+      },
+      "metadata": {
+        "generated_at": "2026-02-18T15:31:31.000Z",
+        "total_fonts": 1877,
+        "method": "umap_from_fontclip_python",
+        "model": "FontCLIP ViT-B/32 (fine-tuned for typography)",
+        "pca_components": 50,
+        "umap_init": "spectral",
+        "note": "FontCLIP embeddings with spectral UMAP and high-dim k-NN"
+      },
+      "timestamp": "2026-02-18T15:31:31.000Z"
+    },
+    {
+      "filename": "balanced-compact_2025-10-26T19-48-41.json",
+      "testName": "balanced-compact",
+      "config": {
+        "nNeighbors": 15,
+        "minDist": 0.5,
+        "enableFontFusion": true,
+        "testName": "balanced-compact",
+        "randomSeed": 42
+      },
+      "metadata": {
+        "generated_at": "2025-10-26T19:48:41.654Z",
+        "total_fonts": 1192,
+        "method": "umap_from_clip_embeddings_pure_visual",
+        "note": "100% visual embeddings, no category influence"
+      },
+      "timestamp": "2025-10-26T19:48:41.654Z"
+    },
+    {
+      "filename": "base-reference_2025-10-26T19-48-33.json",
+      "testName": "base-reference",
+      "config": {
+        "nNeighbors": 15,
+        "minDist": 1,
+        "enableFontFusion": true,
+        "testName": "base-reference",
+        "randomSeed": 42
+      },
+      "metadata": {
+        "generated_at": "2025-10-26T19:48:33.218Z",
+        "total_fonts": 1192,
+        "method": "umap_from_clip_embeddings_pure_visual",
+        "note": "100% visual embeddings, no category influence"
+      },
+      "timestamp": "2025-10-26T19:48:33.218Z"
+    },
+    {
+      "filename": "global-medium_2025-10-26T19-48-46.json",
+      "testName": "global-medium",
+      "config": {
+        "nNeighbors": 25,
+        "minDist": 0.8,
+        "enableFontFusion": true,
+        "testName": "global-medium",
+        "randomSeed": 42
+      },
+      "metadata": {
+        "generated_at": "2025-10-26T19:48:46.626Z",
+        "total_fonts": 1192,
+        "method": "umap_from_clip_embeddings_pure_visual",
+        "note": "100% visual embeddings, no category influence"
+      },
+      "timestamp": "2025-10-26T19:48:46.626Z"
+    },
+    {
+      "filename": "global-spread_2025-10-26T19-48-52.json",
+      "testName": "global-spread",
+      "config": {
+        "nNeighbors": 30,
+        "minDist": 1,
+        "enableFontFusion": true,
+        "testName": "global-spread",
+        "randomSeed": 42
+      },
+      "metadata": {
+        "generated_at": "2025-10-26T19:48:52.185Z",
+        "total_fonts": 1192,
+        "method": "umap_from_clip_embeddings_pure_visual",
+        "note": "100% visual embeddings, no category influence"
+      },
+      "timestamp": "2025-10-26T19:48:52.185Z"
+    },
+    {
+      "filename": "local-medium_2025-10-26T19-48-37.json",
+      "testName": "local-medium",
+      "config": {
+        "nNeighbors": 8,
+        "minDist": 0.3,
+        "enableFontFusion": true,
+        "testName": "local-medium",
+        "randomSeed": 42
+      },
+      "metadata": {
+        "generated_at": "2025-10-26T19:48:37.764Z",
+        "total_fonts": 1192,
+        "method": "umap_from_clip_embeddings_pure_visual",
+        "note": "100% visual embeddings, no category influence"
+      },
+      "timestamp": "2025-10-26T19:48:37.764Z"
+    },
+    {
+      "filename": "local-tight_2025-10-26T19-48-35.json",
+      "testName": "local-tight",
+      "config": {
+        "nNeighbors": 5,
+        "minDist": 0.1,
+        "enableFontFusion": true,
+        "testName": "local-tight",
+        "randomSeed": 42
+      },
+      "metadata": {
+        "generated_at": "2025-10-26T19:48:35.215Z",
+        "total_fonts": 1192,
+        "method": "umap_from_clip_embeddings_pure_visual",
+        "note": "100% visual embeddings, no category influence"
+      },
+      "timestamp": "2025-10-26T19:48:35.215Z"
+    },
+    {
+      "filename": "very-spread_2025-10-26T19-48-56.json",
+      "testName": "very-spread",
+      "config": {
+        "nNeighbors": 20,
+        "minDist": 1.5,
+        "enableFontFusion": true,
+        "testName": "very-spread",
+        "randomSeed": 42
+      },
+      "metadata": {
+        "generated_at": "2025-10-26T19:48:56.150Z",
+        "total_fonts": 1192,
+        "method": "umap_from_clip_embeddings_pure_visual",
+        "note": "100% visual embeddings, no category influence"
+      },
+      "timestamp": "2025-10-26T19:48:56.150Z"
+    }
+  ]
+}

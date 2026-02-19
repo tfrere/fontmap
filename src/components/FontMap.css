@@ -1,0 +1,20 @@
+/* FontMap Styles - Main Entry Point */
+/* Import all component styles */
+
+/* Variables - Must be imported first */
+@import './FontMap/styles/variables.css';
+
+/* Layout styles */
+@import './FontMap/styles/layout.css';
+
+/* Tooltip styles */
+@import './FontMap/styles/tooltip.css';
+
+/* Controls styles */
+@import './FontMap/styles/controls.css';
+
+/* Font details styles */
+@import './FontMap/styles/font-details.css';
+
+/* Responsive styles */
+@import './FontMap/styles/responsive.css';

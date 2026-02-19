@@ -1,0 +1,97 @@
+.App {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 20px;
+  pointer-events: none;
+}
+
+.app-header > * {
+  pointer-events: auto;
+}
+
+
+/* Styles pour le dark mode toggle dans le header */
+.app-header .dark-mode-toggle {
+  flex-shrink: 0;
+}
+
+.app-header .toggle-btn {
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 10px;
+  font-weight: 500;
+  min-width: 32px;
+  text-align: center;
+  outline: none;
+  user-select: none;
+}
+
+.app-header .toggle-btn:hover {
+  background: #f8f9fa;
+  border-color: #d1d5db;
+}
+
+.app-header .toggle-btn:active {
+  transform: translateY(0);
+}
+
+/* Dark mode styles */
+.App.dark-mode {
+  background: #000000;
+}
+
+
+.App.dark-mode .app-header .toggle-btn {
+  background: #1a1a1a;
+  color: #ffffff;
+  border-color: #404040;
+}
+
+.App.dark-mode .app-header .toggle-btn:hover {
+  background: #333333;
+  border-color: #555555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 15px;
+  }
+  
+  .app-header .toggle-btn {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 10px;
+  }
+  
+  .app-header .toggle-btn {
+    padding: 8px;
+  }
+}

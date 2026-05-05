@@ -50,6 +50,34 @@
   max-width: 280px;
   overflow: hidden;
   transform: translateY(0);
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}
+
+/* Mobile-only "Open" button inside the hover tooltip */
+.tooltip-open-btn {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 0 8px 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.font-tooltip.dark-mode .tooltip-open-btn {
+  background: var(--color-bg-primary-dark);
+  color: var(--color-text-primary-dark);
+  border-color: var(--color-border-primary-dark);
 }
 
 /* Tooltip sélectionné (priorité normale) */
@@ -272,8 +300,18 @@
 
 
 /* Dark mode overrides for tooltip images */
-.dark-mode .tooltip-sentence img {
+.dark-mode .tooltip-sentence img,
+.font-tooltip.dark-mode .sentence-image {
   filter: invert(1) !important;
+}
+
+/* Spinner inherits tooltip color so it adapts to dark mode */
+.font-tooltip .tooltip-spinner {
+  color: var(--color-text-secondary) !important;
+}
+
+.font-tooltip.dark-mode .tooltip-spinner {
+  color: var(--color-text-secondary-dark) !important;
 }
 
 /* Dark mode overrides for tooltip SVG */

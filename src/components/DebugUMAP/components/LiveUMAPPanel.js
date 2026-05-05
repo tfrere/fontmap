@@ -5,11 +5,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useControls, button, folder } from 'leva';
 import { useLiveUMAP } from '../hooks';
+import { useDebugUMAPStore } from '../store';
 
 const DEFAULTS = { nNeighbors: 12, minDist: 1.0, enableFontFusion: true };
 
 const LiveUMAPPanel = ({ onResult }) => {
   const { calculate, isCalculating, progress, error, result: lastResult } = useLiveUMAP();
+  const dilatedFonts = useDebugUMAPStore((state) => state.dilatedFonts);
   const timeoutRef = useRef(null);
   const userChangedRef = useRef(false);
 
@@ -28,6 +30,9 @@ const LiveUMAPPanel = ({ onResult }) => {
     });
   };
 
+  const dilatedFontsRef = useRef(dilatedFonts);
+  useEffect(() => { dilatedFontsRef.current = dilatedFonts; }, [dilatedFonts]);
+
   const handleExport = () => {
     const result = lastResultRef.current;
     if (!result) {
@@ -35,7 +40,11 @@ const LiveUMAPPanel = ({ onResult }) => {
       return;
     }
 
-    const jsonString = JSON.stringify(result, null, 2);
+    // If overlap removal was applied, export the dilated positions
+    const fonts = dilatedFontsRef.current?.length > 0 ? dilatedFontsRef.current : result.fonts;
+    const exportData = { ...result, fonts };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
 

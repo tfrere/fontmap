@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import '../FontMap.css';
 
 import { useStaticFontData } from '../../hooks/useStaticFontData';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useMapRenderer } from './hooks/useMapRenderer';
 import { useMapZoom } from './hooks/useMapZoom';
 import { useArrowNavigation } from './hooks/useArrowNavigation';
@@ -25,7 +26,7 @@ import './styles/about-modal.css';
  * Composant principal FontMap — Moteur de rendu DebugUMAP + UI prod complète.
  * Mode debug activable via ?debug=true dans l'URL.
  */
-const FontMap = ({ darkMode = false }) => {
+const FontMap = ({ darkMode: darkModeProp = false }) => {
   const svgRef = useRef(null);
   const [searchParams] = useSearchParams();
   const isDebugMode = searchParams.get('debug') === 'true';
@@ -34,6 +35,21 @@ const FontMap = ({ darkMode = false }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [appState, setAppState] = useState('loading');
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const stored = localStorage.getItem('fontmap-dark-mode');
+    return stored !== null ? stored === 'true' : darkModeProp;
+  });
+  const [iconRotation, setIconRotation] = useState(0);
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
+  useEffect(() => {
+    localStorage.setItem('fontmap-dark-mode', String(darkMode));
+  }, [darkMode]);
+
+  const toggleDarkMode = useCallback(() => {
+    setIconRotation(r => r + 360);
+    setDarkMode(d => !d);
+  }, []);
 
   const {
     selectedFont,
@@ -55,7 +71,8 @@ const FontMap = ({ darkMode = false }) => {
     searchTerm,
     darkMode,
     loading,
-    enabled: svgReady
+    enabled: svgReady,
+    isMobile,
   });
 
   // ── Zoom simplifié (DebugUMAP-style) ──
@@ -66,6 +83,7 @@ const FontMap = ({ darkMode = false }) => {
 
   // ── Callbacks ──
   function handleFontSelect(font) {
+    setHoveredFont(null);
     setSelectedFont(font);
   }
 
@@ -77,14 +95,13 @@ const FontMap = ({ darkMode = false }) => {
     setHoveredFont(null);
   }, [setHoveredFont]);
 
-  // ── Centrage sur la police sélectionnée / reset au désélect ──
+  // ── Centrage sur la police sélectionnée — on ne reset PAS le zoom au désélect
+  // pour laisser l'utilisateur continuer à explorer là où il était.
   useEffect(() => {
     if (selectedFont) {
       centerOnFont(selectedFont);
-    } else {
-      resetZoom();
     }
-  }, [selectedFont, centerOnFont, resetZoom]);
+  }, [selectedFont, centerOnFont]);
 
   // ── Callbacks globaux pour le TooltipManager ──
   useEffect(() => {
@@ -148,7 +165,7 @@ const FontMap = ({ darkMode = false }) => {
   }
 
   return (
-    <div className={`fontmap-container ${darkMode ? 'dark-mode' : ''}`}>
+    <div className={`fontmap-container ${darkMode ? 'dark-mode' : ''} ${selectedFont ? 'has-focus' : ''}`}>
       {/* Symboles SVG cachés pour la sidebar */}
       {symbolDefs}
 
@@ -206,6 +223,28 @@ const FontMap = ({ darkMode = false }) => {
         <h1 className="map-title" data-text="FontMap">FontMap</h1>
 
         <div className="bottom-controls">
+          <button
+            className="dark-mode-toggle"
+            onClick={toggleDarkMode}
+            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label="Toggle dark mode"
+          >
+            <span
+              className="dark-mode-toggle-icon"
+              style={{ transform: `rotate(${iconRotation}deg)` }}
+            >
+              {darkMode ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+            </span>
+          </button>
           <CategoryLegend darkMode={darkMode} />
           <ZoomControls />
         </div>
@@ -214,6 +253,18 @@ const FontMap = ({ darkMode = false }) => {
           <svg ref={svgRef} className="fontmap-svg"></svg>
         </div>
 
+        {selectedFont && (
+          <div className="focus-hint">
+            <div className="focus-hint-keys">
+              <kbd>←</kbd>
+              <kbd>↑</kbd>
+              <kbd>↓</kbd>
+              <kbd>→</kbd>
+            </div>
+            <span className="focus-hint-label">use arrow keys to navigate</span>
+          </div>
+        )}
+
         {!loading && fonts.length > 0 && (
           <TooltipManager
             selectedFont={selectedFont}
@@ -221,6 +272,8 @@ const FontMap = ({ darkMode = false }) => {
             darkMode={darkMode}
             onFontHover={handleFontHover}
             onFontUnhover={handleFontUnhover}
+            isMobile={isMobile}
+            onOpenFont={handleFontSelect}
           />
         )}
       </div>

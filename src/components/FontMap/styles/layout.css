@@ -41,6 +41,7 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  z-index: 2000;
 }
 
 .dark-mode .sidebar {
@@ -228,6 +229,11 @@
   cursor: grabbing;
 }
 
+/* Mobile-only back chevron inside the ActiveFont drawer (hidden on desktop) */
+.font-details-back {
+  display: none;
+}
+
 /* Font glyphs with expanded hit area */
 .font-glyph-group,
 .glyph-group {
@@ -236,6 +242,26 @@
 
 .font-hit-area {
   cursor: pointer;
+}
+
+.glyph-hitbox {
+  fill: transparent;
+  stroke: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.glyph-hitbox:hover,
+.highlight-group .glyph-hitbox {
+  fill: rgba(0, 0, 0, 0.02);
+  stroke: rgba(0, 0, 0, 0.14);
+  stroke-width: 1;
+}
+
+.dark-mode .glyph-hitbox:hover,
+.dark-mode .highlight-group .glyph-hitbox {
+  fill: rgba(255, 255, 255, 0.03);
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 1;
 }
 
 .font-glyph {

@@ -45,7 +45,7 @@ function getOrCreateViewportGroup(svg) {
 /**
  * Hook de rendu — utilise le sprite SVG pré-chargé (0 requête réseau).
  */
-export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, darkMode, loading, enabled = true }) {
+export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, darkMode, loading, enabled = true, isMobile = false }) {
   const mappingRef = useRef({ mapX: null, mapY: null });
   const dimensionsRef = useRef({ width: 0, height: 0 });
   const hasRenderedRef = useRef(false);
@@ -55,7 +55,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     selectedFont,
     setSelectedFont,
     setHoveredFont,
-    useCategoryColors
+    useCategoryColors,
   } = useFontMapStore();
 
   selectedFontRef.current = selectedFont;
@@ -88,7 +88,15 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     const ns = 'http://www.w3.org/2000/svg';
 
     fonts.forEach(font => {
-      const pathD = hasSprite ? (glyphPaths[`${font.id}_a`] || glyphPaths[font.id]) : null;
+      // The sprite is keyed off the slugified font name (often imageName),
+      // not always the short id. Fall back to the imageName-derived key.
+      const imgKey = (font.imageName || font.name || '').toLowerCase();
+      const pathD = hasSprite
+        ? (glyphPaths[`${font.id}_a`]
+          || glyphPaths[font.id]
+          || glyphPaths[`${imgKey}_a`]
+          || glyphPaths[imgKey])
+        : null;
       if (!pathD) return;
 
       const x = mapX(font.x);
@@ -105,9 +113,19 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
       g.setAttribute('class', 'glyph-group');
       g.style.cursor = 'pointer';
 
+      const hitbox = document.createElementNS(ns, 'circle');
+      hitbox.setAttribute('class', 'glyph-hitbox');
+      hitbox.setAttribute('cx', '40');
+      hitbox.setAttribute('cy', '40');
+      hitbox.setAttribute('r', '44');
+      hitbox.setAttribute('fill', 'transparent');
+      hitbox.setAttribute('pointer-events', 'all');
+      g.appendChild(hitbox);
+
       const path = document.createElementNS(ns, 'path');
       path.setAttribute('d', pathD);
       path.setAttribute('fill', color);
+      path.setAttribute('pointer-events', 'none');
       g.appendChild(path);
 
       vgNode.appendChild(g);
@@ -117,18 +135,16 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
   }, [enabled, fonts, glyphPaths, darkMode, useCategoryColors, svgRef]);
 
   // ── Mise à jour des couleurs (dark mode / category colors toggle) ──
+  // On itère sur tous les g.glyph-group du SVG (viewport + highlight clone)
+  // pour que la lettre en focus suive aussi les toggles.
   useEffect(() => {
     if (!svgRef.current) return;
-    const viewportGroup = svgRef.current.querySelector('.viewport-group');
-    if (!viewportGroup) return;
 
-    viewportGroup.querySelectorAll('g.glyph-group').forEach(group => {
+    svgRef.current.querySelectorAll('g.glyph-group').forEach(group => {
       const category = group.getAttribute('data-category');
       const color = getGlyphColor(category, useCategoryColors, darkMode);
-      group.querySelectorAll('*').forEach(el => {
-        if (el.nodeType === Node.ELEMENT_NODE) {
-          el.setAttribute('fill', color);
-        }
+      group.querySelectorAll('path').forEach(el => {
+        el.setAttribute('fill', color);
       });
     });
   }, [darkMode, useCategoryColors, svgRef]);
@@ -166,6 +182,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     const fillColor = useCategoryColors
       ? null
       : (darkMode ? '#ffffff' : '#000000');
+    const haloColor = darkMode ? '#000000' : '#ffffff';
 
     Object.entries(centroids).forEach(([cat, c]) => {
       const x = mapX(c.x / c.n);
@@ -179,7 +196,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         .attr('font-size', '16px')
         .attr('font-weight', 'bold')
         .attr('fill', color)
-        .attr('stroke', '#ffffff')
+        .attr('stroke', haloColor)
         .attr('stroke-width', '8px')
         .attr('paint-order', 'stroke fill')
         .attr('class', 'centroid-label')
@@ -282,6 +299,9 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     };
 
     const handleMouseOut = (e) => {
+      // Sur mobile, le tap synthétise des mouseover/mouseout — on ignore le
+      // out pour que le tooltip reste ouvert jusqu'au prochain tap.
+      if (isMobile) return;
       if (useFontMapStore.getState().isTransitioning) return;
       const group = findGlyphGroup(e.target);
       if (!group) return;
@@ -291,15 +311,25 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     const handleClick = (e) => {
       const group = findGlyphGroup(e.target);
       if (!group) {
-        if (selectedFontRef.current) setSelectedFont(null);
+        // Tap on empty space — clear hover (mobile) or selection (desktop)
+        if (isMobile) {
+          setHoveredFont(null);
+        } else if (selectedFontRef.current) {
+          setSelectedFont(null);
+        }
         return;
       }
       const font = getFontFromGroup(group);
-      if (font) {
-        setHoveredFont(null);
-        const cur = selectedFontRef.current;
-        setSelectedFont(cur && cur.id === font.id ? null : font);
+      if (!font) return;
+      if (isMobile) {
+        // Mobile: tap shows the tooltip with an Open button — don't open the
+        // drawer directly. The button inside the tooltip selects the font.
+        setHoveredFont(font);
+        return;
       }
+      setHoveredFont(null);
+      const cur = selectedFontRef.current;
+      setSelectedFont(cur && cur.id === font.id ? null : font);
     };
 
     svg.addEventListener('mouseover', handleMouseOver);
@@ -311,7 +341,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
       svg.removeEventListener('mouseout', handleMouseOut);
       svg.removeEventListener('click', handleClick);
     };
-  }, [fonts, setSelectedFont, setHoveredFont, svgRef]);
+  }, [fonts, setSelectedFont, setHoveredFont, svgRef, isMobile]);
 
   return { mappingRef, dimensionsRef };
 }

@@ -385,6 +385,92 @@
   gap: 8px;
 }
 
+/* Focus mode hint (shown when a font is selected) */
+.focus-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 200;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
+.focus-hint-keys {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.focus-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #000000;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.dark-mode .focus-hint kbd {
+  background: #000000;
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.focus-hint-label {
+  color: #000000;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  line-height: 36px;
+  text-shadow: 0 0 3px #ffffff, 0 0 3px #ffffff, 0 0 3px #ffffff;
+}
+
+.dark-mode .focus-hint-label {
+  color: #ffffff;
+  text-shadow: 0 0 3px #000000, 0 0 3px #000000, 0 0 3px #000000;
+}
+
+/* Dark mode toggle button (lives inside .bottom-controls — styled like .category-legend) */
+.bottom-controls .dark-mode-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-primary);
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.dark-mode .bottom-controls .dark-mode-toggle {
+  background: var(--color-bg-primary-dark);
+  border-color: var(--color-border-primary-dark);
+  color: var(--color-text-primary-dark);
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Zoom Controls */
 .zoom-controls {
   display: flex;

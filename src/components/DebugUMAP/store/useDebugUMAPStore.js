@@ -20,8 +20,14 @@ export const useDebugUMAPStore = create(
       darkMode: false,
       showCentroids: true,
 
+      // === Overlap removal (forceCollide post-UMAP) ===
+      overlapRadius: 10,
+      overlapTicks: 140,
+      overlapOriginStrength: 0.03,
+
       // === État des glyphes ===
       currentFonts: [],
+      dilatedFonts: [],       // fonts with overlap-resolved screen positions
       mappingFunctions: { mapX: null, mapY: null },
       glyphsLoaded: false,
 
@@ -48,8 +54,14 @@ export const useDebugUMAPStore = create(
       setDarkMode: (darkMode) => set({ darkMode }),
       setShowCentroids: (showCentroids) => set({ showCentroids }),
 
+      // === Actions pour l'overlap removal ===
+      setOverlapRadius: (v) => set({ overlapRadius: v }),
+      setOverlapTicks: (v) => set({ overlapTicks: v }),
+      setOverlapOriginStrength: (v) => set({ overlapOriginStrength: v }),
+
       // === Actions pour les glyphes ===
       setCurrentFonts: (fonts) => set({ currentFonts: fonts }),
+      setDilatedFonts: (fonts) => set({ dilatedFonts: fonts }),
       setMappingFunctions: (functions) => set({ mappingFunctions: functions }),
       setGlyphsLoaded: (loaded) => set({ glyphsLoaded: loaded }),
 
@@ -60,7 +72,11 @@ export const useDebugUMAPStore = create(
         baseGlyphSize: 0.25,
         darkMode: false,
         showCentroids: true,
+        overlapRadius: 10,
+        overlapTicks: 140,
+        overlapOriginStrength: 0.03,
         currentFonts: [],
+        dilatedFonts: [],
         mappingFunctions: { mapX: null, mapY: null },
         glyphsLoaded: false,
         error: null

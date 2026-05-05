@@ -4,6 +4,7 @@ import { calculateMappingDimensions, createGlyphTransform } from '../utils/mappi
 import { applyColorsToGlyphGroup } from '../utils/colorUtils.js';
 import { getConfig } from '../config/mapConfig.js';
 import { useDebugUMAPStore } from '../store';
+import { applyOverlapRemoval } from '../../FontMap/utils/voronoiDilation.js';
 
 /**
  * Hook pour gérer le rendu des glyphes avec Zustand
@@ -15,9 +16,13 @@ export function useGlyphRenderer({ svgRef, enabled = true }) {
   const useCategoryColors = useDebugUMAPStore((state) => state.useCategoryColors);
   const darkMode = useDebugUMAPStore((state) => state.darkMode);
   const showCentroids = useDebugUMAPStore((state) => state.showCentroids);
-  const setCurrentFonts = useDebugUMAPStore((state) => state.setCurrentFonts);
+  const overlapRadius        = useDebugUMAPStore((state) => state.overlapRadius);
+  const overlapTicks         = useDebugUMAPStore((state) => state.overlapTicks);
+  const overlapOriginStrength = useDebugUMAPStore((state) => state.overlapOriginStrength);
+  const setCurrentFonts     = useDebugUMAPStore((state) => state.setCurrentFonts);
+  const setDilatedFonts     = useDebugUMAPStore((state) => state.setDilatedFonts);
   const setMappingFunctions = useDebugUMAPStore((state) => state.setMappingFunctions);
-  const setGlyphsLoaded = useDebugUMAPStore((state) => state.setGlyphsLoaded);
+  const setGlyphsLoaded     = useDebugUMAPStore((state) => state.setGlyphsLoaded);
 
   // Références pour le cleanup
   const abortControllerRef = useRef(null);
@@ -80,9 +85,34 @@ export function useGlyphRenderer({ svgRef, enabled = true }) {
 
         // Calculer les dimensions de mapping
         const { mapX, mapY } = calculateMappingDimensions(data.fonts);
-        
+
+        // Positions écran initiales
+        const rawPositions = data.fonts.map(f => ({
+          id: f.id,
+          x: mapX(f.x),
+          y: mapY(f.y),
+        }));
+
+        // Appliquer l'overlap removal si activé
+        const resolvedPositions = overlapRadius > 0
+          ? applyOverlapRemoval(rawPositions, {
+              collideRadius: overlapRadius,
+              ticks: overlapTicks,
+              originStrength: overlapOriginStrength,
+            })
+          : rawPositions;
+
+        const positionMap = new Map(resolvedPositions.map(p => [p.id, p]));
+
+        // Stocker les fonts avec positions dilatées (pour l'export)
+        const dilated = data.fonts.map(f => {
+          const p = positionMap.get(f.id);
+          return p ? { ...f, x: p.x, y: p.y } : f;
+        });
+
         // Stocker les données pour les centroïdes
         setCurrentFonts(data.fonts);
+        setDilatedFonts(dilated);
         setMappingFunctions({ mapX, mapY });
         setGlyphsLoaded(false);
 
@@ -105,7 +135,10 @@ export function useGlyphRenderer({ svgRef, enabled = true }) {
                 if (!svgRef.current || abortControllerRef.current.signal.aborted) {
                   return;
                 }
-                renderGlyph(viewportGroup, svgContent, font, mapX, mapY, baseGlyphSize, useCategoryColors, darkMode);
+                const pos = positionMap.get(font.id);
+                const screenX = pos ? pos.x : mapX(font.x);
+                const screenY = pos ? pos.y : mapY(font.y);
+                renderGlyph(viewportGroup, svgContent, font, screenX, screenY, baseGlyphSize, useCategoryColors, darkMode);
               })
               .catch((err) => {
                 if (err.name !== 'AbortError') {
@@ -159,7 +192,7 @@ export function useGlyphRenderer({ svgRef, enabled = true }) {
       timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
       timeoutRefs.current = [];
     };
-  }, [enabled, configs, currentConfigIndex]);
+  }, [enabled, configs, currentConfigIndex, overlapRadius, overlapTicks, overlapOriginStrength]);
 
   // Mettre à jour les couleurs des glyphes existants
   useEffect(() => {
@@ -244,14 +277,10 @@ export function useGlyphRenderer({ svgRef, enabled = true }) {
 /**
  * Rend un glyphe individuel
  */
-function renderGlyph(viewportGroup, svgContent, font, mapX, mapY, baseGlyphSize, useCategoryColors, darkMode) {
+function renderGlyph(viewportGroup, svgContent, font, screenX, screenY, baseGlyphSize, useCategoryColors, darkMode) {
   // Créer un groupe pour chaque glyphe
   const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  const originalTransform = createGlyphTransform(
-    mapX(font.x), 
-    mapY(font.y), 
-    baseGlyphSize
-  );
+  const originalTransform = createGlyphTransform(screenX, screenY, baseGlyphSize);
   
   group.setAttribute('transform', originalTransform);
   group.setAttribute('data-original-transform', originalTransform);

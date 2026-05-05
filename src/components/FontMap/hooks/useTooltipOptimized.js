@@ -5,11 +5,14 @@ import * as d3 from 'd3';
  * Hook optimisé pour la gestion des tooltips
  * Séparation claire entre logique de positionnement et affichage
  */
-export const useTooltipOptimized = (darkMode) => {
+export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = null) => {
   const selectedTooltipRef = useRef(null);
   const hoverTooltipRef = useRef(null);
   const currentTransformRef = useRef(d3.zoomIdentity);
   const imageLoadTimeoutsRef = useRef(new Map());
+  const currentFontRef = useRef(null);
+  const onOpenFontRef = useRef(onOpenFont);
+  useEffect(() => { onOpenFontRef.current = onOpenFont; }, [onOpenFont]);
 
   // Mémoriser les styles du tooltip selon le mode sombre
   const tooltipStyles = useMemo(() => ({
@@ -47,7 +50,20 @@ export const useTooltipOptimized = (darkMode) => {
       .style('z-index', 1000)
       .style('transition', 'opacity 0.2s ease');
 
+    // Délégation de clic pour le bouton "Open" (mobile uniquement) — reste
+    // armé en permanence, le bouton n'existe dans le HTML que sur mobile.
+    const onHoverClick = (e) => {
+      if (e.target.closest('.tooltip-open-btn')) {
+        const font = currentFontRef.current;
+        const cb = onOpenFontRef.current;
+        if (font && cb) cb(font);
+      }
+    };
+    const hoverNode = hoverTooltipRef.current.node();
+    if (hoverNode) hoverNode.addEventListener('click', onHoverClick);
+
     return () => {
+      if (hoverNode) hoverNode.removeEventListener('click', onHoverClick);
       d3.selectAll('.font-tooltip').remove();
       // Nettoyer les timeouts
       const currentTimeouts = imageLoadTimeoutsRef.current;
@@ -75,33 +91,37 @@ export const useTooltipOptimized = (darkMode) => {
   }, [darkMode, tooltipStyles]);
 
   // Fonction optimisée pour créer le contenu du tooltip
+  // Pas de couleurs inline — tout est piloté par CSS via .font-tooltip.dark-mode
+  // pour que le toggle dark/light reste cohérent même si le tooltip est ouvert.
   const createTooltipContent = useCallback((font) => {
     const imageName = font.imageName || font.name;
     const sentenceImagePath = `/data/sentences/${imageName.toLowerCase().replace(/\s+/g, '_')}_sentence.svg`;
-    const textColor = darkMode ? '#ffffff' : '#000000';
-    const imageFilter = darkMode ? 'invert(1)' : 'none';
-    
+    const openButton = isMobile
+      ? `<button type="button" class="tooltip-open-btn">Open</button>`
+      : '';
+
     return `
       <div class="simple-tooltip">
-        <div class="tooltip-font-name" style="color: ${textColor} !important;">${font.name}</div>
+        <div class="tooltip-font-name">${font.name}</div>
         <div class="tooltip-sentence-preview">
           <div class="tooltip-image-container" style="position: relative; min-height: 44px; display: flex; align-items: center; justify-content: center;">
-            <img src="${sentenceImagePath}" 
-                 alt="${font.name} sentence preview" 
+            <img src="${sentenceImagePath}"
+                 alt=""
                  class="sentence-image"
-                 style="filter: ${imageFilter}; max-width: 200px; height: auto; opacity: 0; transition: opacity 0.2s ease;"
+                 style="max-width: 200px; height: auto; opacity: 0; transition: opacity 0.2s ease;"
                  onload="this.style.opacity='1'; this.parentElement.querySelector('.tooltip-spinner').style.display='none';"
                  onerror="this.style.display='none'; this.parentElement.querySelector('.tooltip-spinner').style.display='flex'; this.parentElement.querySelector('.tooltip-spinner').innerHTML='⚠️ Loading error';"
             />
-            <div class="tooltip-spinner" style="display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+            <div class="tooltip-spinner" style="display: flex; align-items: center; justify-content: center; font-size: 12px; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
               <div style="width: 16px; height: 16px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
               Loading...
             </div>
           </div>
         </div>
+        ${openButton}
       </div>
     `;
-  }, [darkMode]);
+  }, [isMobile]);
 
   // Fonction optimisée pour positionner un tooltip
   const positionTooltip = useCallback((tooltip, svgElement) => {
@@ -142,6 +162,8 @@ export const useTooltipOptimized = (darkMode) => {
   // Fonction optimisée pour afficher un tooltip
   const showTooltip = useCallback((tooltip, font, svgElement) => {
     if (!tooltip || !font) return;
+
+    if (tooltip === hoverTooltipRef.current) currentFontRef.current = font;
 
     tooltip
       .html(createTooltipContent(font))

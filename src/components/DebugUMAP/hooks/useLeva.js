@@ -1,5 +1,5 @@
 import React from 'react';
-import { useControls } from 'leva';
+import { useControls, folder } from 'leva';
 import { useDebugUMAPStore } from '../store';
 import { getConfig } from '../config/mapConfig.js';
 
@@ -48,6 +48,29 @@ export function useLeva({ onResetZoom }) {
       value: getStore().showCentroids,
       onChange: (v) => { getStore().setShowCentroids(v); },
     },
+    'Overlap Removal 🔧': folder({
+      'Radius (px)': {
+        value: getStore().overlapRadius,
+        min: 0,
+        max: 80,
+        step: 1,
+        onChange: (v) => { getStore().setOverlapRadius(v); },
+      },
+      Ticks: {
+        value: getStore().overlapTicks,
+        min: 0,
+        max: 300,
+        step: 10,
+        onChange: (v) => { getStore().setOverlapTicks(v); },
+      },
+      'Pull to origin': {
+        value: getStore().overlapOriginStrength,
+        min: 0,
+        max: 0.5,
+        step: 0.01,
+        onChange: (v) => { getStore().setOverlapOriginStrength(v); },
+      },
+    }, { collapsed: true }),
     'Reset Zoom': { button: true },
     'Reset Defaults': { button: true },
   }), [maxConfig]);

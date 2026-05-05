@@ -163,6 +163,17 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
 
   return (
     <div className="font-details">
+      <button
+        type="button"
+        className="font-details-back"
+        onClick={onClose}
+        aria-label="Back to map"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        <span>Back</span>
+      </button>
       <div className="font-details-content">
         {/* Label Active Font en dehors de la carte */}
         <div className="active-font-label">Active Font</div>

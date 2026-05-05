@@ -142,7 +142,7 @@ const AboutModal = ({ onClose, darkMode }) => {
                   
                   <h3 className="about-section-title">About This Project</h3>
                   <p className="about-section-text">
-                    Inspired by the original <strong>IDEO Font Map</strong>, this version replaces pixel-based features with <strong>FontCLIP</strong> embeddings &mdash; a CLIP model fine-tuned specifically for typography &mdash; producing a more semantically meaningful layout where fonts group by visual style rather than raw pixel similarity.
+                    Inspired by the original <strong>IDEO Font Map</strong>, this version uses <strong>FontCLIP</strong> embeddings &mdash; a CLIP model fine-tuned specifically for typography &mdash; to lay out fonts by visual style.
                   </p>
                 </div>
               </div>

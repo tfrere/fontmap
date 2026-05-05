@@ -106,12 +106,19 @@ export const useArrowNavigation = (
       return; // Ne pas intercepter les flèches dans les champs de saisie
     }
     
+    // Quitter le mode focus
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onFontSelect(null);
+      return;
+    }
+
     // Gérer les touches fléchées
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
       event.preventDefault(); // Empêcher le scroll de la page
       findNearestFontInDirection(event.key);
     }
-  }, [selectedFont, findNearestFontInDirection]);
+  }, [selectedFont, findNearestFontInDirection, onFontSelect]);
 
   // Ajouter l'écouteur d'événements
   useEffect(() => {

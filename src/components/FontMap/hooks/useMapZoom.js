@@ -99,7 +99,7 @@ export function useMapZoom(svgRef, enabled = true) {
     const width = svgNode.clientWidth || svgNode.getBoundingClientRect().width;
     const height = svgNode.clientHeight || svgNode.getBoundingClientRect().height;
 
-    const scale = 2.5;
+    const scale = 4.0;
     const translateX = width / 2 - fontX * scale;
     const translateY = height / 2 - fontY * scale;
 

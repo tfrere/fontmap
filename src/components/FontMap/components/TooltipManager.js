@@ -5,10 +5,12 @@ import { useTooltipOptimized } from '../hooks/useTooltipOptimized';
  * Composant simplifié pour gérer les tooltips
  * Utilise le hook useTooltip pour une gestion propre et centralisée
  */
-const TooltipManager = ({ 
-  selectedFont, 
-  hoveredFont, 
-  darkMode 
+const TooltipManager = ({
+  selectedFont,
+  hoveredFont,
+  darkMode,
+  isMobile,
+  onOpenFont,
 }) => {
   const {
     handleFontSelect,
@@ -16,7 +18,7 @@ const TooltipManager = ({
     handleFontUnhover,
     updateTransform,
     updatePositions
-  } = useTooltipOptimized(darkMode);
+  } = useTooltipOptimized(darkMode, isMobile, onOpenFont);
 
   // Gérer la police sélectionnée
   useEffect(() => {

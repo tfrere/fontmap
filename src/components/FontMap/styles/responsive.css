@@ -11,24 +11,94 @@
   .fontmap-container {
     flex-direction: column;
   }
-  
+
+  /* Sidebar becomes a sticky top strip with just search + filters */
   .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     width: 100%;
-    min-width: 100%;
-    height: 40vh;
-    max-height: 40vh;
+    min-width: 0;
+    height: auto;
+    max-height: none;
     border-right: none;
     border-bottom: 1px solid var(--color-border-primary);
+    overflow: visible;
+    z-index: 2000;
   }
-  
+
   .dark-mode .sidebar {
     border-bottom-color: var(--color-border-primary-dark);
   }
-  
-  .main-area {
-    height: 60vh;
+
+  .sidebar-content {
+    overflow: visible;
+    padding: 0;
   }
-  
+
+  .sidebar-footer {
+    display: none;
+  }
+
+  /* Hide focus hint and bottom controls on mobile */
+  .focus-hint,
+  .bottom-controls {
+    display: none !important;
+  }
+
+  /* ActiveFont becomes a slide-in drawer when a font is selected */
+  .font-details {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+    background: var(--color-bg-primary);
+    z-index: 3000;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.28s ease;
+    padding-top: 48px;
+  }
+
+  .dark-mode .font-details {
+    background: var(--color-bg-primary-dark);
+  }
+
+  .fontmap-container.has-focus .font-details {
+    transform: translateX(0);
+  }
+
+  /* Mobile back chevron — visible only on mobile inside the drawer */
+  .font-details-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 6px 10px 6px 6px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  .dark-mode .font-details-back {
+    color: var(--color-text-primary-dark);
+  }
+
+  /* Map fills full viewport beneath the sticky sidebar */
+  .main-area {
+    height: 100vh;
+    width: 100%;
+  }
+
   .sidebar-header {
     padding: var(--spacing-md);
     flex-direction: row;
@@ -120,15 +190,6 @@
 }
 
 @media (max-width: 480px) {
-  .sidebar {
-    height: 35vh;
-    max-height: 35vh;
-  }
-  
-  .main-area {
-    height: 65vh;
-  }
-  
   .sidebar-header {
     padding: var(--spacing-sm);
     flex-direction: column;

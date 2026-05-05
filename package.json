@@ -36,7 +36,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "overlap": "node scripts/apply-overlap-removal.mjs",
+    "overlap:dry": "node scripts/apply-overlap-removal.mjs --dry-run"
   },
   "eslintConfig": {
     "extends": [

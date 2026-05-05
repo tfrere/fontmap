@@ -43,7 +43,7 @@ export const useFontMapStore = create((set, get) => ({
   },
   
   setUseCategoryColors: (val) => set({ useCategoryColors: val }),
-  
+
   setIsTransitioning: (val) => set({ isTransitioning: val }),
   
   // Actions pour le debug

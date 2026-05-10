@@ -2,8 +2,8 @@
 /node_modules
 src/typography/new-pipe/node_modules
 
-# Build output
-/build
+# Build output (committed for HF Space static deployment)
+# /build
 /coverage
 
 # Environment
@@ -29,3 +29,5 @@ src/typography/generated/
 # Large generated data (regenerate with pipeline)
 public/data/embeddings.json
 public/data/font-map.json
+build/data/embeddings.json
+build/data/font-map.json

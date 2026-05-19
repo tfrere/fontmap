@@ -9,7 +9,6 @@ const TooltipManager = ({
   selectedFont,
   hoveredFont,
   darkMode,
-  isMobile,
   onOpenFont,
 }) => {
   const {
@@ -18,7 +17,7 @@ const TooltipManager = ({
     handleFontUnhover,
     updateTransform,
     updatePositions
-  } = useTooltipOptimized(darkMode, isMobile, onOpenFont);
+  } = useTooltipOptimized(darkMode, onOpenFont);
 
   // Gérer la police sélectionnée
   useEffect(() => {

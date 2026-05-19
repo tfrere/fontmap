@@ -272,7 +272,6 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
             darkMode={darkMode}
             onFontHover={handleFontHover}
             onFontUnhover={handleFontUnhover}
-            isMobile={isMobile}
             onOpenFont={handleFontSelect}
           />
         )}

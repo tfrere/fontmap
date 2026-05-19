@@ -2,8 +2,9 @@ import { useEffect, useRef, useCallback } from 'react';
 import * as d3 from 'd3';
 import { useFontMapStore } from '../../../store/fontMapStore';
 
-const SCALE_EXTENT = [0.4, 10.0];
 const INITIAL_SCALE = 0.8;
+// Min scale = reset scale — user can't zoom out past the initial framing.
+const SCALE_EXTENT = [INITIAL_SCALE, 10.0];
 const TRANSITION_DURATION = 750;
 
 /**
@@ -27,8 +28,14 @@ export function useMapZoom(svgRef, enabled = true) {
     // Nettoyer un éventuel zoom précédent
     svg.on('.zoom', null);
 
+    // Compute viewport size so we can cap pan to the canvas bounds.
+    const svgRect = svg.node().getBoundingClientRect();
+    const cx = svgRect.width / 2;
+    const cy = svgRect.height / 2;
+
     const zoom = d3.zoom()
       .scaleExtent(SCALE_EXTENT)
+      .translateExtent([[0, 0], [svgRect.width, svgRect.height]])
       .on('zoom', (event) => {
         svg.select('.viewport-group').attr('transform', event.transform);
         svg.select('.highlight-group').attr('transform', event.transform);
@@ -38,11 +45,6 @@ export function useMapZoom(svgRef, enabled = true) {
       });
 
     svg.call(zoom);
-
-    // Zoom initial centré à 80 %
-    const svgRect = svg.node().getBoundingClientRect();
-    const cx = svgRect.width / 2;
-    const cy = svgRect.height / 2;
     const initialTransform = d3.zoomIdentity
       .translate(cx * (1 - INITIAL_SCALE), cy * (1 - INITIAL_SCALE))
       .scale(INITIAL_SCALE);

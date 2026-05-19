@@ -5,7 +5,7 @@ import * as d3 from 'd3';
  * Hook optimisé pour la gestion des tooltips
  * Séparation claire entre logique de positionnement et affichage
  */
-export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = null) => {
+export const useTooltipOptimized = (darkMode, onOpenFont = null) => {
   const selectedTooltipRef = useRef(null);
   const hoverTooltipRef = useRef(null);
   const currentTransformRef = useRef(d3.zoomIdentity);
@@ -50,14 +50,13 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
       .style('z-index', 1000)
       .style('transition', 'opacity 0.2s ease');
 
-    // Délégation de clic pour le bouton "Open" (mobile uniquement) — reste
-    // armé en permanence, le bouton n'existe dans le HTML que sur mobile.
-    const onHoverClick = (e) => {
-      if (e.target.closest('.tooltip-open-btn')) {
-        const font = currentFontRef.current;
-        const cb = onOpenFontRef.current;
-        if (font && cb) cb(font);
-      }
+    // Mobile: tooltip entier cliquable pour ouvrir le drawer.
+    // Le CSS gère pointer-events: auto uniquement en <=768px, donc sur desktop
+    // ce handler ne s'arme jamais (le tooltip est inerte).
+    const onHoverClick = () => {
+      const font = currentFontRef.current;
+      const cb = onOpenFontRef.current;
+      if (font && cb) cb(font);
     };
     const hoverNode = hoverTooltipRef.current.node();
     if (hoverNode) hoverNode.addEventListener('click', onHoverClick);
@@ -96,9 +95,6 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
   const createTooltipContent = useCallback((font) => {
     const imageName = font.imageName || font.name;
     const sentenceImagePath = `/data/sentences/${imageName.toLowerCase().replace(/\s+/g, '_')}_sentence.svg`;
-    const openButton = isMobile
-      ? `<button type="button" class="tooltip-open-btn">Open</button>`
-      : '';
 
     return `
       <div class="simple-tooltip">
@@ -118,10 +114,9 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
             </div>
           </div>
         </div>
-        ${openButton}
       </div>
     `;
-  }, [isMobile]);
+  }, []);
 
   // Fonction optimisée pour positionner un tooltip
   const positionTooltip = useCallback((tooltip, svgElement) => {

@@ -1,0 +1,61 @@
+name: Deploy to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; a newer push supersedes an in-flight one.
+concurrency:
+  group: hf-space-deploy
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      HF_SPACE: tfrere/fontmap
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static bundle
+        # CI=false so eslint warnings don't fail the production build.
+        run: CI=false npm run build
+
+      - name: Deploy build/ + README to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HF_TOKEN:-}" ]; then
+            echo "::error::HF_TOKEN secret is missing"; exit 1
+          fi
+
+          git clone --depth 1 "https://tfrere:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf_space
+
+          # Mirror the deploy tree: the static Space only needs README.md
+          # (frontmatter) + build/ (app_file points to build/index.html).
+          find hf_space -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp README.md hf_space/README.md
+          cp -r build hf_space/build
+
+          cd hf_space
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to deploy."
+          else
+            git commit -m "deploy: ${GITHUB_SHA::7} from GitHub Actions"
+            git push
+          fi

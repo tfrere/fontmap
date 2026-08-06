@@ -221,6 +221,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         .attr('stroke', haloColor)
         .attr('paint-order', 'stroke fill')
         .attr('class', 'centroid-label')
+        .style('transition', 'opacity 0.25s ease')
         .text(cat);
     });
 
@@ -241,10 +242,13 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         opacity = 1 - (k - LABEL_FADE_START) / (LABEL_FADE_END - LABEL_FADE_START);
       }
 
+      // Focus mode (a font is selected): the map is dimmed, labels follow
+      if (useFontMapStore.getState().selectedFont) opacity = 0;
+
       centroidsGroup.selectAll('.centroid-label')
         .attr('font-size', fontSize)
         .attr('stroke-width', fontSize * LABEL_HALO_RATIO)
-        .attr('opacity', opacity);
+        .style('opacity', opacity);
     };
 
     updateLabels();
@@ -326,6 +330,9 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         });
       }
     }
+
+    // Category labels fade out in focus mode, together with the dimmed map
+    if (window.updateCentroidLabels) window.updateCentroidLabels();
   }, [filter, searchTerm, selectedFont, svgRef]);
 
   // ── Interactions : hover et click (délégation d'événements) ──

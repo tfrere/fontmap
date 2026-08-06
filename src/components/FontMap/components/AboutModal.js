@@ -7,7 +7,8 @@ import ModalPortal from './ModalPortal';
 const AboutModal = ({ onClose, darkMode }) => {
   return (
     <ModalPortal isOpen={true}>
-      <div className="unified-overlay" onClick={onClose}>
+      {/* dark-mode class must be re-applied here: the portal renders outside .fontmap-container */}
+      <div className={`unified-overlay${darkMode ? ' dark-mode' : ''}`} onClick={onClose}>
         <div className="about-modal" onClick={(e) => e.stopPropagation()}>
           <div className="about-modal-content">
             <div className="about-modal-header">
@@ -136,7 +137,7 @@ const AboutModal = ({ onClose, darkMode }) => {
                   <p className="about-section-text">
                     The <strong>complete dataset</strong> is also open source, including all font metadata, FontCLIP embeddings and positioning data from <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer" className="google-fonts-link">Google Fonts</a>.
                   </p>
-                  <a href="https://huggingface.co/spaces/huggingface/fontmap" target="_blank" rel="noopener noreferrer" className="code-link">
+                  <a href="https://huggingface.co/spaces/tfrere/fontmap" target="_blank" rel="noopener noreferrer" className="code-link">
                     View Source on Hugging Face &rarr;
                   </a>
                   

@@ -7,7 +7,8 @@ import ModalPortal from './ModalPortal';
 const IntroModal = ({ onStartExploring, darkMode }) => {
   return (
     <ModalPortal isOpen={true}>
-      <div className="unified-overlay" onClick={onStartExploring}>
+      {/* dark-mode class must be re-applied here: the portal renders outside .fontmap-container */}
+      <div className={`unified-overlay${darkMode ? ' dark-mode' : ''}`} onClick={onStartExploring}>
         <div className="intro-modal" onClick={(e) => e.stopPropagation()}>
           <div className="intro-modal-content">
             <h1 className="intro-title">FontMap</h1>

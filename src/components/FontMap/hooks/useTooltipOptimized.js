@@ -17,13 +17,13 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
   // Mémoriser les styles du tooltip selon le mode sombre
   const tooltipStyles = useMemo(() => ({
     dark: {
-      backgroundColor: '#000000',
-      borderColor: '#404040',
+      backgroundColor: 'var(--color-bg-primary-dark)',
+      borderColor: 'var(--color-border-primary-dark)',
       color: '#ffffff'
     },
     light: {
-      backgroundColor: '#ffffff',
-      borderColor: '#e0e0e0',
+      backgroundColor: 'var(--color-bg-primary)',
+      borderColor: 'var(--color-border-primary)',
       color: '#000000'
     }
   }), []);

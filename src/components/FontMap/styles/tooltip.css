@@ -155,7 +155,7 @@
 
 /* Force dark mode styles */
 .font-tooltip.dark-mode {
-  background: #000000 !important;
+  background: var(--color-bg-primary-dark) !important;
   border: none !important;
   color: #ffffff !important;
 }

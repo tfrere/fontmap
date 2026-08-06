@@ -1,21 +1,21 @@
 /* CSS Variables for style normalization */
 :root {
-  /* Primary colors */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8f9fa;
-  --color-bg-tertiary: #e9ecef;
+  /* Primary colors — backgrounds are very slightly warm (paper feel) */
+  --color-bg-primary: #fcfbf8;
+  --color-bg-secondary: #f7f5f1;
+  --color-bg-tertiary: #ece9e3;
   --color-text-primary: #000000;
   --color-text-secondary: #666666;
   --color-text-tertiary: #999999;
-  --color-border-primary: #e0e0e0;
-  --color-border-secondary: #d1d5db;
+  --color-border-primary: #e3e0da;
+  --color-border-secondary: #d5d2cb;
   --color-accent: #007acc;
   --color-accent-hover: #005a9e;
   
-  /* Dark mode colors */
-  --color-bg-primary-dark: #000000;
-  --color-bg-secondary-dark: #1a1a1a;
-  --color-bg-tertiary-dark: #333333;
+  /* Dark mode colors — same subtle warmth on charcoal */
+  --color-bg-primary-dark: #121110;
+  --color-bg-secondary-dark: #1c1a18;
+  --color-bg-tertiary-dark: #363330;
   --color-text-primary-dark: #ffffff;
   --color-text-secondary-dark: #cccccc;
   --color-text-tertiary-dark: #999999;

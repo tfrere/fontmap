@@ -12,6 +12,15 @@ const GLYPH_SCALE = 0.25;
 export const REF_WIDTH = 1600;
 export const REF_HEIGHT = 900;
 
+// Category labels: constant on-screen size (map-style UX). Labels follow
+// their anchor on the map but never scale with zoom or window size, so they
+// stay readable everywhere. They fade out when zooming close, where cluster
+// names would only occlude the glyphs.
+const LABEL_SCREEN_PX = 13;
+const LABEL_HALO_RATIO = 0.5;
+const LABEL_FADE_START = 2.2;
+const LABEL_FADE_END = 3.2;
+
 const CATEGORY_COLORS = {
   'sans-serif': '#3498db',
   'serif':      '#e74c3c',
@@ -207,15 +216,50 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         .attr('x', x)
         .attr('y', y)
         .attr('text-anchor', 'middle')
-        .attr('font-size', '16px')
         .attr('font-weight', 'bold')
         .attr('fill', color)
         .attr('stroke', haloColor)
-        .attr('stroke-width', '8px')
         .attr('paint-order', 'stroke fill')
         .attr('class', 'centroid-label')
         .text(cat);
     });
+
+    // Keep labels at a constant on-screen size: convert the desired pixel
+    // size into reference units by undoing both the zoom scale (k) and the
+    // viewBox contain-fit factor. Called on every zoom event and on resize.
+    const svgNode = svgRef.current;
+    const updateLabels = () => {
+      const rect = svgNode.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const fit = Math.min(rect.width / REF_WIDTH, rect.height / REF_HEIGHT);
+      const k = d3.zoomTransform(svgNode).k || 1;
+      const fontSize = LABEL_SCREEN_PX / (k * fit);
+
+      let opacity = 1;
+      if (k >= LABEL_FADE_END) opacity = 0;
+      else if (k > LABEL_FADE_START) {
+        opacity = 1 - (k - LABEL_FADE_START) / (LABEL_FADE_END - LABEL_FADE_START);
+      }
+
+      centroidsGroup.selectAll('.centroid-label')
+        .attr('font-size', fontSize)
+        .attr('stroke-width', fontSize * LABEL_HALO_RATIO)
+        .attr('opacity', opacity);
+    };
+
+    updateLabels();
+    window.updateCentroidLabels = updateLabels;
+
+    let resizeObserver = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(updateLabels);
+      resizeObserver.observe(svgNode);
+    }
+
+    return () => {
+      if (resizeObserver) resizeObserver.disconnect();
+      delete window.updateCentroidLabels;
+    };
   }, [fonts, useCategoryColors, darkMode, svgRef]);
 
   // ── Isolation visuelle (sélection) + opacité (filtre/recherche) ──

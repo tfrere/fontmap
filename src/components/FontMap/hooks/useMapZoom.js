@@ -46,6 +46,7 @@ export function useMapZoom(svgRef, enabled = true) {
         svg.select('.viewport-group').attr('transform', event.transform);
         svg.select('.highlight-group').attr('transform', event.transform);
         svg.select('.centroids-group').attr('transform', event.transform);
+        if (window.updateCentroidLabels) window.updateCentroidLabels();
         if (window.updateTooltipTransform) window.updateTooltipTransform(event.transform);
         if (window.updateTooltipPositions) window.updateTooltipPositions();
       });

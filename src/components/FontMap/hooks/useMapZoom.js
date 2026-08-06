@@ -1,11 +1,22 @@
 import { useEffect, useRef, useCallback } from 'react';
 import * as d3 from 'd3';
 import { useFontMapStore } from '../../../store/fontMapStore';
+import { REF_WIDTH, REF_HEIGHT } from './useMapRenderer';
 
 const INITIAL_SCALE = 0.8;
 // Min scale = reset scale — user can't zoom out past the initial framing.
 const SCALE_EXTENT = [INITIAL_SCALE, 10.0];
 const TRANSITION_DURATION = 750;
+
+// Everything (zoom transform, extents, centering) works in the fixed
+// reference-canvas coordinates. d3.zoom reads pointer positions through the
+// SVG viewBox, so gestures land in the same space at any window size.
+const INITIAL_TRANSFORM = d3.zoomIdentity
+  .translate(
+    (REF_WIDTH / 2) * (1 - INITIAL_SCALE),
+    (REF_HEIGHT / 2) * (1 - INITIAL_SCALE)
+  )
+  .scale(INITIAL_SCALE);
 
 /**
  * Hook de zoom basé sur DebugUMAP.
@@ -28,14 +39,9 @@ export function useMapZoom(svgRef, enabled = true) {
     // Nettoyer un éventuel zoom précédent
     svg.on('.zoom', null);
 
-    // Compute viewport size so we can cap pan to the canvas bounds.
-    const svgRect = svg.node().getBoundingClientRect();
-    const cx = svgRect.width / 2;
-    const cy = svgRect.height / 2;
-
     const zoom = d3.zoom()
       .scaleExtent(SCALE_EXTENT)
-      .translateExtent([[0, 0], [svgRect.width, svgRect.height]])
+      .translateExtent([[0, 0], [REF_WIDTH, REF_HEIGHT]])
       .on('zoom', (event) => {
         svg.select('.viewport-group').attr('transform', event.transform);
         svg.select('.highlight-group').attr('transform', event.transform);
@@ -45,10 +51,7 @@ export function useMapZoom(svgRef, enabled = true) {
       });
 
     svg.call(zoom);
-    const initialTransform = d3.zoomIdentity
-      .translate(cx * (1 - INITIAL_SCALE), cy * (1 - INITIAL_SCALE))
-      .scale(INITIAL_SCALE);
-    svg.call(zoom.transform, initialTransform);
+    svg.call(zoom.transform, INITIAL_TRANSFORM);
 
     zoomRef.current = zoom;
 
@@ -56,16 +59,10 @@ export function useMapZoom(svgRef, enabled = true) {
     window.zoomIn = () => svg.transition().duration(200).call(zoom.scaleBy, 1.5);
     window.zoomOut = () => svg.transition().duration(200).call(zoom.scaleBy, 1 / 1.5);
     window.resetZoom = () => {
-      const rect = svg.node().getBoundingClientRect();
-      const rcx = rect.width / 2;
-      const rcy = rect.height / 2;
-      const t = d3.zoomIdentity
-        .translate(rcx * (1 - INITIAL_SCALE), rcy * (1 - INITIAL_SCALE))
-        .scale(INITIAL_SCALE);
       const store = useFontMapStore.getState();
       store.setIsTransitioning(true);
       store.setHoveredFont(null);
-      svg.transition().duration(TRANSITION_DURATION).call(zoom.transform, t)
+      svg.transition().duration(TRANSITION_DURATION).call(zoom.transform, INITIAL_TRANSFORM)
         .on('end', () => {
           useFontMapStore.getState().setIsTransitioning(false);
         });
@@ -97,13 +94,10 @@ export function useMapZoom(svgRef, enabled = true) {
     const fontX = parseFloat(match[1]);
     const fontY = parseFloat(match[2]);
 
-    const svgNode = svgRef.current;
-    const width = svgNode.clientWidth || svgNode.getBoundingClientRect().width;
-    const height = svgNode.clientHeight || svgNode.getBoundingClientRect().height;
-
+    // Center in reference-canvas coordinates (same space as the transform).
     const scale = 4.0;
-    const translateX = width / 2 - fontX * scale;
-    const translateY = height / 2 - fontY * scale;
+    const translateX = REF_WIDTH / 2 - fontX * scale;
+    const translateY = REF_HEIGHT / 2 - fontY * scale;
 
     const transform = d3.zoomIdentity
       .translate(translateX, translateY)

@@ -5,7 +5,7 @@ import * as d3 from 'd3';
  * Hook optimisé pour la gestion des tooltips
  * Séparation claire entre logique de positionnement et affichage
  */
-export const useTooltipOptimized = (darkMode, onOpenFont = null) => {
+export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = null) => {
   const selectedTooltipRef = useRef(null);
   const hoverTooltipRef = useRef(null);
   const currentTransformRef = useRef(d3.zoomIdentity);
@@ -50,10 +50,11 @@ export const useTooltipOptimized = (darkMode, onOpenFont = null) => {
       .style('z-index', 1000)
       .style('transition', 'opacity 0.2s ease');
 
-    // Mobile: tooltip entier cliquable pour ouvrir le drawer.
-    // Le CSS gère pointer-events: auto uniquement en <=768px, donc sur desktop
-    // ce handler ne s'arme jamais (le tooltip est inerte).
-    const onHoverClick = () => {
+    // Mobile: délégation de clic pour le bouton Open dans le tooltip.
+    // Le bouton n'existe dans le HTML que sur mobile (cf. createTooltipContent),
+    // et lui seul a pointer-events: auto.
+    const onHoverClick = (e) => {
+      if (!e.target.closest('.tooltip-open-btn')) return;
       const font = currentFontRef.current;
       const cb = onOpenFontRef.current;
       if (font && cb) cb(font);
@@ -95,6 +96,9 @@ export const useTooltipOptimized = (darkMode, onOpenFont = null) => {
   const createTooltipContent = useCallback((font) => {
     const imageName = font.imageName || font.name;
     const sentenceImagePath = `/data/sentences/${imageName.toLowerCase().replace(/\s+/g, '_')}_sentence.svg`;
+    const openButton = isMobile
+      ? `<button type="button" class="tooltip-open-btn">Open</button>`
+      : '';
 
     return `
       <div class="simple-tooltip">
@@ -114,9 +118,10 @@ export const useTooltipOptimized = (darkMode, onOpenFont = null) => {
             </div>
           </div>
         </div>
+        ${openButton}
       </div>
     `;
-  }, []);
+  }, [isMobile]);
 
   // Fonction optimisée pour positionner un tooltip
   const positionTooltip = useCallback((tooltip, svgElement) => {
@@ -125,20 +130,15 @@ export const useTooltipOptimized = (darkMode, onOpenFont = null) => {
     const tooltipNode = tooltip.node();
     const tooltipRect = tooltipNode.getBoundingClientRect();
     const elementRect = svgElement.getBoundingClientRect();
-    
-    // Calculer la position du centre de l'élément
+
+    // Tooltip just above the visible glyph (gap stays constant regardless
+    // of zoom — elementRect already grows with zoom).
     const centerX = elementRect.left + (elementRect.width / 2);
-    const centerY = elementRect.top + (elementRect.height / 2);
-    
-    // Calculer la distance proportionnelle au zoom
-    const currentScale = currentTransformRef.current.k || 1;
-    const baseDistance = 20;
-    const zoomAdjustedDistance = baseDistance * currentScale;
-    
-    // Positionner le tooltip
+    const gap = 6;
+
     let x = centerX - (tooltipRect.width / 2);
-    let y = centerY - tooltipRect.height - zoomAdjustedDistance;
-    
+    let y = elementRect.top - tooltipRect.height - gap;
+
     // Ajuster si le tooltip sort de l'écran
     const margin = 10;
     if (x < margin) x = margin;
@@ -146,7 +146,7 @@ export const useTooltipOptimized = (darkMode, onOpenFont = null) => {
       x = window.innerWidth - tooltipRect.width - margin;
     }
     if (y < margin) {
-      y = centerY + 30;
+      y = elementRect.bottom + gap;
     }
 
     tooltip
@@ -160,14 +160,11 @@ export const useTooltipOptimized = (darkMode, onOpenFont = null) => {
 
     if (tooltip === hoverTooltipRef.current) currentFontRef.current = font;
 
-    tooltip
-      .html(createTooltipContent(font))
-      .style('opacity', 1);
-
-    // Positionner après un court délai
-    setTimeout(() => {
-      positionTooltip(tooltip, svgElement);
-    }, 10);
+    // Set content, measure and position synchronously, THEN fade in — avoids
+    // the tooltip flashing at its previous position before jumping.
+    tooltip.html(createTooltipContent(font));
+    positionTooltip(tooltip, svgElement);
+    tooltip.style('opacity', 1);
   }, [createTooltipContent, positionTooltip]);
 
   // Fonction pour masquer un tooltip

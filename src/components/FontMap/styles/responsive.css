@@ -99,11 +99,14 @@
     width: 100%;
   }
 
-  .sidebar-header {
+  .sidebar-header,
+  .sidebar-content .sidebar-header {
     padding: var(--spacing-md);
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    border-bottom: none;
+    margin-bottom: 0;
   }
   
   .map-title {

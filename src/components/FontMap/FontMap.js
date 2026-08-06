@@ -51,12 +51,11 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
     setDarkMode(d => !d);
   }, []);
 
-  const {
-    selectedFont,
-    hoveredFont,
-    setSelectedFont,
-    setHoveredFont
-  } = useFontMapStore();
+  // Per-slice selectors: FontMap must NOT subscribe to hoveredFont, otherwise
+  // every glyph hover re-renders the whole tree (sidebar included).
+  const selectedFont = useFontMapStore((s) => s.selectedFont);
+  const setSelectedFont = useFontMapStore((s) => s.setSelectedFont);
+  const setHoveredFont = useFontMapStore((s) => s.setHoveredFont);
 
   // ── Data : polices + chemins de glyphes (pour la sidebar ActiveFont) ──
   const { fonts, glyphPaths, loading, error } = useStaticFontData();
@@ -87,14 +86,6 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
     setSelectedFont(font);
   }
 
-  const handleFontHover = useCallback((font) => {
-    setHoveredFont(font);
-  }, [setHoveredFont]);
-
-  const handleFontUnhover = useCallback(() => {
-    setHoveredFont(null);
-  }, [setHoveredFont]);
-
   // ── Centrage sur la police sélectionnée — on ne reset PAS le zoom au désélect
   // pour laisser l'utilisateur continuer à explorer là où il était.
   useEffect(() => {
@@ -102,16 +93,6 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
       centerOnFont(selectedFont);
     }
   }, [selectedFont, centerOnFont]);
-
-  // ── Callbacks globaux pour le TooltipManager ──
-  useEffect(() => {
-    window.onFontHover = handleFontHover;
-    window.onFontUnhover = handleFontUnhover;
-    return () => {
-      delete window.onFontHover;
-      delete window.onFontUnhover;
-    };
-  }, [handleFontHover, handleFontUnhover]);
 
   // ── Transitions d'état ──
   useEffect(() => {
@@ -156,9 +137,9 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
     return (
       <div className="fontmap-container">
         <div className="error">
-          <h3>Erreur de chargement</h3>
+          <h3>Loading error</h3>
           <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Recharger la page</button>
+          <button onClick={() => window.location.reload()}>Reload the page</button>
         </div>
       </div>
     );
@@ -209,7 +190,7 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
             </svg>
             How it works
           </button>
-          <a className="source-link" href="https://huggingface.co/spaces/huggingface/fontmap" target="_blank" rel="noopener noreferrer" title="View Source on Hugging Face Spaces">
+          <a className="source-link" href="https://huggingface.co/spaces/tfrere/fontmap" target="_blank" rel="noopener noreferrer" title="View Source on Hugging Face Spaces">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
             </svg>
@@ -267,11 +248,8 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
 
         {!loading && fonts.length > 0 && (
           <TooltipManager
-            selectedFont={selectedFont}
-            hoveredFont={hoveredFont}
             darkMode={darkMode}
-            onFontHover={handleFontHover}
-            onFontUnhover={handleFontUnhover}
+            isMobile={isMobile}
             onOpenFont={handleFontSelect}
           />
         )}

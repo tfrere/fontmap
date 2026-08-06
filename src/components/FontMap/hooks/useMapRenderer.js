@@ -4,6 +4,14 @@ import { useFontMapStore } from '../../../store/fontMapStore';
 
 const GLYPH_SCALE = 0.25;
 
+// Fixed reference canvas. The map is laid out ONCE against this space, and
+// the SVG viewBox + preserveAspectRatio (default "xMidYMid meet") fit it
+// into the real viewport with a uniform scale — like an image in
+// object-fit: contain. The layout never re-flows with the screen's aspect
+// ratio, so glyph size stays proportional to the map at any window size.
+export const REF_WIDTH = 1600;
+export const REF_HEIGHT = 900;
+
 const CATEGORY_COLORS = {
   'sans-serif': '#3498db',
   'serif':      '#e74c3c',
@@ -28,8 +36,19 @@ function calculateMappingDimensions(fonts, width, height, padding = 40) {
   const yMin = Math.min(...yValues);
   const yMax = Math.max(...yValues);
 
-  const mapX = (x) => ((x - xMin) / (xMax - xMin)) * (width - 2 * padding) + padding;
-  const mapY = (y) => ((yMax - y) / (yMax - yMin)) * (height - 2 * padding) + padding;
+  // Fit-to-aspect: use the smallest scale that keeps the whole data extent
+  // inside the reference canvas, and letterbox the spare axis. The map keeps
+  // the data's own shape.
+  const dataW = xMax - xMin;
+  const dataH = yMax - yMin;
+  const availW = Math.max(1, width - 2 * padding);
+  const availH = Math.max(1, height - 2 * padding);
+  const scale = Math.min(availW / dataW, availH / dataH);
+  const offsetX = (width - dataW * scale) / 2;
+  const offsetY = (height - dataH * scale) / 2;
+
+  const mapX = (x) => (x - xMin) * scale + offsetX;
+  const mapY = (y) => (yMax - y) * scale + offsetY;
 
   return { mapX, mapY };
 }
@@ -47,16 +66,15 @@ function getOrCreateViewportGroup(svg) {
  */
 export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, darkMode, loading, enabled = true, isMobile = false }) {
   const mappingRef = useRef({ mapX: null, mapY: null });
-  const dimensionsRef = useRef({ width: 0, height: 0 });
+  const dimensionsRef = useRef({ width: REF_WIDTH, height: REF_HEIGHT });
   const hasRenderedRef = useRef(false);
   const selectedFontRef = useRef(null);
 
-  const {
-    selectedFont,
-    setSelectedFont,
-    setHoveredFont,
-    useCategoryColors,
-  } = useFontMapStore();
+  // Per-slice selectors — this hook must not re-render on hoveredFont changes.
+  const selectedFont = useFontMapStore((s) => s.selectedFont);
+  const setSelectedFont = useFontMapStore((s) => s.setSelectedFont);
+  const setHoveredFont = useFontMapStore((s) => s.setHoveredFont);
+  const useCategoryColors = useFontMapStore((s) => s.useCategoryColors);
 
   selectedFontRef.current = selectedFont;
 
@@ -65,22 +83,18 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     if (!enabled || !fonts || fonts.length === 0 || !svgRef.current) return;
 
     const svg = d3.select(svgRef.current);
-    const parentEl = svgRef.current.parentElement;
-    if (!parentEl) return;
 
-    const width = parentEl.clientWidth || window.innerWidth;
-    const height = parentEl.clientHeight || window.innerHeight;
-    dimensionsRef.current = { width, height };
-
+    // Constant viewBox on the reference canvas: the browser fits (and
+    // re-fits on window resize) the whole map uniformly, no JS needed.
     svg
       .attr('width', '100%')
       .attr('height', '100%')
-      .attr('viewBox', `0 0 ${width} ${height}`);
+      .attr('viewBox', `0 0 ${REF_WIDTH} ${REF_HEIGHT}`);
 
     const viewportGroup = getOrCreateViewportGroup(svg);
     viewportGroup.selectAll('g.glyph-group').remove();
 
-    const { mapX, mapY } = calculateMappingDimensions(fonts, width, height);
+    const { mapX, mapY } = calculateMappingDimensions(fonts, REF_WIDTH, REF_HEIGHT);
     mappingRef.current = { mapX, mapY };
 
     const hasSprite = glyphPaths && Object.keys(glyphPaths).length > 0;
@@ -290,43 +304,60 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
       return fonts.find(f => f.id === fontId) || null;
     };
 
+    // Short debounce so sweeping the cursor across the map doesn't trigger a
+    // tooltip (and its sentence-image fetch) for every glyph crossed.
+    let hoverTimer = null;
+
     const handleMouseOver = (e) => {
-      if (useFontMapStore.getState().isTransitioning) return;
+      const state = useFontMapStore.getState();
+      if (state.isTransitioning) return;
+      // Mobile: ignore synthetic mouseover events — clicks handle everything
+      // explicitly. Avoids flicker during pan/drag.
+      if (isMobile) return;
       const group = findGlyphGroup(e.target);
       if (!group) return;
       const font = getFontFromGroup(group);
-      if (font) setHoveredFont(font);
+      if (!font) return;
+      clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(() => setHoveredFont(font), 80);
     };
 
     const handleMouseOut = (e) => {
-      // Sur mobile, le tap synthétise des mouseover/mouseout — on ignore le
-      // out pour que le tooltip reste ouvert jusqu'au prochain tap.
+      // Sur mobile, on ne gère le hover qu'au click — pas de mouseout.
       if (isMobile) return;
       if (useFontMapStore.getState().isTransitioning) return;
       const group = findGlyphGroup(e.target);
       if (!group) return;
+      clearTimeout(hoverTimer);
       setHoveredFont(null);
     };
 
     const handleClick = (e) => {
+      clearTimeout(hoverTimer);
       const group = findGlyphGroup(e.target);
-      if (!group) {
-        // Tap on empty space — clear hover (mobile) or selection (desktop)
-        if (isMobile) {
-          setHoveredFont(null);
-        } else if (selectedFontRef.current) {
-          setSelectedFont(null);
+      if (isMobile) {
+        // Mobile:
+        // - tap on a different glyph → switch the tooltip to that glyph
+        // - tap on the same glyph → dismiss (toggle off)
+        // - tap on empty space → dismiss
+        // The Open button is handled by the delegated handler on the
+        // tooltip itself (sibling of the SVG).
+        const current = useFontMapStore.getState().hoveredFont;
+        if (!group) {
+          if (current) setHoveredFont(null);
+          return;
         }
+        const font = getFontFromGroup(group);
+        if (!font) return;
+        setHoveredFont(current && current.id === font.id ? null : font);
+        return;
+      }
+      if (!group) {
+        if (selectedFontRef.current) setSelectedFont(null);
         return;
       }
       const font = getFontFromGroup(group);
       if (!font) return;
-      if (isMobile) {
-        // Mobile: tap shows the tooltip with an Open button — don't open the
-        // drawer directly. The button inside the tooltip selects the font.
-        setHoveredFont(font);
-        return;
-      }
       setHoveredFont(null);
       const cur = selectedFontRef.current;
       setSelectedFont(cur && cur.id === font.id ? null : font);
@@ -337,6 +368,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     svg.addEventListener('click', handleClick);
 
     return () => {
+      clearTimeout(hoverTimer);
       svg.removeEventListener('mouseover', handleMouseOver);
       svg.removeEventListener('mouseout', handleMouseOut);
       svg.removeEventListener('click', handleClick);

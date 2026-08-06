@@ -55,13 +55,40 @@
   pointer-events: none;
 }
 
-/* Mobile: the whole hover tooltip is tappable to open the drawer.
-   On desktop the global pointer-events: none stays in effect. */
+/* Mobile: the hover tooltip absorbs taps so the user can reach the Open
+   button without the surrounding tap-through closing the tooltip.
+   The delegated click handler in useTooltipOptimized only fires on the
+   button itself, so taps on the rest of the tooltip are inert (but
+   don't propagate to the map either). */
 @media (max-width: 768px) {
   .font-tooltip-hover {
     pointer-events: auto;
-    cursor: pointer;
   }
+}
+
+/* Mobile-only "Open" button inside the hover tooltip. */
+.tooltip-open-btn {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 4px 8px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-text-primary);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.font-tooltip.dark-mode .tooltip-open-btn {
+  border-color: var(--color-text-primary-dark);
+  background: var(--color-text-primary-dark);
+  color: var(--color-bg-primary-dark);
 }
 
 /* Tooltip sélectionné (priorité normale) */

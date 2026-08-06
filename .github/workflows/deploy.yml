@@ -22,7 +22,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Match the local toolchain (npm 11): the committed lockfile is
+          # npm-11-canonical, and npm 10 (bundled with Node 20) rejects it.
+          node-version: 24
           cache: npm
 
       - name: Install dependencies

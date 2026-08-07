@@ -17,7 +17,7 @@ Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-wor
 
 **[Live demo](https://huggingface.co/spaces/tfrere/fontmap)**
 
-![FontMap screenshot](https://huggingface.co/spaces/tfrere/fontmap/resolve/main/public/screenshot.png)
+[![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo.gif)](https://huggingface.co/spaces/tfrere/fontmap)
 
 ## Features
 

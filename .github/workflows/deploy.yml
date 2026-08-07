@@ -43,7 +43,19 @@ jobs:
             echo "::error::HF_TOKEN secret is missing"; exit 1
           fi
 
-          git clone --depth 1 "https://tfrere:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf_space
+          # Hugging Face occasionally rate-limits git clones (HTTP 429);
+          # retry with backoff so a transient limit doesn't fail the deploy.
+          for attempt in 1 2 3 4 5; do
+            if git clone --depth 1 "https://tfrere:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf_space; then
+              break
+            fi
+            if [ "$attempt" = "5" ]; then
+              echo "::error::Failed to clone the Space after 5 attempts"; exit 1
+            fi
+            echo "Clone failed (attempt ${attempt}), retrying in $((attempt * 20))s..."
+            rm -rf hf_space
+            sleep $((attempt * 20))
+          done
 
           # Mirror the deploy tree: the static Space only needs README.md
           # (frontmatter) + build/ (app_file points to build/index.html).
@@ -59,5 +71,14 @@ jobs:
             echo "No changes to deploy."
           else
             git commit -m "deploy: ${GITHUB_SHA::7} from GitHub Actions"
-            git push
+            for attempt in 1 2 3 4 5; do
+              if git push; then
+                break
+              fi
+              if [ "$attempt" = "5" ]; then
+                echo "::error::Failed to push to the Space after 5 attempts"; exit 1
+              fi
+              echo "Push failed (attempt ${attempt}), retrying in $((attempt * 20))s..."
+              sleep $((attempt * 20))
+            done
           fi

@@ -46,7 +46,9 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-  min-width: 160px;
+  /* Fits the widest sentence preview (img max-width 200px + padding), so the
+     box keeps its width when the preview loads and doesn't jump sideways. */
+  min-width: 220px;
   max-width: 280px;
   overflow: hidden;
   transform: translateY(0);

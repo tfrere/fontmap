@@ -154,8 +154,20 @@
     gap: 6px;
   }
   
+  .filters-container {
+    align-items: stretch;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .filters-inline {
+    display: flex;
+    flex-wrap: wrap;
     font-size: 11px;
+  }
+
+  .filters-inline .filter-link {
+    flex: 1 1 auto;
   }
   
   .toggle-btn {

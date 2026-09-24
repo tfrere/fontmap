@@ -11,13 +11,13 @@ app_file: "build/index.html"
 
 # FontMap
 
-An interactive map of 1,100+ Google Fonts organized by visual similarity, using [FontCLIP](https://github.com/kinit-sk/FontCLIP) embeddings and UMAP dimensionality reduction.
+An interactive map of 1,192 Google Fonts organized by visual similarity, using [FontCLIP](https://github.com/yukistavailable/FontCLIP) embeddings and UMAP dimensionality reduction.
 
-Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-world-of-fonts-with-ai-7d9e49ff2b25) (2017, Kevin Ho) — rebuilt from scratch with modern ML, fully open source, and documented.
+Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-world-of-fonts-with-ai-7d9e49ff2b25) (2017, Kevin Ho), a different take on the same idea, fully open source.
 
-**[Live demo](https://huggingface.co/spaces/tfrere/fontmap)**
+**[Live demo](https://huggingface.co/spaces/tfrere/font-map)**
 
-[![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo.gif)](https://huggingface.co/spaces/tfrere/fontmap)
+[![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo.gif)](https://huggingface.co/spaces/tfrere/font-map)
 
 ## Features
 
@@ -38,7 +38,7 @@ Font images ──→ FontCLIP (512D) ──→ PCA (50D) ──→ UMAP (2D) �
 ```
 
 1. **Render** — each font is rendered as a 224×224 composite glyph image
-2. **Embed** — [FontCLIP](https://github.com/kinit-sk/FontCLIP) (CLIP ViT-B/32 fine-tuned for typography) encodes each image into a 512-dimensional vector
+2. **Embed** — [FontCLIP](https://github.com/yukistavailable/FontCLIP) (CLIP ViT-B/32 fine-tuned for typography) encodes each image into a 512-dimensional vector
 3. **Reduce** — PCA compresses to 50D, then UMAP with spectral initialization projects to 2D (n_neighbors=12, min_dist=1.0)
 4. **Merge** — font family variants (Regular, Bold, Italic…) are fused into a single representative point
 5. **Neighbors** — k-NN is computed in the original 512D space for "similar fonts" recommendations
@@ -65,34 +65,28 @@ npm run build
 
 ### Deploy to Hugging Face Spaces
 
-The project is configured for [HF Spaces static SDK](https://huggingface.co/docs/hub/spaces-sdks-static) with a build step:
-
-```yaml
-sdk: static
-app_build_command: "CI=false npm run build"
-app_file: "build/index.html"
-```
+Every push to `main` triggers a GitHub Actions workflow (`.github/workflows/deploy.yml`) that runs `CI=false npm run build` and pushes `build/` + this README to the Space ([HF Spaces static SDK](https://huggingface.co/docs/hub/spaces-sdks-static), `app_file: build/index.html`).
 
 ## Regenerating the map
 
-The embedding pipeline lives in `src/typography/new-pipe/`. See its [README](src/typography/new-pipe/README.md) for full instructions.
-
-**Quick summary:**
+The embedding pipeline lives in `src/typography/new-pipe/python-pipeline/`. See its [README](src/typography/new-pipe/python-pipeline/README.md) for all options.
 
 ```bash
-# 1. Generate FontCLIP embeddings (requires Python + GPU, ~1h one-time)
 cd src/typography/new-pipe/python-pipeline
-python run_fontclip.py
+pip install -r requirements.txt
 
-# 2. Test different UMAP configurations
-cd ..
-npm run batch-umap
-npm run copy-to-debug
-# Compare visually at http://localhost:3000/#/debug-umap
+# FontCLIP weights go in weights/fontclip_vit_b32.pt (falls back to vanilla CLIP otherwise)
+python generate_embeddings_and_umap.py \
+  --pngs-dir ../output/pngs \
+  --output-dir ../output/data \
+  --font-index ../input/font-index.json \
+  --fontclip \
+  --device mps  # or cpu, cuda
 
-# 3. Deploy chosen config to production
-npm run deploy fontclip-spectral
+# Then copy the generated typography_data_python_*.json to public/data/typography_data.json
 ```
+
+The rendered font images and font index (`input/`, `output/`) are not checked in.
 
 ## Project structure
 
@@ -129,7 +123,7 @@ fontmap/
 
 ## Credits
 
-- **[FontCLIP](https://github.com/kinit-sk/FontCLIP)** — Typography-aware CLIP model by KInIT
+- **[FontCLIP](https://github.com/yukistavailable/FontCLIP)** — Typography-aware CLIP model by Tatsukawa et al. (Eurographics 2024)
 - **[IDEO Font Map](https://medium.com/ideo-stories/organizing-the-world-of-fonts-with-ai-7d9e49ff2b25)** — Original inspiration by Kevin Ho (2017)
 - **[Google Fonts](https://fonts.google.com)** — Font catalog
 - **[UMAP](https://umap-learn.readthedocs.io/)** — Dimensionality reduction by Leland McInnes

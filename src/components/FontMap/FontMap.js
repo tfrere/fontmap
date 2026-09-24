@@ -17,6 +17,7 @@ import TooltipManager from './components/TooltipManager';
 import IntroModal from './components/IntroModal';
 import AboutModal from './components/AboutModal';
 import FPSMonitor from './components/FPSMonitor';
+import FocusHint from './components/FocusHint';
 
 import { useFontMapStore } from '../../store/fontMapStore';
 import './styles/intro-modal.css';
@@ -234,17 +235,7 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
           <svg ref={svgRef} className="fontmap-svg"></svg>
         </div>
 
-        {selectedFont && (
-          <div className="focus-hint">
-            <div className="focus-hint-keys">
-              <kbd>←</kbd>
-              <kbd>↑</kbd>
-              <kbd>↓</kbd>
-              <kbd>→</kbd>
-            </div>
-            <span className="focus-hint-label">use arrow keys to navigate</span>
-          </div>
-        )}
+        {selectedFont && <FocusHint />}
 
         {!loading && fonts.length > 0 && (
           <TooltipManager

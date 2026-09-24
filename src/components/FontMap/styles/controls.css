@@ -419,12 +419,25 @@
   font-family: inherit;
   font-size: 14px;
   line-height: 1;
+  transition: transform 0.12s ease;
+}
+
+.focus-hint kbd.is-pressed {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+  transform: scale(0.9);
 }
 
 .dark-mode .focus-hint kbd {
   background: #000000;
   color: #ffffff;
   border-color: #ffffff;
+}
+
+.dark-mode .focus-hint kbd.is-pressed {
+  background: #ffffff;
+  color: #000000;
 }
 
 .focus-hint-label {

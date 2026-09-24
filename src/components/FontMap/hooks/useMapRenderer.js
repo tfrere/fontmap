@@ -400,7 +400,16 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         }
         const font = getFontFromGroup(group);
         if (!font) return;
-        setHoveredFont(current && current.id === font.id ? null : font);
+        if (current && current.id === font.id) {
+          setHoveredFont(null);
+          return;
+        }
+        if (current) setHoveredFont(null);
+        if (window.panToGlyph) {
+          window.panToGlyph(group, () => setHoveredFont(font));
+        } else {
+          setHoveredFont(font);
+        }
         return;
       }
       if (!group) {

@@ -69,12 +69,40 @@ export function useMapZoom(svgRef, enabled = true) {
         });
     };
 
+    // Pan (keeping the current scale) so the glyph lands in the middle of the
+    // visible map area, i.e. below the fixed mobile top strip, then call onEnd.
+    window.panToGlyph = (glyphNode, onEnd) => {
+      const svgNode = svgRef.current;
+      const ctm = svgNode && svgNode.getScreenCTM();
+      if (!glyphNode || !ctm) { onEnd && onEnd(); return; }
+
+      const r = glyphNode.getBoundingClientRect();
+      const sidebar = document.querySelector('.sidebar');
+      const top = sidebar ? sidebar.getBoundingClientRect().bottom : 0;
+      const dx = window.innerWidth / 2 - (r.left + r.width / 2);
+      const dy = top + (window.innerHeight - top) / 2 - (r.top + r.height / 2);
+
+      if (Math.hypot(dx, dy) < 24) { onEnd && onEnd(); return; }
+
+      const t = d3.zoomTransform(svgNode);
+      const target = d3.zoomIdentity
+        .translate(t.x + dx / ctm.a, t.y + dy / ctm.d)
+        .scale(t.k);
+
+      svg.transition()
+        .duration(350)
+        .ease(d3.easeCubicOut)
+        .call(zoom.transform, target)
+        .on('end', () => onEnd && onEnd());
+    };
+
     const svgNode = svgRef.current;
     return () => {
       if (svgNode) d3.select(svgNode).on('.zoom', null);
       delete window.zoomIn;
       delete window.zoomOut;
       delete window.resetZoom;
+      delete window.panToGlyph;
       zoomRef.current = null;
     };
   }, [enabled, svgRef]);

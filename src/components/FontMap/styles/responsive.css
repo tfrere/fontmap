@@ -154,6 +154,12 @@
     gap: 6px;
   }
   
+  .search-section {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
   .filters-container {
     align-items: stretch;
     padding-left: 0;

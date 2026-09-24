@@ -7,6 +7,7 @@ const INITIAL_SCALE = 0.8;
 // Min scale = reset scale — user can't zoom out past the initial framing.
 const SCALE_EXTENT = [INITIAL_SCALE, 10.0];
 const TRANSITION_DURATION = 750;
+const MOBILE_TAP_SCALE = 3.0;
 
 // Everything (zoom transform, extents, centering) works in the fixed
 // reference-canvas coordinates. d3.zoom reads pointer positions through the
@@ -69,7 +70,7 @@ export function useMapZoom(svgRef, enabled = true) {
         });
     };
 
-    // Pan (keeping the current scale) so the glyph lands in the middle of the
+    // Zoom in (never out) and pan so the glyph lands in the middle of the
     // visible map area, i.e. below the fixed mobile top strip, then call onEnd.
     window.panToGlyph = (glyphNode, onEnd) => {
       const svgNode = svgRef.current;
@@ -79,21 +80,39 @@ export function useMapZoom(svgRef, enabled = true) {
       const r = glyphNode.getBoundingClientRect();
       const sidebar = document.querySelector('.sidebar');
       const top = sidebar ? sidebar.getBoundingClientRect().bottom : 0;
-      const dx = window.innerWidth / 2 - (r.left + r.width / 2);
-      const dy = top + (window.innerHeight - top) / 2 - (r.top + r.height / 2);
-
-      if (Math.hypot(dx, dy) < 24) { onEnd && onEnd(); return; }
+      const targetX = window.innerWidth / 2;
+      const targetY = top + (window.innerHeight - top) / 2;
+      const glyphX = r.left + r.width / 2;
+      const glyphY = r.top + r.height / 2;
 
       const t = d3.zoomTransform(svgNode);
-      const target = d3.zoomIdentity
-        .translate(t.x + dx / ctm.a, t.y + dy / ctm.d)
-        .scale(t.k);
+      const k = Math.max(t.k, MOBILE_TAP_SCALE);
 
+      if (k === t.k && Math.hypot(targetX - glyphX, targetY - glyphY) < 24) {
+        onEnd && onEnd();
+        return;
+      }
+
+      // Screen -> reference-canvas coordinates, then solve k * p + t' = target
+      // for the glyph's untransformed position p.
+      const toRef = (x, y) => [(x - ctm.e) / ctm.a, (y - ctm.f) / ctm.d];
+      const [gx, gy] = toRef(glyphX, glyphY);
+      const [tx, ty] = toRef(targetX, targetY);
+      const px = (gx - t.x) / t.k;
+      const py = (gy - t.y) / t.k;
+
+      const target = d3.zoomIdentity.translate(tx - k * px, ty - k * py).scale(k);
+
+      useFontMapStore.getState().setIsTransitioning(true);
       svg.transition()
-        .duration(350)
-        .ease(d3.easeCubicOut)
+        .duration(k === t.k ? 350 : 600)
+        .ease(d3.easeCubicInOut)
         .call(zoom.transform, target)
-        .on('end', () => onEnd && onEnd());
+        .on('end', () => {
+          useFontMapStore.getState().setIsTransitioning(false);
+          onEnd && onEnd();
+        })
+        .on('interrupt', () => useFontMapStore.getState().setIsTransitioning(false));
     };
 
     const svgNode = svgRef.current;

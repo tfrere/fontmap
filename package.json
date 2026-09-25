@@ -1,7 +1,7 @@
 {
   "name": "fontmap",
   "version": "1.0.0",
-  "description": "Interactive map of 1,192 Google Fonts organized by visual similarity using FontCLIP + UMAP",
+  "description": "Interactive map of 1,649 Google Fonts organized by visual similarity using FontCLIP + UMAP",
   "author": "Thibaud Frere",
   "license": "MIT",
   "homepage": ".",

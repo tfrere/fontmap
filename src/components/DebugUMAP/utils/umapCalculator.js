@@ -27,119 +27,67 @@ export async function loadEmbeddings() {
   }
 }
 
-/**
- * Extrait le préfixe pour la fusion des familles
- */
-export function extractFusionPrefix(fontId, fontData) {
-  const parts = fontId.split('-');
-  if (parts.length <= 1) {
-    return fontId;
+// Same threshold as python-pipeline/build_typography_data.py (--variant-max-distance)
+export const VARIANT_MAX_COSINE_DISTANCE = 5e-5;
+
+function cosineDistance(a, b) {
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
   }
-
-  // Vérifier les subsets non standards
-  if (fontData && fontData.subsets && Array.isArray(fontData.subsets)) {
-    const commonSubsets = ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext', 'greek', 'greek-ext'];
-    for (const subset of fontData.subsets) {
-      if (!commonSubsets.includes(subset) && fontId.includes(subset)) {
-        const baseName = fontId.replace(`-${subset}`, '').replace(subset, '');
-        if (baseName && baseName !== fontId) {
-          return baseName;
-        }
-      }
-    }
-  }
-
-  // Cas spéciaux
-  const specialCases = {
-    'baloo': ['baloo-2', 'baloo-bhai-2', 'baloo-bhaijaan-2', 'baloo-bhaina-2', 'baloo-chettan-2', 'baloo-da-2', 'baloo-paaji-2', 'baloo-tamma-2', 'baloo-tammudu-2', 'baloo-thambi-2'],
-    'ibm-plex': ['ibm-plex'],
-    'playwrite': ['playwrite']
-  };
-
-  for (const [familyPrefix, patterns] of Object.entries(specialCases)) {
-    for (const pattern of patterns) {
-      if (fontId.startsWith(pattern)) {
-        return familyPrefix;
-      }
-    }
-  }
-
-  // Noto fonts
-  if (fontId.startsWith('noto-serif-')) return 'noto-serif';
-  if (fontId.startsWith('noto-')) return 'noto';
-
-  // Second word special
-  const secondWord = parts[1];
-  if (secondWord === 'sans' || secondWord === 'serif' || secondWord === 'plex') {
-    return parts.slice(0, 2).join('-');
-  }
-
-  return parts[0];
+  return 1 - dot / (Math.sqrt(na) * Math.sqrt(nb));
 }
 
 /**
- * Fusionne les familles de polices
+ * Maps each "render variant" id to its root base id.
+ * A variant is a font whose id extends another font's id (noto-sans-carian -> noto-sans,
+ * anton-sc -> anton) and whose rendered specimen is visually identical to it.
+ */
+export function findRenderVariants(fontDataList, embeddingMatrices, maxDistance = VARIANT_MAX_COSINE_DISTANCE) {
+  const indexById = new Map(fontDataList.map((font, i) => [font.id, i]));
+  const parent = new Map();
+
+  fontDataList.forEach((font, i) => {
+    const parts = font.id.split('-');
+    for (let k = parts.length - 1; k > 0; k--) {
+      const baseIndex = indexById.get(parts.slice(0, k).join('-'));
+      if (baseIndex === undefined) continue;
+      if (cosineDistance(embeddingMatrices[i], embeddingMatrices[baseIndex]) <= maxDistance) {
+        parent.set(font.id, fontDataList[baseIndex].id);
+        break;
+      }
+    }
+  });
+
+  const roots = new Map();
+  for (const id of parent.keys()) {
+    let root = id;
+    while (parent.has(root)) root = parent.get(root);
+    roots.set(id, root);
+  }
+  return roots;
+}
+
+/**
+ * Folds render variants into their base font. Every other Google Fonts family is kept
+ * as-is; the base keeps its own embedding, image, name and category.
  */
 export function mergeFontFamilies(fontDataList, embeddingMatrices, enableFusion = true) {
   if (!enableFusion) {
     return { fontDataList, embeddingMatrices };
   }
 
-  const prefixGroups = {};
-  const prefixEmbeddingGroups = {};
-
-  // Grouper par préfixe
-  for (let i = 0; i < fontDataList.length; i++) {
-    const font = fontDataList[i];
-    const prefix = extractFusionPrefix(font.id, font);
-
-    if (!prefixGroups[prefix]) {
-      prefixGroups[prefix] = [];
-      prefixEmbeddingGroups[prefix] = [];
-    }
-
-    prefixGroups[prefix].push(font);
-    prefixEmbeddingGroups[prefix].push(embeddingMatrices[i]);
-  }
-
+  const variants = findRenderVariants(fontDataList, embeddingMatrices);
   const mergedFonts = [];
   const mergedEmbeddings = [];
 
-  // Créer les polices fusionnées
-  for (const [prefix, fonts] of Object.entries(prefixGroups)) {
-    if (fonts.length > 1) {
-      let representativeFont = fonts[0];
-
-      // Choix du représentant pour certaines familles
-      const representatives = {
-        'noto': 'noto-sans-arabic',
-        'noto-serif': 'noto-serif-latin',
-        'ibm-plex': 'ibm-plex-sans',
-        'baloo': 'baloo-2'
-      };
-
-      if (representatives[prefix]) {
-        const found = fonts.find(f => f.id === representatives[prefix]);
-        if (found) representativeFont = found;
-      }
-
-      const representativeIndex = fonts.findIndex(f => f.id === representativeFont.id);
-      const representativeEmbedding = prefixEmbeddingGroups[prefix][representativeIndex];
-
-      const mergedFont = {
-        ...representativeFont,
-        id: prefix,
-        name: prefix.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        imageName: representativeFont.id
-      };
-
-      mergedFonts.push(mergedFont);
-      mergedEmbeddings.push(representativeEmbedding);
-    } else {
-      mergedFonts.push({ ...fonts[0], imageName: fonts[0].id });
-      mergedEmbeddings.push(prefixEmbeddingGroups[prefix][0]);
-    }
-  }
+  fontDataList.forEach((font, i) => {
+    if (variants.has(font.id)) return;
+    mergedFonts.push({ ...font, imageName: font.id });
+    mergedEmbeddings.push(embeddingMatrices[i]);
+  });
 
   return {
     fontDataList: mergedFonts,

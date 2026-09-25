@@ -16,7 +16,7 @@ const IntroModal = ({ onStartExploring, darkMode }) => {
               Using artificial intelligence to surface new relationships across fonts.
             </p>
             <p className="intro-description">
-              This interactive map of 1,192 <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer" className="google-fonts-link">Google Fonts</a> has been organized using machine learning.
+              This interactive map of 1,649 <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer" className="google-fonts-link">Google Fonts</a> has been organized using machine learning.
             </p>
             
             <div className="intro-features">

@@ -10,14 +10,16 @@
 @media (max-width: 768px) {
   .fontmap-container {
     flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
   }
 
-  /* Sidebar becomes a sticky top strip with just search + filters */
+  /* Sidebar becomes a top strip with just search + filters. It stays in the
+     flex flow (not fixed) so the map fills only the area below it and its
+     initial framing is centered in what's actually visible. */
   .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    position: relative;
+    flex: none;
     width: 100%;
     min-width: 0;
     height: auto;
@@ -93,9 +95,14 @@
     color: var(--color-text-primary-dark);
   }
 
-  /* Map fills full viewport beneath the sticky sidebar */
+  .map-title {
+    display: none;
+  }
+
+  /* Map fills the remaining height below the top strip */
   .main-area {
-    height: 100vh;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
   }
 

@@ -93,7 +93,6 @@
   -webkit-text-stroke: 16px var(--color-bg-primary);
   text-stroke: 16px var(--color-bg-primary);
   paint-order: stroke fill;
-  position: relative;
 }
 
 .map-title::before {

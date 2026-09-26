@@ -6,3 +6,4 @@ scikit-learn>=1.3
 numpy>=1.24
 Pillow>=10.0
 tqdm>=4.65
+fonttools>=4.40

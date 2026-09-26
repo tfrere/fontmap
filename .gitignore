@@ -1,6 +1,5 @@
 # Dependencies
 /node_modules
-src/typography/new-pipe/node_modules
 
 # Build output (rebuilt in CI and deployed to the HF Space)
 /build
@@ -20,22 +19,18 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Pipeline working directories
-src/typography/new-pipe/input
-src/typography/new-pipe/output
-src/typography/new-pipe/public
-src/typography/generated/
+# Pipeline working directories (fonts, renders, embeddings: regenerate with the pipeline)
+/pipeline/input/
+/pipeline/output/
+/pipeline/.venv/
+__pycache__/
 
-# Vendored external clone of FontCLIP (regenerate: git clone https://github.com/kinit-sk/FontCLIP)
-src/typography/new-pipe/python-pipeline/fontclip_workspace/
+# External clone of FontCLIP + its checkpoint (see pipeline/README.md)
+/pipeline/fontclip_workspace/
 
-# Heavy UMAP batch-testing / debug artifacts (dev-only)
-src/typography/new-pipe/batch-testing/results/
-src/typography/new-pipe/batch-testing/output/
+# Legacy UMAP batch-testing artifacts
+/pipeline/batch-testing/
 
 # Large generated data (regenerate with pipeline)
-public/data/embeddings.json
 public/data/font-map.json
-build/data/embeddings.json
-build/data/font-map.json
 REDDIT_LAUNCH.md

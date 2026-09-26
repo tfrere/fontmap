@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-FontMap Enhanced Pipeline — Python alternative for steps 4+5.
+Shared helpers for the map builders (reduce_dimensions: PCA -> spectral UMAP,
+compute_knn: cosine k-NN), plus the legacy standalone CLI.
 
-Uses FontCLIP (fine-tuned CLIP for typography) with proper UMAP (spectral init)
-for higher quality font embeddings and dimensionality reduction.
+The CLI embeds PNG specimens with CLIP ViT-B/32 and lays them out with UMAP. It
+is kept for reference only: production embeddings come from
+compute_fontclip_embeddings.py and the map from build_typography_data.py.
 
-Usage:
-  pip install -r requirements.txt
-  python generate_embeddings_and_umap.py --pngs-dir ../output/pngs --output-dir ../output/data
-
-Falls back to standard CLIP ViT-B/32 if FontCLIP weights are not available.
+Usage (legacy CLI, from the repo root):
+  pipeline/.venv/bin/python pipeline/generate_embeddings_and_umap.py \
+    --pngs-dir pipeline/output/pngs --output-dir pipeline/output/data
 """
 
 import argparse
@@ -109,7 +109,7 @@ def reduce_dimensions(
     pca = PCA(n_components=pca_components, random_state=random_state)
     pca_result = pca.fit_transform(embeddings)
     variance_ratio = pca.explained_variance_ratio_.sum() * 100
-    print(f"   📐 Variance conservée: {variance_ratio:.1f}%")
+    print(f"   📐 Explained variance: {variance_ratio:.1f}%")
 
     print(f"🔄 UMAP: {pca_components}D → 2D (n_neighbors={umap_neighbors}, min_dist={umap_min_dist})")
     reducer = umap.UMAP(

@@ -1,26 +1,13 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import DebugUMAP from './components/DebugUMAP';
 import './App.css';
 
 const FontMap = React.lazy(() => import('./components/FontMap/').then(module => ({ default: module.FontMap })));
-const FontMapV2 = React.lazy(() => import('./components/FontMapV2/FontMapV2'));
 
 function FullPageSpinner() {
   return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'rgba(0, 0, 0, 0.6)',
-      zIndex: 99999
-    }}>
-      <div style={{
-        width: 32, height: 32,
-        border: '3px solid rgba(255,255,255,0.2)',
-        borderTop: '3px solid #fff',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite'
-      }} />
+    <div className="app-loader" role="status" aria-label="Loading FontMap">
+      <div className="app-loader-spinner" />
     </div>
   );
 }
@@ -29,13 +16,13 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/debug-umap" element={<DebugUMAP />} />
-        <Route path="/v2" element={
+        <Route path="/" element={
           <React.Suspense fallback={<FullPageSpinner />}>
-            <FontMapV2 />
+            <FontMap />
           </React.Suspense>
         } />
-        <Route path="/" element={
+        {/* Same element as "/" so switching between the two keeps the map mounted */}
+        <Route path="/how-it-works" element={
           <React.Suspense fallback={<FullPageSpinner />}>
             <FontMap />
           </React.Suspense>

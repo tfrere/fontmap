@@ -1,11 +1,11 @@
 import React from 'react';
+import { sortCategories } from '../../utils/categories';
 
 /**
- * Composant de contrôles de filtrage
+ * Filter controls
  */
 const FilterControls = ({ fonts, filter, onFilterChange }) => {
-  // Obtenir les catégories uniques
-  const categories = [...new Set(fonts.map(f => f.family))];
+  const categories = sortCategories(new Set(fonts.map(f => f.family)));
 
   return (
     <div className="filters-container">
@@ -17,7 +17,8 @@ const FilterControls = ({ fonts, filter, onFilterChange }) => {
             className={`filter-link ${filter === family ? 'active' : ''}`} 
             onClick={() => onFilterChange(filter === family ? 'all' : family)}
           >
-            {family} <span className="filter-count">{fonts.filter(f => f.family === family).length}</span>
+            <span className="filter-label" title={family}>{family}</span>
+            <span className="filter-count">{fonts.filter(f => f.family === family).length}</span>
           </span>
         ))}
       </div>

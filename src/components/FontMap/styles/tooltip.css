@@ -33,7 +33,7 @@
   opacity: 0.7;
 }
 
-/* Tooltip simplifié */
+/* Tooltip */
 .font-tooltip {
   background: var(--color-bg-primary);
   border: none;
@@ -93,14 +93,14 @@
   color: var(--color-bg-primary-dark);
 }
 
-/* Tooltip sélectionné (priorité normale) */
+/* Selected tooltip (normal priority) */
 .font-tooltip-selected {
   z-index: 1000 !important;
   border-width: 1px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
-/* Tooltip hover (priorité plus haute) */
+/* Hover tooltip (higher priority) */
 .font-tooltip-hover {
   z-index: 1001 !important;
   border: 3px solid #ffffff !important;
@@ -112,9 +112,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Animation d'apparition */
+/* Fade-in animation */
 
-/* Tooltip simple avec nom et phrase */
+/* Simple tooltip with name and sentence */
 .simple-tooltip {
   padding: 12px 8px;
   text-align: center;
@@ -146,7 +146,7 @@
   padding-bottom: 0!important;
 }
 
-/* Mode sombre pour le tooltip */
+/* Tooltip dark mode */
 .dark-mode .font-tooltip {
   background: var(--color-bg-primary-dark) !important;
   border: none !important;
@@ -175,7 +175,7 @@
   color: #ffffff !important;
 }
 
-/* Suppression des ombres pour les images de sentence */
+/* No shadow on sentence images */
 .sentence-image {
   max-width: 100%;
   height: auto;
@@ -183,7 +183,7 @@
   border-radius: var(--border-radius-sm);
 }
 
-/* Pas d'ombre pour les images de sentence dans tous les tooltips */
+/* No shadow on sentence images in any tooltip */
 .font-tooltip-selected .sentence-image {
   box-shadow: none;
 }
@@ -306,7 +306,7 @@
 
 
 
-/* Animation du tooltip */
+/* Tooltip animation */
 .font-tooltip {
   transform: translateY(0);
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { parseSprite } from '../utils/glyphSprites';
 
 export function useStaticFontData() {
     const [fonts, setFonts] = useState([]);
@@ -11,11 +12,11 @@ export function useStaticFontData() {
             try {
                 console.log('📦 Loading static font map data...');
 
-                // 1. Charger le sprite SVG et extraire les chemins
+                // 1. Load the SVG sprite and extract the glyph paths
                 const paths = {};
                 try {
                     let spriteContent = '';
-                    // Essayer d'abord dans /data/
+                    // Try /data/ first
                     const spriteResponse = await fetch('/data/font-sprite.svg');
 
                     if (!spriteResponse.ok) {
@@ -29,18 +30,7 @@ export function useStaticFontData() {
                     }
 
                     if (spriteContent) {
-                        // Parser le SVG pour extraire les chemins
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(spriteContent, 'image/svg+xml');
-                        const symbols = doc.querySelectorAll('symbol');
-
-                        symbols.forEach(symbol => {
-                            const id = symbol.id;
-                            const path = symbol.querySelector('path');
-                            if (id && path) {
-                                paths[id] = path.getAttribute('d');
-                            }
-                        });
+                        Object.assign(paths, parseSprite(spriteContent));
                         console.log(`🎨 Extracted ${Object.keys(paths).length} glyph paths`);
                         setGlyphPaths(paths);
                     }
@@ -48,7 +38,7 @@ export function useStaticFontData() {
                     console.warn('⚠️ Error loading/parsing sprite:', e);
                 }
 
-                // 2. Charger les données JSON (font-map.json ou fallback typography_data.json)
+                // 2. Load the JSON data (font-map.json, falling back to typography_data.json)
                 let data;
                 const mapResponse = await fetch('/data/font-map.json');
                 const mapContentType = mapResponse.headers.get('content-type');

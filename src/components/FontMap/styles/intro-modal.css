@@ -13,81 +13,195 @@
   opacity: 1;
 }
 
-.unified-overlay .loading {
-  color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
-  text-align: center;
-  line-height: 1.2;
-  margin: 0;
-  padding: 0;
-  position: static;
-  top: auto;
-  left: auto;
-  transform: none;
-}
-
-.unified-overlay .overlay-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top: 3px solid #fff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.dark-mode .unified-overlay .loading {
-  color: #ffffff;
-}
-
 /* Intro Modal Styles */
 
+.unified-overlay.intro-overlay {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.unified-overlay.intro-overlay.dark-mode {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* The card stays overflow: visible so the start button can hang off its bottom edge;
+   the band and the content clip themselves. */
 .intro-modal {
+  --intro-glyph-size: 76px;
+  --intro-glyph-spacing: -5px;
+  --intro-pad: 32px;
+  --intro-radius: 12px;
+  --intro-button-height: 52px;
+  --intro-row-overlap: 18px;
+  --intro-ink: var(--color-text-primary);
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-primary);
-  border-radius: var(--border-radius-lg);
-  max-width: 420px;
-  width: 90%;
-  max-height: 80vh;
-  overflow: hidden;
+  border-radius: var(--intro-radius);
+  max-width: 490px;
+  width: 92%;
+  max-height: 88vh;
   box-shadow: var(--shadow-lg);
-  animation: introModalSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark-mode .intro-modal {
+  --intro-ink: var(--color-text-primary-dark);
   background: var(--color-bg-primary-dark);
   border-color: var(--color-border-primary-dark);
 }
 
-@keyframes introModalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+/* Specimen band */
+
+/* Sized for the two middle rows; the stack is centred so the outer rows are cropped. */
+.intro-band {
+  --intro-band-pad: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-shrink: 0;
+  height: calc(2 * var(--intro-glyph-size) + 8px - var(--intro-row-overlap) + 2 * var(--intro-band-pad));
+  overflow: hidden;
+  border-radius: calc(var(--intro-radius) - 1px) calc(var(--intro-radius) - 1px) 0 0;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
 }
 
+.dark-mode .intro-band {
+  background: var(--color-bg-secondary-dark);
+  border-bottom-color: var(--color-border-primary-dark);
+}
+
+.intro-band-caption {
+  position: absolute;
+  right: 12px;
+  bottom: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  /* Halo keeps the caption readable over glyphs passing underneath */
+  -webkit-text-stroke: 4px #ffffff;
+  paint-order: stroke fill;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.dark-mode .intro-band-caption {
+  color: var(--color-text-secondary-dark);
+  -webkit-text-stroke-color: var(--color-bg-secondary-dark);
+}
+
+.intro-band:hover .intro-band-caption {
+  opacity: 1;
+}
+
+/* Rotates the whole band, never individual glyphs: faux italics would misrepresent the fonts.
+   Oversized sideways so the tilted rows still reach both card edges. */
+.intro-marquee-tilted {
+  --intro-band-pad: 10px;
+}
+
+.intro-marquee-tilted .glyph-marquee {
+  margin: 0 -40px;
+  transform: rotate(-3.5deg);
+}
+
+/* Gentle radial emphasis: ink is strongest at the band centre and softens towards
+   the edges. The ellipse is sized to the visible band (the outer rows are cropped),
+   and the mask never reaches zero so no glyph is cut out. */
+.intro-band .glyph-marquee {
+  -webkit-mask-image: radial-gradient(ellipse 46% 34% at 50% 50%, #000 0%, rgba(0, 0, 0, 0.75) 45%, rgba(0, 0, 0, 0.36) 100%);
+  mask-image: radial-gradient(ellipse 46% 34% at 50% 50%, #000 0%, rgba(0, 0, 0, 0.75) 45%, rgba(0, 0, 0, 0.36) 100%);
+}
+
+/* Glyph marquee */
+
+.glyph-marquee {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  color: var(--intro-ink);
+}
+
+/* Vertical padding leaves room for the hover scale inside overflow: hidden. */
+.glyph-marquee-row {
+  overflow: hidden;
+  padding: 2px 0;
+}
+
+/* The "A" ink only fills the middle of each cell, so rows can overlap slightly. */
+.glyph-marquee-row + .glyph-marquee-row {
+  margin-top: calc(-1 * var(--intro-row-overlap));
+}
+
+.glyph-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: glyphMarqueeScroll linear infinite;
+  will-change: transform;
+}
+
+/* Hovering eases the playback rate down in JS (GlyphMarquee), never pauses abruptly. */
+.glyph-marquee-track.reverse {
+  animation-direction: reverse;
+}
+
+@keyframes glyphMarqueeScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.glyph-marquee-glyph {
+  flex-shrink: 0;
+  width: var(--intro-glyph-size);
+  height: var(--intro-glyph-size);
+  margin: 0 var(--intro-glyph-spacing);
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glyph-marquee-glyph svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.glyph-marquee:hover .glyph-marquee-glyph {
+  opacity: 0.3;
+}
+
+.glyph-marquee .glyph-marquee-glyph:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* Content */
+
 .intro-modal-content {
-  padding: var(--spacing-xl);
+  padding: 28px var(--intro-pad) calc(var(--intro-button-height) / 2 + 38px);
   text-align: center;
   overflow-y: auto;
   min-height: 0;
+  border-radius: 0 0 var(--intro-radius) var(--intro-radius);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .intro-title {
   font-family: var(--font-logo);
-  font-size: 36px;
+  font-size: 52px;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-sm) 0;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  margin: 0 0 10px;
+  letter-spacing: -0.035em;
+  line-height: 1;
 }
 
 .dark-mode .intro-title {
@@ -95,158 +209,164 @@
 }
 
 .intro-subtitle {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-size: 16px;
+  max-width: 400px;
+  margin: 0 auto;
+  font-size: 15.5px;
   font-weight: 400;
   color: var(--color-text-secondary);
-  margin: 0 0 var(--spacing-md) 0;
-  line-height: 1.4;
+  line-height: 1.55;
+  letter-spacing: -0.003em;
+  text-wrap: pretty;
 }
 
 .dark-mode .intro-subtitle {
   color: var(--color-text-secondary-dark);
 }
 
-.intro-description {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--color-text-tertiary);
-  margin: 0 0 var(--spacing-lg) 0;
-  line-height: 1.5;
+.intro-subtitle strong {
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
-.dark-mode .intro-description {
-  color: var(--color-text-tertiary-dark);
+.dark-mode .intro-subtitle strong {
+  color: var(--color-text-primary-dark);
 }
 
 .intro-modal .google-fonts-link {
-  color: var(--text-color) !important;
-  font-weight: bold;
+  color: inherit !important;
   background: none !important;
   border: none !important;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .intro-modal .google-fonts-link:hover {
-  color: var(--text-color) !important;
-  font-weight: bold;
-  background: none !important;
-  border: none !important;
-}
-
-.intro-features {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-  align-items: center;
-}
-
-.intro-feature {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--color-text-secondary);
-}
-
-.dark-mode .intro-feature {
-  color: var(--color-text-secondary-dark);
-}
-
-.intro-feature-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--border-radius-sm);
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-tertiary);
-  flex-shrink: 0;
-}
-
-.dark-mode .intro-feature-icon {
-  background: var(--color-bg-tertiary-dark);
-  color: var(--color-text-tertiary-dark);
-}
-
-.intro-feature-icon svg {
-  width: 16px;
-  height: 16px;
+  text-decoration-thickness: 2px;
 }
 
 .intro-start-button {
-  display: flex;
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  transform: translate(-50%, 50%);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
+  box-sizing: border-box;
+  height: var(--intro-button-height);
+  min-width: 240px;
+  padding: 0 28px;
   border: 1px solid #000000;
   border-radius: var(--border-radius-md);
   background: #000000;
   color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all var(--transition-normal);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  transition: background var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .intro-start-button:hover {
   background: #333333;
-  border-color: #333333;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translate(-50%, calc(50% - 1px));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.intro-start-button:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 3px;
 }
 
 .dark-mode .intro-start-button {
   background: #ffffff;
   color: #000000;
   border-color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 .dark-mode .intro-start-button:hover {
   background: #e0e0e0;
-  border-color: #e0e0e0;
-  box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
+.dark-mode .intro-start-button:focus-visible {
+  outline-color: #ffffff;
+}
 
-/* Responsive design */
+@media (prefers-reduced-motion: reduce) {
+  .glyph-marquee-track {
+    animation: none;
+  }
+}
+
+@media (hover: none) {
+  .intro-band-caption {
+    display: none;
+  }
+}
+
+.intro-how {
+  display: none;
+  margin: 14px 0 0;
+  font-size: 13px;
+}
+
+.intro-how-link {
+  padding: 0;
+  font: inherit;
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.dark-mode .intro-how-link {
+  color: var(--color-text-secondary-dark);
+}
+
+@media (max-width: 768px) {
+  .intro-how {
+    display: block;
+  }
+}
+
 @media (max-width: 600px) {
   .intro-modal {
-    width: 95%;
-    margin: var(--spacing-lg);
+    --intro-glyph-size: 58px;
+    --intro-glyph-spacing: -4px;
+    --intro-pad: 20px;
+    --intro-button-height: 48px;
+    --intro-row-overlap: 14px;
+    width: 94%;
   }
-  
+
   .intro-modal-content {
-    padding: var(--spacing-lg);
+    padding-top: 22px;
+    padding-bottom: calc(var(--intro-button-height) / 2 + 34px);
   }
-  
+
+  .intro-marquee-tilted {
+    --intro-band-pad: 7px;
+  }
+
   .intro-title {
-    font-size: 28px;
+    font-size: 40px;
   }
-  
+
   .intro-subtitle {
-    font-size: 14px;
+    font-size: 14.5px;
+    line-height: 1.5;
   }
-  
-  .intro-description {
-    font-size: 12px;
+
+  .intro-start-button {
+    min-width: 220px;
+    font-size: 15px;
   }
-  
-  .intro-features {
-    gap: var(--spacing-sm);
-  }
-  
-  .intro-feature {
-    font-size: 12px;
-  }
-  
 }

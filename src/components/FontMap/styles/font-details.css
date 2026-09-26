@@ -6,97 +6,144 @@
 }
 
 
-.font-details-placeholder {
+/* Empty state: shown in the sidebar while no font is selected, centred in the free space */
+.empty-state {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 360px;
+  padding: var(--spacing-xl) var(--spacing-xl) 48px;
   text-align: center;
-  padding: var(--spacing-xl);
-  color: var(--color-text-secondary);
-  position: relative;
-  min-height: 400px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-.dark-mode .font-details-placeholder {
-  color: var(--color-text-secondary-dark);
-}
-
-/* Placeholder icon */
-.placeholder-icon {
-  position: relative;
-  margin-bottom: var(--spacing-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.7;
-  transition: all 0.3s ease;
-}
-
-.placeholder-icon svg {
+.empty-state-icon {
+  margin-bottom: var(--spacing-lg);
   color: var(--color-text-tertiary);
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+  opacity: 0.45;
 }
 
-.dark-mode .placeholder-icon svg {
+.empty-state-icon svg {
+  display: block;
+}
+
+.empty-state-lens-fill {
+  fill: var(--color-bg-secondary);
+}
+
+.empty-state-glyph {
+  fill: var(--color-text-primary);
+}
+
+.dark-mode .empty-state-icon {
   color: var(--color-text-tertiary-dark);
-  filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
 }
 
-/* Simple icon animation */
-.placeholder-icon {
-  position: relative;
-  z-index: 2;
-  opacity: 0.7;
-  transition: all 0.3s ease;
+.dark-mode .empty-state-lens-fill {
+  fill: var(--color-bg-secondary-dark);
 }
 
-.placeholder-icon svg {
-  color: var(--color-text-tertiary);
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+.dark-mode .empty-state-glyph {
+  fill: var(--color-text-primary-dark);
 }
 
-.dark-mode .placeholder-icon svg {
-  color: var(--color-text-tertiary-dark);
-  filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
-}
-
-
-/* Content styling */
-.placeholder-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  max-width: 320px;
-}
-
-.placeholder-content h3 {
-  font-size: 24px;
-  font-weight: 700;
+.empty-state-title {
   margin: 0;
-  color: var(--color-text-primary);
-  letter-spacing: -0.02em;
+  font-size: 20px;
+  font-weight: 600;
   line-height: 1.2;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  letter-spacing: -0.015em;
+  color: var(--color-text-primary);
 }
 
-.dark-mode .placeholder-content h3 {
+.dark-mode .empty-state-title {
   color: var(--color-text-primary-dark);
 }
 
-.placeholder-content p {
-  font-size: 16px;
+.empty-state-lead {
+  max-width: 270px;
+  margin: var(--spacing-sm) 0 0;
+  font-size: 14px;
   line-height: 1.5;
-  margin: 0;
   color: var(--color-text-secondary);
-  font-weight: 400;
+  text-wrap: balance;
 }
 
-.dark-mode .placeholder-content p {
+.dark-mode .empty-state-lead {
   color: var(--color-text-secondary-dark);
+}
+
+/* Discreet by design: small, muted, low-contrast keys */
+.empty-state-hints {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11.5px;
+  line-height: 1.3;
+  color: var(--color-text-tertiary);
+}
+
+.dark-mode .empty-state-hints {
+  color: #808080;
+}
+
+.empty-state-hints li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.empty-state-hints li > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.empty-state-hints .hint-touch {
+  display: none;
+}
+
+.hint-range {
+  margin: 0 1px;
+}
+
+.empty-state-hints kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1;
+  color: inherit;
+  border: 1px solid var(--color-border-primary);
+  border-radius: 3px;
+  background: transparent;
+}
+
+.dark-mode .empty-state-hints kbd {
+  border-color: var(--color-border-primary-dark);
+}
+
+/* Touch screens (tablets keep the sidebar): swap pointer words, drop keyboard-only rows */
+@media (hover: none) {
+  .hint-pointer,
+  .hint-keyboard {
+    display: none !important;
+  }
+
+  .empty-state-hints .hint-touch {
+    display: inline-flex;
+  }
 }
 
 
@@ -204,7 +251,7 @@
   color: #ffffff !important;
 }
 
-/* Font sentence preview - Design épuré et compact */
+/* Font sentence preview - clean and compact */
 .font-sentence-preview {
   display: flex;
   justify-content: center;
@@ -450,7 +497,7 @@
   border-color: var(--color-text-primary-dark);
 }
 
-/* Style pour le lien Google Fonts intégré dans la carte */
+/* Google Fonts link inside the card */
 .font-action-section .google-fonts-link.ghost {
   margin-top: 0!important;
   background: var(--color-bg-secondary) !important;
@@ -513,7 +560,7 @@
   box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
 }
 
-/* Contenu principal avec lettre à gauche et info à droite */
+/* Main content: letter on the left, info on the right */
 .active-font-content {
   display: flex;
   align-items: center;
@@ -528,7 +575,7 @@
   border-bottom-color: var(--color-border-primary-dark);
 }
 
-/* Lettre à gauche */
+/* Letter on the left */
 .font-letter-preview {
   flex-shrink: 0;
   display: flex;
@@ -554,7 +601,7 @@
   filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.1));
 }
 
-/* Info à droite */
+/* Info on the right */
 .font-info-compact {
   flex: 1;
   display: flex;
@@ -590,7 +637,18 @@
   color: var(--color-text-secondary-dark);
 }
 
-/* Font metadata (weights et styles) */
+.font-google-category {
+  margin: 1px 0 0;
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.dark-mode .font-google-category {
+  color: var(--color-text-tertiary-dark);
+}
+
+/* Font metadata (weights and styles) */
 .font-metadata {
   display: flex;
   flex-direction: column;
@@ -610,7 +668,68 @@
   color: var(--color-text-tertiary-dark);
 }
 
-/* Sentence en dessous */
+.font-aliases {
+  margin: 4px 0 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+}
+
+.dark-mode .font-aliases {
+  color: var(--color-text-tertiary-dark);
+}
+
+/* Google Fonts style tags, click to highlight the style on the map */
+.font-style-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.font-style-tag {
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.font-style-tag:hover,
+.font-style-tag.active {
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.font-style-tag.predicted {
+  border-style: dashed;
+}
+
+.font-style-tag:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.dark-mode .font-style-tag {
+  color: var(--color-text-secondary-dark);
+  background: var(--color-bg-secondary-dark);
+  border-color: var(--color-border-primary-dark);
+}
+
+.dark-mode .font-style-tag:hover,
+.dark-mode .font-style-tag.active {
+  color: var(--color-text-primary-dark);
+  border-color: var(--color-text-primary-dark);
+}
+
+/* Sentence below */
 .font-sentence-compact {
   padding: var(--spacing-sm) var(--spacing-md) 0 var(--spacing-md);
   display: flex;
@@ -618,14 +737,14 @@
   justify-content: center;
   background: var(--color-bg-primary);
   position: relative;
-  height: 100px; /* Hauteur fixe des images SVG de sentence (165x49) */
+  height: 100px; /* Fixed height of the sentence SVG images (165x49) */
 }
 
 .dark-mode .font-sentence-compact {
   background: var(--color-bg-primary-dark);
 }
 
-/* Section d'action intégrée dans la carte */
+/* Action section inside the card */
 .font-action-section {
   padding: 0;
   background: var(--color-bg-primary);
@@ -637,7 +756,7 @@
   background: var(--color-bg-primary-dark);
 }
 
-/* Label Active Font en dehors de la carte */
+/* Active Font label outside the card */
 .active-font-label {
   margin: 0 0 var(--spacing-md) 0;
   font-size: 16px;
@@ -652,7 +771,7 @@
   color: var(--color-text-primary-dark);
 }
 
-/* Partie 1: Header avec nom et catégorie - Design typographique */
+/* Part 1: header with name and category */
 .active-font-header {
   padding: 24px 28px 20px 28px;
   border-bottom: 1px solid var(--color-border-primary);
@@ -694,7 +813,7 @@
   color: var(--color-text-secondary-dark);
 }
 
-/* Partie 2: Preview avec image et phrase - Design compact et élégant */
+/* Part 2: preview with image and sentence */
 .active-font-preview {
   padding: 24px 28px 28px 28px;
   display: flex;
@@ -766,7 +885,7 @@
   box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
 }
 
-/* État hover supprimé pour les similar fonts */
+/* No hover state for similar fonts */
 
 .similar-font-preview {
   width: 80px;
@@ -858,7 +977,7 @@
   justify-content: flex-end;
   min-width: 0;
   position: relative;
-  min-height: 49px; /* Hauteur fixe des images SVG de sentence (165x49) */
+  min-height: 49px; /* Fixed height of the sentence SVG images (165x49) */
 }
 
 .font-name {
@@ -910,5 +1029,235 @@
 }
 
 .dark-mode .no-similar {
+  color: var(--color-text-secondary-dark);
+}
+
+/* Custom preview text (active font block + similar rows) */
+.preview-sentence.is-editable {
+  cursor: text;
+}
+
+.preview-sentence.is-text-mode > img,
+.preview-sentence.is-focused > img {
+  visibility: hidden;
+}
+
+.preview-text-box {
+  position: absolute;
+  inset: var(--spacing-sm) 28px 4px;
+}
+
+.preview-text-mirror {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  visibility: hidden;
+  pointer-events: none;
+  line-height: 1.15;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.preview-text-input {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  line-height: 1.15;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  resize: none;
+  cursor: text;
+  transition: color var(--transition-normal);
+}
+
+.preview-text-input:focus {
+  outline: none;
+}
+
+.preview-text-input:focus-visible {
+  outline: none;
+}
+
+.preview-text-input::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 1;
+}
+
+.preview-text-input:not(:focus)::placeholder {
+  color: transparent;
+}
+
+/* While the web font loads, the text is hidden behind a spinner; the caret stays visible */
+.preview-text-input.is-loading,
+.similar-font-text.is-loading {
+  color: transparent;
+  caret-color: var(--color-text-primary);
+  /* Hide at once: fading out would flash the text in the fallback font */
+  transition: none;
+}
+
+.preview-text-box.is-loading::after,
+.similar-font-text.is-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  box-sizing: border-box;
+  border: 2px solid var(--color-text-tertiary);
+  border-top-color: var(--color-text-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  pointer-events: none;
+}
+
+.preview-text-box.is-loading::after {
+  left: 50%;
+  margin-left: -8px;
+}
+
+.similar-font-text.is-loading::after {
+  right: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+}
+
+.preview-text-input.is-loaded,
+.similar-font-text.is-loaded {
+  animation: preview-font-in 0.18s ease-out;
+}
+
+@keyframes preview-font-in {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
+.preview-text-hint,
+.preview-text-note {
+  position: absolute;
+  bottom: 2px;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.preview-text-hint {
+  right: var(--spacing-md);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.preview-sentence.is-editable:hover .preview-text-hint {
+  opacity: 0.9;
+}
+
+.preview-text-note {
+  left: var(--spacing-md);
+}
+
+.preview-text-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.preview-text-clear:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+.preview-text-clear:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.preview-text-try {
+  display: block;
+  margin: 2px auto 0;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.similar-font-text {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+  text-align: right;
+  line-height: 1.15;
+  color: var(--color-text-primary);
+  transition: color var(--transition-normal);
+}
+
+.dark-mode .preview-text-input,
+.dark-mode .similar-font-text {
+  color: var(--color-text-primary-dark);
+}
+
+.dark-mode .preview-text-input.is-loading,
+.dark-mode .similar-font-text.is-loading {
+  color: transparent;
+  caret-color: var(--color-text-primary-dark);
+  transition: none;
+}
+
+.dark-mode .preview-text-box.is-loading::after,
+.dark-mode .similar-font-text.is-loading::after {
+  border-color: var(--color-text-tertiary-dark);
+  border-top-color: var(--color-text-primary-dark);
+}
+
+.dark-mode .preview-text-input::placeholder,
+.dark-mode .preview-text-hint,
+.dark-mode .preview-text-note,
+.dark-mode .preview-text-clear {
+  color: var(--color-text-tertiary-dark);
+}
+
+.dark-mode .preview-text-input:not(:focus)::placeholder {
+  color: transparent;
+}
+
+.dark-mode .preview-text-clear:hover {
+  color: var(--color-text-primary-dark);
+  background: var(--color-bg-tertiary-dark);
+}
+
+.dark-mode .preview-text-try {
   color: var(--color-text-secondary-dark);
 }

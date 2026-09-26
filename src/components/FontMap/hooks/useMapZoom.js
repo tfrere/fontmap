@@ -3,28 +3,34 @@ import * as d3 from 'd3';
 import { useFontMapStore } from '../../../store/fontMapStore';
 import { REF_WIDTH, REF_HEIGHT } from './useMapRenderer';
 
-const INITIAL_SCALE = 0.8;
-// Min scale = reset scale — user can't zoom out past the initial framing.
-const SCALE_EXTENT = [INITIAL_SCALE, 10.0];
+// Desktop frames the map tighter: the sidebar already narrows the map area,
+// so the looser mobile framing leaves too much empty space around it.
+const MOBILE_INITIAL_SCALE = 0.8;
+const DESKTOP_INITIAL_SCALE = 0.92;
+const MOBILE_QUERY = '(max-width: 768px)';
+const MAX_SCALE = 10.0;
 const TRANSITION_DURATION = 750;
 const MOBILE_TAP_SCALE = 3.0;
+
+function getInitialScale() {
+  return window.matchMedia(MOBILE_QUERY).matches ? MOBILE_INITIAL_SCALE : DESKTOP_INITIAL_SCALE;
+}
 
 // Everything (zoom transform, extents, centering) works in the fixed
 // reference-canvas coordinates. d3.zoom reads pointer positions through the
 // SVG viewBox, so gestures land in the same space at any window size.
-const INITIAL_TRANSFORM = d3.zoomIdentity
-  .translate(
-    (REF_WIDTH / 2) * (1 - INITIAL_SCALE),
-    (REF_HEIGHT / 2) * (1 - INITIAL_SCALE)
-  )
-  .scale(INITIAL_SCALE);
+function getInitialTransform(scale) {
+  return d3.zoomIdentity
+    .translate((REF_WIDTH / 2) * (1 - scale), (REF_HEIGHT / 2) * (1 - scale))
+    .scale(scale);
+}
 
 /**
- * Hook de zoom basé sur DebugUMAP.
- * Fonctionne avec un SVG viewBox → antialiasing natif.
+ * Map zoom hook.
+ * Works on an SVG viewBox, so antialiasing is native.
  *
- * Le handler sélectionne .viewport-group dynamiquement pour rester
- * compatible avec useMapRenderer qui peut le recréer.
+ * The handler selects .viewport-group dynamically to stay
+ * compatible with useMapRenderer, which may recreate it.
  */
 export function useMapZoom(svgRef, enabled = true) {
   const zoomRef = useRef(null);
@@ -34,14 +40,16 @@ export function useMapZoom(svgRef, enabled = true) {
 
     const svg = d3.select(svgRef.current);
 
-    // Le viewport-group doit exister (créé par useMapRenderer)
+    // The viewport-group must exist (created by useMapRenderer)
     if (svg.select('.viewport-group').empty()) return;
 
-    // Nettoyer un éventuel zoom précédent
+    // Clean up any previous zoom
     svg.on('.zoom', null);
 
+    // Min scale = reset scale: the user can't zoom out past the initial framing.
+    const initialScale = getInitialScale();
     const zoom = d3.zoom()
-      .scaleExtent(SCALE_EXTENT)
+      .scaleExtent([initialScale, MAX_SCALE])
       .translateExtent([[0, 0], [REF_WIDTH, REF_HEIGHT]])
       .on('zoom', (event) => {
         svg.select('.viewport-group').attr('transform', event.transform);
@@ -53,18 +61,18 @@ export function useMapZoom(svgRef, enabled = true) {
       });
 
     svg.call(zoom);
-    svg.call(zoom.transform, INITIAL_TRANSFORM);
+    svg.call(zoom.transform, getInitialTransform(initialScale));
 
     zoomRef.current = zoom;
 
-    // Fonctions globales pour ZoomControls
+    // Global functions for ZoomControls
     window.zoomIn = () => svg.transition().duration(200).call(zoom.scaleBy, 1.5);
     window.zoomOut = () => svg.transition().duration(200).call(zoom.scaleBy, 1 / 1.5);
     window.resetZoom = () => {
       const store = useFontMapStore.getState();
       store.setIsTransitioning(true);
       store.setHoveredFont(null);
-      svg.transition().duration(TRANSITION_DURATION).call(zoom.transform, INITIAL_TRANSFORM)
+      svg.transition().duration(TRANSITION_DURATION).call(zoom.transform, getInitialTransform(initialScale))
         .on('end', () => {
           useFontMapStore.getState().setIsTransitioning(false);
         });

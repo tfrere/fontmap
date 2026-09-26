@@ -1,126 +1,109 @@
 import { useEffect, useCallback } from 'react';
+import { filterFonts } from '../utils/fontUtils';
 
 /**
- * Hook pour la navigation aux flèches entre les polices
- * Permet de naviguer vers la police la plus proche dans la direction souhaitée
+ * Arrow-key navigation between fonts
+ * Moves to the nearest font in the pressed direction
  */
 export const useArrowNavigation = (
   selectedFont,
   fonts,
   filter,
   searchTerm,
-  onFontSelect
+  onFontSelect,
+  styleTag = null
 ) => {
-  // Fonction pour filtrer les polices selon les critères actuels
+  // Fonts matching the current filters
   const getFilteredFonts = useCallback(() => {
     if (!fonts || fonts.length === 0) return [];
-    
-    return fonts.filter(font => {
-      // Filtrage par famille
-      const familyMatch = filter === 'all' || font.family === filter;
-      
-      // Filtrage par recherche
-      const searchMatch = !searchTerm || 
-        font.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        font.family.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      return familyMatch && searchMatch;
-    });
-  }, [fonts, filter, searchTerm]);
+    return filterFonts(fonts, filter, searchTerm, styleTag);
+  }, [fonts, filter, searchTerm, styleTag]);
 
-  // NOTE: calculateDistance supprimé car non utilisé
 
-  // Fonction pour trouver la police la plus proche dans une direction
+  // Find the nearest font in a direction
   const findNearestFontInDirection = useCallback((direction) => {
     if (!selectedFont || !onFontSelect) return;
     
     const filteredFonts = getFilteredFonts();
-    if (filteredFonts.length <= 1) return; // Pas assez de polices pour naviguer
+    if (filteredFonts.length <= 1) return; // Not enough fonts to navigate
     
-    // Trouver la police sélectionnée dans la liste filtrée
+    // Find the selected font in the filtered list
     const currentFont = filteredFonts.find(font => font.name === selectedFont.name);
     if (!currentFont) return;
     
     let bestFont = null;
     let bestDistance = Infinity;
     
-    // Approche simple : trouver la police la plus proche dans la direction
+    // Simple approach: nearest font in the direction
     filteredFonts.forEach(font => {
-      if (font.name === selectedFont.name) return; // Ignorer la police actuelle
+      if (font.name === selectedFont.name) return; // Skip the current font
       
       const dx = font.x - currentFont.x;
       const dy = font.y - currentFont.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
       
-      if (distance === 0) return; // Éviter les polices à la même position
+      if (distance === 0) return; // Skip fonts at the same position
       
       let isInDirection = false;
       
-      // Vérifier si la police est dans la direction souhaitée (critères simples)
+      // Whether the font lies in the requested direction (simple criteria)
       switch (direction) {
         case 'ArrowUp':
-          // Police au-dessus - inversé car les coordonnées semblent inversées
+          // Font above - inverted because the y axis points down
           isInDirection = dy > 0 && Math.abs(dx) <= Math.abs(dy) * 2;
           break;
         case 'ArrowDown':
-          // Police en-dessous - inversé car les coordonnées semblent inversées
+          // Font below - inverted because the y axis points down
           isInDirection = dy < 0 && Math.abs(dx) <= Math.abs(dy) * 2;
           break;
         case 'ArrowLeft':
-          // Police à gauche (x plus petit) - accepter un peu de décalage vertical
+          // Font to the left (smaller x) - allow some vertical offset
           isInDirection = dx < 0 && Math.abs(dy) <= Math.abs(dx) * 2;
           break;
         case 'ArrowRight':
-          // Police à droite (x plus grand) - accepter un peu de décalage vertical
+          // Font to the right (larger x) - allow some vertical offset
           isInDirection = dx > 0 && Math.abs(dy) <= Math.abs(dx) * 2;
           break;
         default:
           return;
       }
       
-      // Si la police est dans la bonne direction et plus proche que la meilleure actuelle
+      // In the right direction and closer than the current best
       if (isInDirection && distance < bestDistance) {
         bestDistance = distance;
         bestFont = font;
       }
     });
     
-    // Sélectionner la police la plus proche trouvée
+    // Select the nearest font found
     if (bestFont) {
       onFontSelect(bestFont);
     }
   }, [selectedFont, getFilteredFonts, onFontSelect]);
 
-  // Gestionnaire d'événements clavier
+  // Keyboard handler
   const handleKeyDown = useCallback((event) => {
-    // Vérifier si une police est sélectionnée
+    // A font must be selected
     if (!selectedFont) return;
     
-    // Vérifier si on est dans un champ de saisie
+    // Skip when typing in an input
     const activeElement = document.activeElement;
     if (activeElement && (
       activeElement.tagName === 'INPUT' || 
       activeElement.tagName === 'TEXTAREA' ||
       activeElement.contentEditable === 'true'
     )) {
-      return; // Ne pas intercepter les flèches dans les champs de saisie
+      return; // Don't intercept arrows in inputs
     }
     
-    // Quitter le mode focus
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      onFontSelect(null);
-      return;
-    }
-
-    // Gérer les touches fléchées
+    // Arrow keys
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
-      event.preventDefault(); // Empêcher le scroll de la page
+      event.preventDefault(); // Prevent page scroll
       findNearestFontInDirection(event.key);
     }
-  }, [selectedFont, findNearestFontInDirection, onFontSelect]);
+  }, [selectedFont, findNearestFontInDirection]);
 
-  // Ajouter l'écouteur d'événements
+  // Register the listener
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     
@@ -129,7 +112,7 @@ export const useArrowNavigation = (
     };
   }, [handleKeyDown]);
 
-  // Retourner des informations utiles pour le debug
+  // Return useful info for debugging
   return {
     canNavigate: selectedFont && getFilteredFonts().length > 1,
     filteredFontsCount: getFilteredFonts().length,

@@ -1,62 +1,52 @@
-// NOTE: d3 import supprimé car non utilisé dans ce fichier
+import { fontHasStyleTag, matchesSearch } from './fontSearch';
 
 /**
- * Utilitaires pour la gestion des polices
+ * Font helpers
  */
 
 /**
- * Obtient l'ID du symbole SVG pour une police donnée
- * Utilise directement l'ID de la police + "_a" (plus besoin de mapping)
+ * SVG symbol id of a font
+ * The font id + "_a" (no mapping needed)
  */
 export const getFontSymbolId = (fontName) => {
   if (!fontName) return 'fallback_a';
   
-  // Utiliser directement l'ID de la police + "_a"
-  // L'ID est déjà normalisé dans font-index.json
+  // Font id + "_a"
+  // The id is already normalised in font-index.json
   return fontName.toLowerCase() + '_a';
 };
 
 /**
- * Vérifie si une police correspond à un terme de recherche
- */
-export const matchesSearch = (font, searchTerm) => {
-  if (!searchTerm) return true;
-  const searchLower = searchTerm.toLowerCase();
-  return font.name.toLowerCase().includes(searchLower) || 
-         font.family.toLowerCase().includes(searchLower);
-};
-
-/**
- * Forge une URL Google Fonts pour une police donnée
- * Gère correctement les espaces, majuscules et caractères spéciaux
+ * Build a Google Fonts URL for a font
+ * Handles spaces, capitals and special characters
  */
 export const generateGoogleFontsUrl = (fontName) => {
   if (!fontName) return null;
   
-  // Nettoyer et formater le nom de police pour l'URL Google Fonts
+  // Clean and format the font name for the Google Fonts URL
   const formattedName = fontName
     .trim()
-    .replace(/\s+/g, '+')  // Remplacer les espaces par des +
-    .replace(/[^\w\s+]/g, '') // Supprimer les caractères spéciaux sauf +
-    .replace(/\s+/g, '+'); // S'assurer que tous les espaces sont des +
+    .replace(/\s+/g, '+')  // Spaces to +
+    .replace(/[^\w\s+]/g, '') // Drop special characters except +
+    .replace(/\s+/g, '+'); // Make sure every space is a +
   
   return `https://fonts.google.com/specimen/${formattedName}`;
 };
 
 /**
- * Filtre les polices selon les critères donnés
+ * Filter fonts by the given criteria
  */
-export const filterFonts = (fonts, filter, searchTerm) => {
+export const filterFonts = (fonts, filter, searchTerm, styleTag = null) => {
   return fonts.filter(font => {
     // Filtrage par famille
     const familyMatch = filter === 'all' || font.family === filter;
     
     // Filtrage par recherche
     const searchMatch = matchesSearch(font, searchTerm);
+
+    const styleMatch = !styleTag || fontHasStyleTag(font, styleTag);
     
-    return familyMatch && searchMatch;
+    return familyMatch && searchMatch && styleMatch;
   });
 };
 
-// NOTE: calculatePositions a été déplacé vers voronoiDilation.js
-// pour éviter les doublons et centraliser la logique de dilatation

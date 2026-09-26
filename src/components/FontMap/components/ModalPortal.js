@@ -1,4 +1,3 @@
-// NOTE: React import supprimé car non utilisé
 import { createPortal } from 'react-dom';
 
 /**

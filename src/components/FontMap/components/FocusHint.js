@@ -18,6 +18,8 @@ const FocusHint = () => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (!KEYS.some(({ key }) => key === event.key)) return;
+      const target = event.target;
+      if (target?.isContentEditable || ['INPUT', 'TEXTAREA'].includes(target?.tagName)) return;
       clearTimeout(releaseTimer.current);
       setPressedKey(event.key);
       releaseTimer.current = setTimeout(() => setPressedKey(null), MIN_PRESS_MS);
@@ -39,7 +41,7 @@ const FocusHint = () => {
           </kbd>
         ))}
       </div>
-      <span className="focus-hint-label">use arrow keys to navigate</span>
+      <span className="focus-hint-label">arrows to navigate · type a letter to switch glyph</span>
     </div>
   );
 };

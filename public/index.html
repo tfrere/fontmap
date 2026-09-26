@@ -2,19 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- Resolve the theme before first paint. Mirrors FontMap.js: stored 'true'/'false', light by default. -->
+    <script>
+      (function () {
+        var theme = 'light';
+        try {
+          if (localStorage.getItem('fontmap-dark-mode') === 'true') theme = 'dark';
+        } catch (e) {}
+        var root = document.documentElement;
+        root.dataset.theme = theme;
+        root.style.colorScheme = theme;
+      })();
+    </script>
+    <!-- Critical styles: app CSS is not loaded yet at first paint. Colors mirror --color-bg-primary(-dark). -->
+    <style>
+      html, body { margin: 0; background: #fcfbf8; }
+      html[data-theme='dark'], html[data-theme='dark'] body { background: #121110; }
+      #boot-loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #fcfbf8; color: #000000; z-index: 100000; }
+      html[data-theme='dark'] #boot-loader { background: #121110; color: #ffffff; }
+      #boot-loader > div { width: 32px; height: 32px; box-sizing: border-box; border: 3px solid currentColor; border-top-color: transparent; border-radius: 50%; opacity: 0.6; animation: boot-spin 0.8s linear infinite; }
+      @keyframes boot-spin { to { transform: rotate(360deg); } }
+    </style>
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
+    <script>
+      try {
+        document.querySelector('meta[name="theme-color"]').content =
+          document.documentElement.dataset.theme === 'dark' ? '#121110' : '#fcfbf8';
+      } catch (e) {}
+    </script>
     <meta name="description" content="Interactive map of 1,100+ Google Fonts organized by visual similarity using FontCLIP + UMAP" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Non render-blocking so the themed loader paints immediately; the app waits for it (id="ui-fonts") before revealing. -->
+    <link id="ui-fonts" href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" onerror="this.media='all'">
     <title>FontMap</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <!-- Same look as the app loader (.app-loader), shown while the bundle loads; React replaces it on first render. -->
+    <div id="root"><div class="app-loader" id="boot-loader" role="status" aria-label="Loading FontMap"><div class="app-loader-spinner"></div></div></div>
   </body>
 </html>

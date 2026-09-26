@@ -63,7 +63,7 @@
   border-bottom-color: var(--color-border-primary-dark);
 }
 
-/* Container de la carte */
+/* Map container */
 .map-container {
   position: relative;
   width: 100%;
@@ -75,7 +75,7 @@
   color: var(--color-text-secondary-dark);
 }
 
-/* Titre sur la carte */
+/* Title over the map */
 .map-title {
   position: absolute;
   top: 20px;
@@ -89,7 +89,7 @@
   letter-spacing: -0.02em;
   font-family: var(--font-logo);
   pointer-events: none;
-  /* Bordure large avec la couleur du fond */
+  /* Wide border in the background color */
   -webkit-text-stroke: 16px var(--color-bg-primary);
   text-stroke: 16px var(--color-bg-primary);
   paint-order: stroke fill;
@@ -109,7 +109,7 @@
 .dark-mode .map-title {
   color: var(--color-text-primary-dark);
   text-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
-  /* Bordure large avec la couleur du fond en mode sombre */
+  /* Wide border in the background color, dark mode */
   -webkit-text-stroke: 16px var(--color-bg-primary-dark);
   text-stroke: 16px var(--color-bg-primary-dark);
 }
@@ -117,6 +117,29 @@
 .dark-mode .map-title::before {
   -webkit-text-stroke: 17px var(--color-border-primary-dark);
   text-stroke: 17px var(--color-border-primary-dark);
+}
+
+.title-version {
+  margin-left: 0.18em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.34em;
+  font-weight: 600;
+  letter-spacing: 0;
+  vertical-align: super;
+  color: var(--color-text-tertiary);
+}
+
+.map-title .title-version {
+  -webkit-text-stroke: 6px var(--color-bg-primary);
+  text-stroke: 6px var(--color-bg-primary);
+}
+
+.dark-mode .title-version {
+  color: var(--color-text-tertiary-dark);
+}
+
+.dark-mode .map-title .title-version {
+  -webkit-text-stroke-color: var(--color-bg-primary-dark);
 }
 
 .sidebar-content {
@@ -210,7 +233,7 @@
   height: 100%;
   display: block;
   cursor: grab;
-  /* Rendu vectoriel optimisé */
+  /* Optimised vector rendering */
   shape-rendering: geometricPrecision;
   text-rendering: geometricPrecision;
   image-rendering: crisp-edges;
@@ -270,7 +293,7 @@
   image-rendering: crisp-edges;
 }
 
-/* Viewport group — aligné avec DebugUMAP */
+/* Viewport group */
 .viewport-group {
   will-change: transform;
   shape-rendering: geometricPrecision;
@@ -279,7 +302,70 @@
   transform-origin: 0 0;
 }
 
-/* Highlight group — clone isolé de la font active, hors du dim */
+/* Glyph switch: the map dims while a sprite downloads. fill-opacity rather
+   than opacity: transitioning opacity on ~1,500 SVG paths promotes each one
+   to a compositor layer and stalls the main thread. The hovered glyph and
+   the highlight clone stay fully legible. */
+.map-container .viewport-group .glyph-group path {
+  transition: fill-opacity 0.12s ease-out;
+}
+
+.map-container.is-loading-glyph .viewport-group .glyph-group path {
+  fill-opacity: 0.35;
+}
+
+.map-container.is-loading-glyph .viewport-group .glyph-group:hover path {
+  fill-opacity: 1;
+}
+
+/* Top edge progress bar while a glyph sprite downloads */
+.glyph-loading-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 150;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.glyph-loading-bar.is-loading {
+  opacity: 1;
+  transition: none;
+}
+
+.glyph-loading-bar.is-done {
+  transition: opacity 0.3s ease-out 0.15s;
+}
+
+.glyph-loading-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: var(--color-text-primary);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.15s linear;
+}
+
+.dark-mode .glyph-loading-bar-fill {
+  background: var(--color-text-primary-dark);
+}
+
+.glyph-loading-bar.is-indeterminate .glyph-loading-bar-fill {
+  width: 30%;
+  transition: none;
+  animation: glyph-loading-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes glyph-loading-slide {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(335%); }
+}
+
+/* Highlight group: isolated clone of the active font, outside the dimmed group */
 .highlight-group {
   shape-rendering: geometricPrecision;
   text-rendering: geometricPrecision;
@@ -335,31 +421,16 @@
   background: var(--color-border-primary-dark);
 }
 
-/* Category Legend — small card on the map, aligned with zoom buttons */
+/* Category colors toggle: a pill-shaped map control (see .map-control) */
 .category-legend {
   display: flex;
-  flex-direction: column;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-sm);
 }
 
-.dark-mode .category-legend {
-  background: var(--color-bg-primary-dark);
-  border-color: var(--color-border-primary-dark);
-  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
-}
-
-.category-legend-toggle {
-  display: flex;
-  align-items: center;
+.map-control.category-legend-toggle {
   gap: 6px;
-  cursor: pointer;
+  padding: 0 var(--spacing-md);
   font-size: 10px;
   font-weight: 500;
-  color: var(--color-text-primary);
   user-select: none;
   white-space: nowrap;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -367,11 +438,6 @@
     sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  line-height: 14px;
-}
-
-.dark-mode .category-legend-toggle {
-  color: var(--color-text-primary-dark);
 }
 
 .category-legend-toggle input[type="checkbox"] {

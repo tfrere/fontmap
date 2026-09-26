@@ -1,0 +1,445 @@
+{
+  "glyphs": [
+    {
+      "char": "a",
+      "name": "lower-a",
+      "file": "/data/sprites/font-sprite-lower-a.svg",
+      "count": 1483,
+      "bytes": 1105965
+    },
+    {
+      "char": "b",
+      "name": "lower-b",
+      "file": "/data/sprites/font-sprite-lower-b.svg",
+      "count": 1483,
+      "bytes": 1079769
+    },
+    {
+      "char": "c",
+      "name": "lower-c",
+      "file": "/data/sprites/font-sprite-lower-c.svg",
+      "count": 1483,
+      "bytes": 858449
+    },
+    {
+      "char": "d",
+      "name": "lower-d",
+      "file": "/data/sprites/font-sprite-lower-d.svg",
+      "count": 1483,
+      "bytes": 1083370
+    },
+    {
+      "char": "e",
+      "name": "lower-e",
+      "file": "/data/sprites/font-sprite-lower-e.svg",
+      "count": 1483,
+      "bytes": 950736
+    },
+    {
+      "char": "f",
+      "name": "lower-f",
+      "file": "/data/sprites/font-sprite-lower-f.svg",
+      "count": 1483,
+      "bytes": 896488
+    },
+    {
+      "char": "g",
+      "name": "lower-g",
+      "file": "/data/sprites/font-sprite-lower-g.svg",
+      "count": 1483,
+      "bytes": 1387993
+    },
+    {
+      "char": "h",
+      "name": "lower-h",
+      "file": "/data/sprites/font-sprite-lower-h.svg",
+      "count": 1483,
+      "bytes": 1024179
+    },
+    {
+      "char": "i",
+      "name": "lower-i",
+      "file": "/data/sprites/font-sprite-lower-i.svg",
+      "count": 1483,
+      "bytes": 649796
+    },
+    {
+      "char": "j",
+      "name": "lower-j",
+      "file": "/data/sprites/font-sprite-lower-j.svg",
+      "count": 1483,
+      "bytes": 853141
+    },
+    {
+      "char": "k",
+      "name": "lower-k",
+      "file": "/data/sprites/font-sprite-lower-k.svg",
+      "count": 1483,
+      "bytes": 1000402
+    },
+    {
+      "char": "l",
+      "name": "lower-l",
+      "file": "/data/sprites/font-sprite-lower-l.svg",
+      "count": 1483,
+      "bytes": 610356
+    },
+    {
+      "char": "m",
+      "name": "lower-m",
+      "file": "/data/sprites/font-sprite-lower-m.svg",
+      "count": 1483,
+      "bytes": 1304936
+    },
+    {
+      "char": "n",
+      "name": "lower-n",
+      "file": "/data/sprites/font-sprite-lower-n.svg",
+      "count": 1483,
+      "bytes": 937249
+    },
+    {
+      "char": "o",
+      "name": "lower-o",
+      "file": "/data/sprites/font-sprite-lower-o.svg",
+      "count": 1483,
+      "bytes": 911546
+    },
+    {
+      "char": "p",
+      "name": "lower-p",
+      "file": "/data/sprites/font-sprite-lower-p.svg",
+      "count": 1483,
+      "bytes": 1098662
+    },
+    {
+      "char": "q",
+      "name": "lower-q",
+      "file": "/data/sprites/font-sprite-lower-q.svg",
+      "count": 1483,
+      "bytes": 1106337
+    },
+    {
+      "char": "r",
+      "name": "lower-r",
+      "file": "/data/sprites/font-sprite-lower-r.svg",
+      "count": 1483,
+      "bytes": 765273
+    },
+    {
+      "char": "s",
+      "name": "lower-s",
+      "file": "/data/sprites/font-sprite-lower-s.svg",
+      "count": 1483,
+      "bytes": 1056090
+    },
+    {
+      "char": "t",
+      "name": "lower-t",
+      "file": "/data/sprites/font-sprite-lower-t.svg",
+      "count": 1483,
+      "bytes": 771482
+    },
+    {
+      "char": "u",
+      "name": "lower-u",
+      "file": "/data/sprites/font-sprite-lower-u.svg",
+      "count": 1483,
+      "bytes": 899563
+    },
+    {
+      "char": "v",
+      "name": "lower-v",
+      "file": "/data/sprites/font-sprite-lower-v.svg",
+      "count": 1483,
+      "bytes": 711257
+    },
+    {
+      "char": "w",
+      "name": "lower-w",
+      "file": "/data/sprites/font-sprite-lower-w.svg",
+      "count": 1483,
+      "bytes": 1050360
+    },
+    {
+      "char": "x",
+      "name": "lower-x",
+      "file": "/data/sprites/font-sprite-lower-x.svg",
+      "count": 1483,
+      "bytes": 893982
+    },
+    {
+      "char": "y",
+      "name": "lower-y",
+      "file": "/data/sprites/font-sprite-lower-y.svg",
+      "count": 1483,
+      "bytes": 969279
+    },
+    {
+      "char": "z",
+      "name": "lower-z",
+      "file": "/data/sprites/font-sprite-lower-z.svg",
+      "count": 1483,
+      "bytes": 794916
+    },
+    {
+      "char": "A",
+      "name": "a",
+      "file": "/data/font-sprite.svg",
+      "count": 1483,
+      "bytes": 1053932
+    },
+    {
+      "char": "B",
+      "name": "upper-b",
+      "file": "/data/sprites/font-sprite-upper-b.svg",
+      "count": 1483,
+      "bytes": 1371512
+    },
+    {
+      "char": "C",
+      "name": "upper-c",
+      "file": "/data/sprites/font-sprite-upper-c.svg",
+      "count": 1483,
+      "bytes": 1068544
+    },
+    {
+      "char": "D",
+      "name": "upper-d",
+      "file": "/data/sprites/font-sprite-upper-d.svg",
+      "count": 1483,
+      "bytes": 1102819
+    },
+    {
+      "char": "E",
+      "name": "upper-e",
+      "file": "/data/sprites/font-sprite-upper-e.svg",
+      "count": 1483,
+      "bytes": 1048840
+    },
+    {
+      "char": "F",
+      "name": "upper-f",
+      "file": "/data/sprites/font-sprite-upper-f.svg",
+      "count": 1483,
+      "bytes": 1012342
+    },
+    {
+      "char": "G",
+      "name": "upper-g",
+      "file": "/data/sprites/font-sprite-upper-g.svg",
+      "count": 1483,
+      "bytes": 1274002
+    },
+    {
+      "char": "H",
+      "name": "upper-h",
+      "file": "/data/sprites/font-sprite-upper-h.svg",
+      "count": 1483,
+      "bytes": 1125317
+    },
+    {
+      "char": "I",
+      "name": "upper-i",
+      "file": "/data/sprites/font-sprite-upper-i.svg",
+      "count": 1483,
+      "bytes": 678893
+    },
+    {
+      "char": "J",
+      "name": "upper-j",
+      "file": "/data/sprites/font-sprite-upper-j.svg",
+      "count": 1483,
+      "bytes": 914556
+    },
+    {
+      "char": "K",
+      "name": "upper-k",
+      "file": "/data/sprites/font-sprite-upper-k.svg",
+      "count": 1483,
+      "bytes": 1132313
+    },
+    {
+      "char": "L",
+      "name": "upper-l",
+      "file": "/data/sprites/font-sprite-upper-l.svg",
+      "count": 1483,
+      "bytes": 785102
+    },
+    {
+      "char": "M",
+      "name": "upper-m",
+      "file": "/data/sprites/font-sprite-upper-m.svg",
+      "count": 1483,
+      "bytes": 1282620
+    },
+    {
+      "char": "N",
+      "name": "upper-n",
+      "file": "/data/sprites/font-sprite-upper-n.svg",
+      "count": 1483,
+      "bytes": 1087725
+    },
+    {
+      "char": "O",
+      "name": "upper-o",
+      "file": "/data/sprites/font-sprite-upper-o.svg",
+      "count": 1483,
+      "bytes": 1131478
+    },
+    {
+      "char": "P",
+      "name": "upper-p",
+      "file": "/data/sprites/font-sprite-upper-p.svg",
+      "count": 1483,
+      "bytes": 1038054
+    },
+    {
+      "char": "Q",
+      "name": "upper-q",
+      "file": "/data/sprites/font-sprite-upper-q.svg",
+      "count": 1483,
+      "bytes": 1424075
+    },
+    {
+      "char": "R",
+      "name": "upper-r",
+      "file": "/data/sprites/font-sprite-upper-r.svg",
+      "count": 1483,
+      "bytes": 1287191
+    },
+    {
+      "char": "S",
+      "name": "upper-s",
+      "file": "/data/sprites/font-sprite-upper-s.svg",
+      "count": 1483,
+      "bytes": 1300489
+    },
+    {
+      "char": "T",
+      "name": "upper-t",
+      "file": "/data/sprites/font-sprite-upper-t.svg",
+      "count": 1483,
+      "bytes": 822482
+    },
+    {
+      "char": "U",
+      "name": "upper-u",
+      "file": "/data/sprites/font-sprite-upper-u.svg",
+      "count": 1483,
+      "bytes": 1046226
+    },
+    {
+      "char": "V",
+      "name": "upper-v",
+      "file": "/data/sprites/font-sprite-upper-v.svg",
+      "count": 1483,
+      "bytes": 908958
+    },
+    {
+      "char": "W",
+      "name": "upper-w",
+      "file": "/data/sprites/font-sprite-upper-w.svg",
+      "count": 1483,
+      "bytes": 1299617
+    },
+    {
+      "char": "X",
+      "name": "upper-x",
+      "file": "/data/sprites/font-sprite-upper-x.svg",
+      "count": 1483,
+      "bytes": 1130920
+    },
+    {
+      "char": "Y",
+      "name": "upper-y",
+      "file": "/data/sprites/font-sprite-upper-y.svg",
+      "count": 1483,
+      "bytes": 971212
+    },
+    {
+      "char": "Z",
+      "name": "upper-z",
+      "file": "/data/sprites/font-sprite-upper-z.svg",
+      "count": 1483,
+      "bytes": 958741
+    },
+    {
+      "char": "0",
+      "name": "digit-0",
+      "file": "/data/sprites/font-sprite-digit-0.svg",
+      "count": 1483,
+      "bytes": 1026463
+    },
+    {
+      "char": "1",
+      "name": "digit-1",
+      "file": "/data/sprites/font-sprite-digit-1.svg",
+      "count": 1483,
+      "bytes": 641828
+    },
+    {
+      "char": "2",
+      "name": "digit-2",
+      "file": "/data/sprites/font-sprite-digit-2.svg",
+      "count": 1483,
+      "bytes": 1057468
+    },
+    {
+      "char": "3",
+      "name": "digit-3",
+      "file": "/data/sprites/font-sprite-digit-3.svg",
+      "count": 1483,
+      "bytes": 1201834
+    },
+    {
+      "char": "4",
+      "name": "digit-4",
+      "file": "/data/sprites/font-sprite-digit-4.svg",
+      "count": 1483,
+      "bytes": 862673
+    },
+    {
+      "char": "5",
+      "name": "digit-5",
+      "file": "/data/sprites/font-sprite-digit-5.svg",
+      "count": 1483,
+      "bytes": 1104515
+    },
+    {
+      "char": "6",
+      "name": "digit-6",
+      "file": "/data/sprites/font-sprite-digit-6.svg",
+      "count": 1483,
+      "bytes": 1156841
+    },
+    {
+      "char": "7",
+      "name": "digit-7",
+      "file": "/data/sprites/font-sprite-digit-7.svg",
+      "count": 1483,
+      "bytes": 736973
+    },
+    {
+      "char": "8",
+      "name": "digit-8",
+      "file": "/data/sprites/font-sprite-digit-8.svg",
+      "count": 1483,
+      "bytes": 1369787
+    },
+    {
+      "char": "9",
+      "name": "digit-9",
+      "file": "/data/sprites/font-sprite-digit-9.svg",
+      "count": 1483,
+      "bytes": 1147822
+    },
+    {
+      "char": "&",
+      "name": "u0026",
+      "file": "/data/sprites/font-sprite-u0026.svg",
+      "count": 1471,
+      "bytes": 1522606
+    }
+  ]
+}

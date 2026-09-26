@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Composant spinner léger réutilisable
+ * Lightweight reusable spinner
  */
 const Spinner = ({ 
   size = '16px', 
@@ -25,7 +25,7 @@ const Spinner = ({
     />
   );
 
-  // Si minHeight est spécifiée, wrapper dans un conteneur avec la hauteur minimale
+  // With minHeight, wrap the spinner in a container of that minimum height
   if (minHeight) {
     return (
       <div 
@@ -35,7 +35,7 @@ const Spinner = ({
           justifyContent: centered ? 'center' : 'flex-start',
           alignItems: centered ? 'center' : 'flex-start',
           width: '100%',
-          boxSizing: 'border-box' /* Améliorer la gestion de l'espace */
+          boxSizing: 'border-box'
         }}
       >
         {spinnerElement}

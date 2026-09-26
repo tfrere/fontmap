@@ -1,43 +1,63 @@
 import { create } from 'zustand';
 
 /**
- * Store Zustand pour gérer l'état global de la FontMap
- * Remplace le props drilling pour les valeurs les plus problématiques
+ * Zustand store for the FontMap global state
+ * Replaces props drilling for the most shared values
  */
 export const useFontMapStore = create((set, get) => ({
-  // État de navigation
+  // Navigation state
   selectedFont: null,
   hoveredFont: null,
   
-  // État de visualisation
+  // Display state
   characterSize: 1.5,
   variantSizeImpact: false,
   useCategoryColors: false,
+  glyph: 'A',
   
   // Animated transition state (zoom/pan to font)
   isTransitioning: false,
   
-  // Mode debug
+  // Custom preview text for the font panel (session only). Non-empty = text mode.
+  previewText: '',
+  // Mobile keeps the image preview until the user opts in
+  previewTextOptIn: false,
+
+  // Debug mode
   debugMode: false,
+
+  setPreviewText: (previewText) => set({ previewText }),
+
+  setPreviewTextOptIn: (previewTextOptIn) => set({ previewTextOptIn }),
   
-  // Actions pour la navigation
+  // Navigation actions
   setSelectedFont: (font) => set({ selectedFont: font }),
 
   setHoveredFont: (font) => set({ hoveredFont: font }),
 
-  // Actions pour la visualisation
+  // Display actions
   setCharacterSize: (size) => set({ characterSize: size }),
 
   setVariantSizeImpact: (impact) => set({ variantSizeImpact: impact }),
 
   setUseCategoryColors: (val) => set({ useCategoryColors: val }),
 
+  setGlyph: (glyph) => set({ glyph }),
+
   setIsTransitioning: (val) => set({ isTransitioning: val }),
+
+  // Exploration state only: theme, category colors and glyph are preferences and survive
+  clearExploration: () => set({
+    selectedFont: null,
+    hoveredFont: null,
+    previewText: '',
+    previewTextOptIn: false,
+  }),
   
-  // Actions pour le debug
+  // Debug actions
   setDebugMode: (debug) => set({ debugMode: debug }),
 
-  // Action utilitaire pour réinitialiser l'état
+  // Reset the state
   resetState: () => {
     set({
       selectedFont: null,
@@ -46,6 +66,7 @@ export const useFontMapStore = create((set, get) => ({
       characterSize: 1.5,
       variantSizeImpact: false,
       useCategoryColors: false,
+      glyph: 'A',
       debugMode: false
     });
   }

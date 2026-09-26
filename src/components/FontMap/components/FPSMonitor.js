@@ -2,49 +2,48 @@ import React, { useEffect, useRef } from 'react';
 import Stats from 'stats.js';
 
 /**
- * Composant pour afficher un moniteur FPS en mode debug
- * Utilise stats.js pour mesurer les performances
+ * FPS monitor shown in debug mode
+ * Uses stats.js to measure performance
  */
 const FPSMonitor = ({ isDebugMode = false }) => {
   const containerRef = useRef(null);
   const statsRef = useRef(null);
 
   useEffect(() => {
-    // Ne s'affiche qu'en mode debug
+    // Only shown in debug mode
     if (!isDebugMode) {
       return;
     }
 
     if (!containerRef.current) return;
 
-    // Créer l'instance de Stats.js
+    // Create the Stats.js instance
     const stats = new Stats();
     
-    // Configuration du style
+    // Style
     stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
     stats.dom.style.position = 'fixed';
     stats.dom.style.top = '20px';
     stats.dom.style.right = '80px';
-    stats.dom.style.left = 'auto'; // Force à ignorer left
+    stats.dom.style.left = 'auto'; // Override left
     stats.dom.style.zIndex = '10000';
     stats.dom.style.pointerEvents = 'none';
     stats.dom.style.marginLeft = '0'; // Reset margin
     stats.dom.style.marginRight = '0';
-    // Ajouter au DOM
+    // Add to the DOM
     containerRef.current.appendChild(stats.dom);
     
-    // Stocker la référence
+    // Keep a reference
     statsRef.current = stats;
 
-    // Fonction de mise à jour
+    // Update loop
     const updateStats = () => {
       stats.begin();
-      // Simulation d'une tâche
       stats.end();
       requestAnimationFrame(updateStats);
     };
 
-    // Démarrer le monitoring
+    // Start monitoring
     updateStats();
 
     // Cleanup
@@ -57,7 +56,7 @@ const FPSMonitor = ({ isDebugMode = false }) => {
     };
   }, [isDebugMode]);
 
-  // Ne rien rendre si pas en mode debug
+  // Render nothing outside debug mode
   if (!isDebugMode) {
     return null;
   }

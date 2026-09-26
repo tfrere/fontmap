@@ -1,12 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { useFontMapStore } from '../../../store/fontMapStore';
+import { filterFonts } from '../utils/fontUtils';
+import { CATEGORY_COLORS, FALLBACK_CATEGORY_COLOR } from '../utils/categories';
 
 const GLYPH_SCALE = 0.25;
 
 // Fixed reference canvas. The map is laid out ONCE against this space, and
 // the SVG viewBox + preserveAspectRatio (default "xMidYMid meet") fit it
-// into the real viewport with a uniform scale — like an image in
+// into the real viewport with a uniform scale - like an image in
 // object-fit: contain. The layout never re-flows with the screen's aspect
 // ratio, so glyph size stays proportional to the map at any window size.
 export const REF_WIDTH = 1600;
@@ -21,17 +23,9 @@ const LABEL_HALO_RATIO = 0.5;
 const LABEL_FADE_START = 2.2;
 const LABEL_FADE_END = 3.2;
 
-const CATEGORY_COLORS = {
-  'sans-serif': '#3498db',
-  'serif':      '#e74c3c',
-  'display':    '#f39c12',
-  'handwriting':'#9b59b6',
-  'monospace':  '#2ecc71',
-};
-
 function getGlyphColor(category, useCategoryColors, darkMode) {
   if (useCategoryColors) {
-    return CATEGORY_COLORS[category] || '#95a5a6';
+    return CATEGORY_COLORS[category] || FALLBACK_CATEGORY_COLOR;
   }
   return darkMode ? '#ffffff' : '#333333';
 }
@@ -62,6 +56,16 @@ function calculateMappingDimensions(fonts, width, height, padding = 40) {
   return { mapX, mapY };
 }
 
+// The sprite is keyed off the slugified font name (often imageName),
+// not always the short id. Fall back to the imageName-derived key.
+function lookupPath(paths, font) {
+  const imgKey = (font.imageName || font.name || '').toLowerCase();
+  return paths[`${font.id}_a`]
+    || paths[font.id]
+    || paths[`${imgKey}_a`]
+    || paths[imgKey];
+}
+
 function getOrCreateViewportGroup(svg) {
   let vg = svg.select('.viewport-group');
   if (vg.empty()) {
@@ -71,23 +75,32 @@ function getOrCreateViewportGroup(svg) {
 }
 
 /**
- * Hook de rendu — utilise le sprite SVG pré-chargé (0 requête réseau).
+ * Map renderer: draws from the preloaded SVG sprite (no network request).
  */
-export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, darkMode, loading, enabled = true, isMobile = false }) {
+export function useMapRenderer({ svgRef, fonts, glyphPaths, displayPaths, filter, searchTerm, styleTag = null, darkMode, loading, enabled = true, isMobile = false }) {
   const mappingRef = useRef({ mapX: null, mapY: null });
   const dimensionsRef = useRef({ width: REF_WIDTH, height: REF_HEIGHT });
-  const hasRenderedRef = useRef(false);
+  // Flips to true once every glyph node of the first render is in the SVG.
+  const [hasRendered, setHasRendered] = useState(false);
   const selectedFontRef = useRef(null);
+  const displayPathsRef = useRef(displayPaths);
+  displayPathsRef.current = displayPaths;
 
-  // Per-slice selectors — this hook must not re-render on hoveredFont changes.
+  // Per-slice selectors - this hook must not re-render on hoveredFont changes.
   const selectedFont = useFontMapStore((s) => s.selectedFont);
   const setSelectedFont = useFontMapStore((s) => s.setSelectedFont);
   const setHoveredFont = useFontMapStore((s) => s.setHoveredFont);
   const useCategoryColors = useFontMapStore((s) => s.useCategoryColors);
 
   selectedFontRef.current = selectedFont;
+  // Read at build time only: theme and color toggles are applied in place by
+  // the color effect, so they must not rebuild the glyphs (and drop filters).
+  const colorModeRef = useRef({ darkMode, useCategoryColors });
+  colorModeRef.current = { darkMode, useCategoryColors };
+  // Bumped after each full rebuild so filter/selection state is re-applied.
+  const [renderVersion, setRenderVersion] = useState(0);
 
-  // ── Rendu principal : synchrone depuis le sprite, aucun fetch ──
+  // ── Main render: synchronous from the sprite, no fetch ──
   useEffect(() => {
     if (!enabled || !fonts || fonts.length === 0 || !svgRef.current) return;
 
@@ -107,19 +120,13 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     mappingRef.current = { mapX, mapY };
 
     const hasSprite = glyphPaths && Object.keys(glyphPaths).length > 0;
+    const paths = displayPathsRef.current || glyphPaths;
     const vgNode = viewportGroup.node();
     const ns = 'http://www.w3.org/2000/svg';
+    const { darkMode, useCategoryColors } = colorModeRef.current;
 
     fonts.forEach(font => {
-      // The sprite is keyed off the slugified font name (often imageName),
-      // not always the short id. Fall back to the imageName-derived key.
-      const imgKey = (font.imageName || font.name || '').toLowerCase();
-      const pathD = hasSprite
-        ? (glyphPaths[`${font.id}_a`]
-          || glyphPaths[font.id]
-          || glyphPaths[`${imgKey}_a`]
-          || glyphPaths[imgKey])
-        : null;
+      const pathD = hasSprite ? lookupPath(paths, font) : null;
       if (!pathD) return;
 
       const x = mapX(font.x);
@@ -154,12 +161,26 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
       vgNode.appendChild(g);
     });
 
-    hasRenderedRef.current = true;
-  }, [enabled, fonts, glyphPaths, darkMode, useCategoryColors, svgRef]);
+    setHasRendered(true);
+    setRenderVersion(v => v + 1);
+  }, [enabled, fonts, glyphPaths, svgRef]);
 
-  // ── Mise à jour des couleurs (dark mode / category colors toggle) ──
-  // On itère sur tous les g.glyph-group du SVG (viewport + highlight clone)
-  // pour que la lettre en focus suive aussi les toggles.
+  // ── Glyph switch: swap paths in place (viewport + highlight clone) so
+  // layout, zoom, selection and filter state are untouched ──
+  useEffect(() => {
+    if (!svgRef.current || !displayPaths || !fonts || fonts.length === 0) return;
+    const fontById = new Map(fonts.map(f => [f.id, f]));
+    svgRef.current.querySelectorAll('g.glyph-group').forEach(group => {
+      const font = fontById.get(group.getAttribute('data-font-id'));
+      const pathD = font && lookupPath(displayPaths, font);
+      const path = group.querySelector('path');
+      if (pathD && path && path.getAttribute('d') !== pathD) path.setAttribute('d', pathD);
+    });
+  }, [displayPaths, fonts, svgRef]);
+
+  // ── Color updates (dark mode / category colors toggle) ──
+  // Iterate over every g.glyph-group in the SVG (viewport + highlight clone)
+  // so the focused letter follows the toggles too.
   useEffect(() => {
     if (!svgRef.current) return;
 
@@ -172,7 +193,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     });
   }, [darkMode, useCategoryColors, svgRef]);
 
-  // ── Labels centroïdes sur la map ──
+  // ── Category centroid labels on the map ──
   useEffect(() => {
     if (!svgRef.current || !fonts || fonts.length === 0) return;
     const svg = d3.select(svgRef.current);
@@ -210,7 +231,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     Object.entries(centroids).forEach(([cat, c]) => {
       const x = mapX(c.x / c.n);
       const y = mapY(c.y / c.n);
-      const color = fillColor || (CATEGORY_COLORS[cat] || '#95a5a6');
+      const color = fillColor || (CATEGORY_COLORS[cat] || FALLBACK_CATEGORY_COLOR);
 
       centroidsGroup.append('text')
         .attr('x', x)
@@ -221,7 +242,6 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         .attr('stroke', haloColor)
         .attr('paint-order', 'stroke fill')
         .attr('class', 'centroid-label')
-        .style('transition', 'opacity 0.25s ease')
         .text(cat);
     });
 
@@ -242,8 +262,10 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         opacity = 1 - (k - LABEL_FADE_START) / (LABEL_FADE_END - LABEL_FADE_START);
       }
 
-      // Focus mode (a font is selected): the map is dimmed, labels follow
-      if (useFontMapStore.getState().selectedFont) opacity = 0;
+      // Focus mode (a font is selected): labels are hidden at once, whatever the zoom
+      const focused = !!useFontMapStore.getState().selectedFont;
+      centroidsGroup.style('display', focused ? 'none' : null);
+      if (focused) return;
 
       centroidsGroup.selectAll('.centroid-label')
         .attr('font-size', fontSize)
@@ -260,27 +282,33 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
       resizeObserver.observe(svgNode);
     }
 
+    // React to selection straight from the store, without waiting for a render
+    const unsubscribe = useFontMapStore.subscribe((state, prev) => {
+      if (!!state.selectedFont !== !!prev.selectedFont) updateLabels();
+    });
+
     return () => {
       if (resizeObserver) resizeObserver.disconnect();
+      unsubscribe();
       delete window.updateCentroidLabels;
     };
   }, [fonts, useCategoryColors, darkMode, svgRef]);
 
-  // ── Isolation visuelle (sélection) + opacité (filtre/recherche) ──
+  // ── Visual isolation (selection) + opacity (filter/search) ──
   useEffect(() => {
     if (!svgRef.current) return;
     const svg = d3.select(svgRef.current);
     const viewportGroup = svg.select('.viewport-group');
     if (viewportGroup.empty()) return;
 
-    // Toujours nettoyer le highlight précédent
+    // Always clear the previous highlight
     svg.selectAll('.highlight-group').remove();
 
     if (selectedFont) {
-      // ── Mode isolation : dim le groupe entier (1 seule op DOM) ──
+      // ── Isolation mode: dim the whole group (a single DOM op) ──
       viewportGroup.attr('opacity', 0.1);
 
-      // Cloner le glyphe sélectionné dans un groupe frère hors du dim
+      // Clone the selected glyph into a sibling group outside the dimmed one
       const selectedGlyph = viewportGroup.select(
         `g.glyph-group[data-font-id="${selectedFont.id}"]`
       );
@@ -297,33 +325,25 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
         highlightGroup.node().appendChild(clone);
       }
 
-      // Tous les glyphes restent cliquables pour changer de sélection
+      // Every glyph stays clickable to change the selection
       viewportGroup.selectAll('g.glyph-group')
         .style('pointer-events', 'all');
     } else {
-      // ── Mode normal : restaurer l'opacité du groupe ──
+      // ── Normal mode: restore the group opacity ──
       viewportGroup.attr('opacity', 1);
 
-      const hasFilter = filter !== 'all' || searchTerm;
+      const hasFilter = filter !== 'all' || searchTerm || styleTag;
 
       if (hasFilter) {
-        const searchLower = searchTerm ? searchTerm.toLowerCase() : '';
+        const matchingIds = new Set(filterFonts(fonts || [], filter, searchTerm, styleTag).map(f => f.id));
         viewportGroup.selectAll('g.glyph-group').each(function () {
           const group = this;
-          const fontFamily = group.getAttribute('data-category');
-          const fontName = group.getAttribute('data-font-name');
-
-          const familyMatch = filter === 'all' || fontFamily === filter;
-          const searchMatch = !searchLower ||
-            (fontName && fontName.toLowerCase().includes(searchLower)) ||
-            (fontFamily && fontFamily.toLowerCase().includes(searchLower));
-
-          const match = familyMatch && searchMatch;
+          const match = matchingIds.has(group.getAttribute('data-font-id'));
           group.setAttribute('opacity', match ? '1' : '0.06');
           group.style.pointerEvents = match ? 'all' : 'none';
         });
       } else {
-        // Aucun filtre → retirer les attributs d'opacité (état par défaut SVG = 1)
+        // No filter: remove the opacity attributes (SVG default = 1)
         viewportGroup.selectAll('g.glyph-group').each(function () {
           this.removeAttribute('opacity');
           this.style.pointerEvents = 'all';
@@ -333,9 +353,9 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
 
     // Category labels fade out in focus mode, together with the dimmed map
     if (window.updateCentroidLabels) window.updateCentroidLabels();
-  }, [filter, searchTerm, selectedFont, svgRef]);
+  }, [fonts, filter, searchTerm, styleTag, selectedFont, renderVersion, svgRef]);
 
-  // ── Interactions : hover et click (délégation d'événements) ──
+  // ── Interactions: hover and click (event delegation) ──
   useEffect(() => {
     if (!svgRef.current || !fonts || fonts.length === 0) return;
 
@@ -362,7 +382,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     const handleMouseOver = (e) => {
       const state = useFontMapStore.getState();
       if (state.isTransitioning) return;
-      // Mobile: ignore synthetic mouseover events — clicks handle everything
+      // Mobile: ignore synthetic mouseover events - clicks handle everything
       // explicitly. Avoids flicker during pan/drag.
       if (isMobile) return;
       const group = findGlyphGroup(e.target);
@@ -374,7 +394,7 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     };
 
     const handleMouseOut = (e) => {
-      // Sur mobile, on ne gère le hover qu'au click — pas de mouseout.
+      // On mobile, hover only happens on click - no mouseout.
       if (isMobile) return;
       if (useFontMapStore.getState().isTransitioning) return;
       const group = findGlyphGroup(e.target);
@@ -435,5 +455,5 @@ export function useMapRenderer({ svgRef, fonts, glyphPaths, filter, searchTerm, 
     };
   }, [fonts, setSelectedFont, setHoveredFont, svgRef, isMobile]);
 
-  return { mappingRef, dimensionsRef };
+  return { mappingRef, dimensionsRef, hasRendered };
 }

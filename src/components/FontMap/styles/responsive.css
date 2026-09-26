@@ -43,6 +43,20 @@
     display: none;
   }
 
+  /* Entry point to How it works, replacing the hidden sidebar footer link */
+  .map-control.mobile-how-button {
+    position: absolute;
+    left: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 10;
+    width: var(--map-control-size);
+    color: var(--color-text-secondary);
+  }
+
+  .dark-mode .map-control.mobile-how-button {
+    color: var(--color-text-secondary-dark);
+  }
+
   /* Hide focus hint and bottom controls on mobile */
   .focus-hint,
   .bottom-controls {
@@ -73,7 +87,7 @@
     transform: translateX(0);
   }
 
-  /* Mobile back chevron — visible only on mobile inside the drawer */
+  /* Mobile back chevron - visible only on mobile inside the drawer */
   .font-details-back {
     display: inline-flex;
     align-items: center;
@@ -120,7 +134,7 @@
     font-size: 24px;
     top: 15px;
     left: 15px;
-    /* Maintenir la bordure sur les écrans moyens */
+    /* Keep the border on medium screens */
     -webkit-text-stroke: 12px var(--color-bg-primary);
     text-stroke: 12px var(--color-bg-primary);
   }
@@ -155,12 +169,6 @@
     gap: 6px;
   }
   
-  .bottom-controls {
-    bottom: 12px;
-    right: 12px;
-    gap: 6px;
-  }
-  
   .search-section {
     flex: 1 1 auto;
     width: 100%;
@@ -174,13 +182,7 @@
   }
 
   .filters-inline {
-    display: flex;
-    flex-wrap: wrap;
     font-size: 11px;
-  }
-
-  .filters-inline .filter-link {
-    flex: 1 1 auto;
   }
   
   .toggle-btn {
@@ -192,11 +194,6 @@
     padding: 4px 8px;
     font-size: 10px;
     min-width: 150px;
-  }
-  
-  .zoom-btn {
-    padding: 3px 6px;
-    font-size: 9px;
   }
   
   .font-details-section {
@@ -228,7 +225,7 @@
     font-size: 20px;
     top: 10px;
     left: 10px;
-    /* Maintenir la bordure sur les petits écrans */
+    /* Keep the border on small screens */
     -webkit-text-stroke: 8px var(--color-bg-primary);
     text-stroke: 8px var(--color-bg-primary);
   }
@@ -263,12 +260,6 @@
     gap: 4px;
   }
   
-  .bottom-controls {
-    bottom: 8px;
-    right: 8px;
-    gap: 4px;
-  }
-  
   .filters-inline {
     font-size: 10px;
   }
@@ -282,11 +273,6 @@
     padding: 3px 6px;
     font-size: 9px;
     min-width: 120px;
-  }
-  
-  .zoom-btn {
-    padding: 2px 4px;
-    font-size: 8px;
   }
   
   .font-details-section {

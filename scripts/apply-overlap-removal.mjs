@@ -92,7 +92,7 @@ const nodes = fonts.map(f => ({
 // ---------------------------------------------------------------------------
 // Force simulation
 // ---------------------------------------------------------------------------
-console.log(`⚙️   Running simulation — radius: ${RADIUS}px  ticks: ${TICKS}  origin-strength: ${ORIGIN_STRENGTH}`);
+console.log(`⚙️   Running simulation - radius: ${RADIUS}px  ticks: ${TICKS}  origin-strength: ${ORIGIN_STRENGTH}`);
 
 const sim = forceSimulation(nodes)
   .force('collide', forceCollide(RADIUS).strength(1).iterations(3))
@@ -108,11 +108,11 @@ for (let i = 0; i < TICKS; i++) sim.tick();
 const displacements = nodes.map(n => Math.hypot(n.x - n.ox, n.y - n.oy));
 const maxD  = Math.max(...displacements).toFixed(1);
 const avgD  = (displacements.reduce((a, b) => a + b, 0) / displacements.length).toFixed(1);
-console.log(`📏  Displacement — avg: ${avgD}px  max: ${maxD}px  (canonical ${W}×${H})`);
+console.log(`📏  Displacement - avg: ${avgD}px  max: ${maxD}px  (canonical ${W}×${H})`);
 
 // ---------------------------------------------------------------------------
 // Write positions back into font objects
-// The renderer normalises by min/max, so storing canonical pixel coords is fine —
+// The renderer normalises by min/max, so storing canonical pixel coords is fine -
 // relative positions are preserved after re-scaling to actual viewport.
 // ---------------------------------------------------------------------------
 const nodeMap = new Map(nodes.map(n => [n.id, n]));
@@ -122,7 +122,7 @@ raw.fonts = fonts.map(f => {
 });
 
 if (DRY_RUN) {
-  console.log('🔍  Dry run — file not written.');
+  console.log('🔍  Dry run - file not written.');
 } else {
   writeFileSync(outputPath, JSON.stringify(raw, null, 2));
   console.log(`💾  Written to ${outputPath}`);

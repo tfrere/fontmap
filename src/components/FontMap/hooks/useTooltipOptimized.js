@@ -2,8 +2,8 @@ import { useEffect, useRef, useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
 
 /**
- * Hook optimisé pour la gestion des tooltips
- * Séparation claire entre logique de positionnement et affichage
+ * Tooltip management hook
+ * Keeps positioning and display logic separate
  */
 export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = null) => {
   const selectedTooltipRef = useRef(null);
@@ -14,7 +14,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
   const onOpenFontRef = useRef(onOpenFont);
   useEffect(() => { onOpenFontRef.current = onOpenFont; }, [onOpenFont]);
 
-  // Mémoriser les styles du tooltip selon le mode sombre
+  // Memoise the tooltip styles for the current theme
   const tooltipStyles = useMemo(() => ({
     dark: {
       backgroundColor: 'var(--color-bg-primary-dark)',
@@ -28,9 +28,9 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     }
   }), []);
 
-  // Créer les éléments tooltip
+  // Create the tooltip elements
   useEffect(() => {
-    // Tooltip pour la police sélectionnée
+    // Tooltip for the selected font
     selectedTooltipRef.current = d3.select('body')
       .append('div')
       .attr('class', 'font-tooltip font-tooltip-selected')
@@ -40,7 +40,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
       .style('z-index', 1001)
       .style('transition', 'opacity 0.2s ease');
 
-    // Tooltip pour la police survolée
+    // Tooltip for the hovered font
     hoverTooltipRef.current = d3.select('body')
       .append('div')
       .attr('class', 'font-tooltip font-tooltip-hover')
@@ -50,9 +50,9 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
       .style('z-index', 1000)
       .style('transition', 'opacity 0.2s ease');
 
-    // Mobile: délégation de clic pour le bouton Open dans le tooltip.
-    // Le bouton n'existe dans le HTML que sur mobile (cf. createTooltipContent),
-    // et lui seul a pointer-events: auto.
+    // Mobile: click delegation for the Open button in the tooltip.
+    // The button is only rendered on mobile (see createTooltipContent),
+    // and it is the only element with pointer-events: auto.
     const onHoverClick = (e) => {
       if (!e.target.closest('.tooltip-open-btn')) return;
       const font = currentFontRef.current;
@@ -65,14 +65,14 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     return () => {
       if (hoverNode) hoverNode.removeEventListener('click', onHoverClick);
       d3.selectAll('.font-tooltip').remove();
-      // Nettoyer les timeouts
+      // Clear timeouts
       const currentTimeouts = imageLoadTimeoutsRef.current;
       currentTimeouts.forEach(timeout => clearTimeout(timeout));
       currentTimeouts.clear();
     };
   }, []);
 
-  // Mettre à jour les styles selon le mode sombre
+  // Update styles for the current theme
   useEffect(() => {
     const updateTooltipStyles = (tooltip) => {
       if (!tooltip) return;
@@ -90,9 +90,9 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     updateTooltipStyles(hoverTooltipRef.current);
   }, [darkMode, tooltipStyles]);
 
-  // Fonction optimisée pour créer le contenu du tooltip
-  // Pas de couleurs inline — tout est piloté par CSS via .font-tooltip.dark-mode
-  // pour que le toggle dark/light reste cohérent même si le tooltip est ouvert.
+  // Build the tooltip content
+  // No inline colors - everything is driven by CSS via .font-tooltip.dark-mode
+  // so the dark/light toggle stays consistent while the tooltip is open.
   const createTooltipContent = useCallback((font) => {
     const imageName = font.imageName || font.name;
     const sentenceImagePath = `/data/sentences/${imageName.toLowerCase().replace(/\s+/g, '_')}_sentence.svg`;
@@ -123,7 +123,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     `;
   }, [isMobile]);
 
-  // Fonction optimisée pour positionner un tooltip
+  // Position a tooltip
   const positionTooltip = useCallback((tooltip, svgElement) => {
     if (!tooltip || !svgElement) return;
 
@@ -132,14 +132,14 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     const elementRect = svgElement.getBoundingClientRect();
 
     // Tooltip just above the visible glyph (gap stays constant regardless
-    // of zoom — elementRect already grows with zoom).
+    // of zoom - elementRect already grows with zoom).
     const centerX = elementRect.left + (elementRect.width / 2);
     const gap = 6;
 
     let x = centerX - (tooltipRect.width / 2);
     let y = elementRect.top - tooltipRect.height - gap;
 
-    // Ajuster si le tooltip sort de l'écran
+    // Keep the tooltip on screen
     const margin = 10;
     if (x < margin) x = margin;
     if (x + tooltipRect.width > window.innerWidth - margin) {
@@ -154,26 +154,26 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
       .style('top', `${y}px`);
   }, []);
 
-  // Fonction optimisée pour afficher un tooltip
+  // Show a tooltip
   const showTooltip = useCallback((tooltip, font, svgElement) => {
     if (!tooltip || !font) return;
 
     if (tooltip === hoverTooltipRef.current) currentFontRef.current = font;
 
-    // Set content, measure and position synchronously, THEN fade in — avoids
+    // Set content, measure and position synchronously, THEN fade in - avoids
     // the tooltip flashing at its previous position before jumping.
     tooltip.html(createTooltipContent(font));
     positionTooltip(tooltip, svgElement);
     tooltip.style('opacity', 1);
   }, [createTooltipContent, positionTooltip]);
 
-  // Fonction pour masquer un tooltip
+  // Hide a tooltip
   const hideTooltip = useCallback((tooltip) => {
     if (!tooltip) return;
     tooltip.style('opacity', 0);
   }, []);
 
-  // Fonction optimisée pour mettre à jour les positions des tooltips
+  // Update tooltip positions
   const updatePositions = useCallback(() => {
     const svg = d3.select('.fontmap-svg');
     if (svg.empty()) return;
@@ -181,7 +181,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     const viewportGroup = svg.select('.viewport-group');
     if (viewportGroup.empty()) return;
 
-    // Mettre à jour le tooltip sélectionné
+    // Selected tooltip
     if (selectedTooltipRef.current && selectedTooltipRef.current.style('opacity') !== '0') {
       const selectedName = window.currentSelectedFont?.name;
       if (selectedName) {
@@ -192,7 +192,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
       }
     }
 
-    // Mettre à jour le tooltip hover
+    // Hover tooltip
     if (hoverTooltipRef.current && hoverTooltipRef.current.style('opacity') !== '0') {
       const hoveredName = window.currentHoveredFont?.name;
       if (hoveredName) {
@@ -204,7 +204,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     }
   }, [positionTooltip]);
 
-  // Fonction pour mettre à jour la transformation
+  // Update the transform
   const updateTransform = useCallback((transform) => {
     currentTransformRef.current = transform;
     setTimeout(() => {
@@ -212,7 +212,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     }, 0);
   }, [updatePositions]);
 
-  // Fonction pour gérer la sélection d'une police
+  // Handle font selection
   const handleFontSelect = useCallback((font, svgElement) => {
     if (!font) {
       hideTooltip(selectedTooltipRef.current);
@@ -223,7 +223,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     showTooltip(selectedTooltipRef.current, font, svgElement);
   }, [showTooltip, hideTooltip]);
 
-  // Fonction pour gérer le hover d'une police
+  // Handle font hover
   const handleFontHover = useCallback((font, svgElement) => {
     if (!font) {
       hideTooltip(hoverTooltipRef.current);
@@ -233,7 +233,7 @@ export const useTooltipOptimized = (darkMode, isMobile = false, onOpenFont = nul
     showTooltip(hoverTooltipRef.current, font, svgElement);
   }, [showTooltip, hideTooltip]);
 
-  // Fonction pour gérer la fin du hover
+  // Handle hover end
   const handleFontUnhover = useCallback(() => {
     hideTooltip(hoverTooltipRef.current);
   }, [hideTooltip]);

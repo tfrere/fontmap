@@ -3,11 +3,11 @@ import { useTooltipOptimized } from '../hooks/useTooltipOptimized';
 import { useFontMapStore } from '../../../store/fontMapStore';
 
 /**
- * Composant simplifié pour gérer les tooltips
- * Utilise le hook useTooltip pour une gestion propre et centralisée
+ * Manages the map tooltips
+ * through the useTooltipOptimized hook.
  *
- * Lit selectedFont/hoveredFont directement dans le store (au lieu de props)
- * pour que les changements de hover ne re-rendent que ce composant.
+ * Reads selectedFont/hoveredFont straight from the store (instead of props)
+ * so hover changes only re-render this component.
  */
 const TooltipManager = ({
   darkMode,
@@ -25,7 +25,7 @@ const TooltipManager = ({
     updatePositions
   } = useTooltipOptimized(darkMode, isMobile, onOpenFont);
 
-  // Gérer la police sélectionnée
+  // Selected font
   useEffect(() => {
     if (selectedFont) {
       const svg = document.querySelector('.fontmap-svg');
@@ -43,7 +43,7 @@ const TooltipManager = ({
     }
   }, [selectedFont, handleFontSelect]);
 
-  // Gérer la police survolée
+  // Hovered font
   useEffect(() => {
     if (hoveredFont && (!selectedFont || selectedFont.name !== hoveredFont.name)) {
       const svg = document.querySelector('.fontmap-svg');
@@ -61,7 +61,7 @@ const TooltipManager = ({
     }
   }, [hoveredFont, selectedFont, handleFontHover, handleFontUnhover]);
 
-  // Exposer les fonctions et états globalement pour l'intégration D3
+  // Expose functions and state globally for the D3 integration
   useEffect(() => {
     window.updateTooltipPositions = updatePositions;
     window.updateTooltipTransform = updateTransform;
@@ -76,7 +76,7 @@ const TooltipManager = ({
     };
   }, [updatePositions, updateTransform, selectedFont, hoveredFont]);
 
-  return null; // Ce composant ne rend rien visuellement
+  return null; // Renders nothing itself
 };
 
 export default TooltipManager;

@@ -1,0 +1,1525 @@
+/* How it works: full-page explainer */
+
+.hiw-page {
+  --hiw-bg: var(--color-bg-primary);
+  --hiw-surface: var(--color-bg-secondary);
+  --hiw-surface-2: var(--color-bg-tertiary);
+  --hiw-text: var(--color-text-primary);
+  --hiw-text-2: var(--color-text-secondary);
+  --hiw-text-3: var(--color-text-tertiary);
+  --hiw-border: var(--color-border-primary);
+  --hiw-border-2: var(--color-border-secondary);
+  --hiw-text-width: 720px;
+  --hiw-wide-width: 1040px;
+  --hiw-gutter: 32px;
+
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--hiw-bg);
+  color: var(--hiw-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  animation: hiwFadeIn 0.25s ease-out;
+}
+
+.hiw-page.dark-mode {
+  --hiw-bg: var(--color-bg-primary-dark);
+  --hiw-surface: var(--color-bg-secondary-dark);
+  --hiw-surface-2: var(--color-bg-tertiary-dark);
+  --hiw-text: var(--color-text-primary-dark);
+  --hiw-text-2: var(--color-text-secondary-dark);
+  --hiw-text-3: var(--color-text-tertiary-dark);
+  --hiw-border: var(--color-border-primary-dark);
+  --hiw-border-2: var(--color-border-secondary-dark);
+}
+
+.hiw-page:focus {
+  outline: none;
+}
+
+.hiw-page *:focus-visible {
+  outline: 2px solid var(--hiw-text);
+  outline-offset: 2px;
+}
+
+.hiw-page a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.hiw-page a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.hiw-page strong {
+  font-weight: 600;
+}
+
+.hiw-page kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78em;
+  line-height: 1.4;
+  padding: 0 5px;
+  color: var(--hiw-text-2);
+  border: 1px solid var(--hiw-border);
+  border-bottom-width: 2px;
+  border-radius: var(--border-radius-sm);
+  background: var(--hiw-surface);
+}
+
+.hiw-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.hiw-muted {
+  color: var(--hiw-text-3);
+}
+
+/* Top bar */
+
+.hiw-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px var(--hiw-gutter);
+  background: color-mix(in srgb, var(--hiw-bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--hiw-border);
+}
+
+.hiw-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hiw-text);
+  background: var(--hiw-bg);
+  border: 1px solid var(--hiw-border-2);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-normal), background var(--transition-normal);
+}
+
+.hiw-back-button:hover {
+  border-color: var(--hiw-text);
+  background: var(--hiw-surface);
+}
+
+.hiw-topbar-hint {
+  font-size: 13px;
+  color: var(--hiw-text-3);
+}
+
+/* Layout: a readable text column, figures may break out wider */
+
+.hiw-main {
+  padding: 0 var(--hiw-gutter) 96px;
+}
+
+.hiw-text {
+  max-width: var(--hiw-text-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hiw-wide {
+  max-width: var(--hiw-wide-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hiw-page p {
+  margin: 0 0 1em;
+}
+
+/* Hero */
+
+.hiw-hero {
+  padding: 72px 0 24px;
+}
+
+.hiw-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hiw-text-3);
+  margin-bottom: 14px !important;
+}
+
+.hiw-h1 {
+  font-family: var(--font-logo);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  margin: 0 0 28px;
+  text-wrap: balance;
+}
+
+.hiw-lede {
+  font-size: 21px;
+  line-height: 1.5;
+  color: var(--hiw-text);
+}
+
+.hiw-hero p:not(.hiw-lede):not(.hiw-eyebrow) {
+  color: var(--hiw-text-2);
+}
+
+.hiw-toc {
+  margin-top: 36px;
+  border-top: 1px solid var(--hiw-border);
+}
+
+.hiw-toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 32px;
+}
+
+.hiw-toc li {
+  border-bottom: 1px solid var(--hiw-border);
+}
+
+.hiw-toc button {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 0;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--hiw-text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.hiw-toc button:hover {
+  color: var(--hiw-text-2);
+}
+
+.hiw-toc-number {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--hiw-text-3);
+}
+
+/* Steps */
+
+.hiw-step {
+  padding-top: 72px;
+  scroll-margin-top: 64px;
+}
+
+.hiw-step-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding-top: 20px;
+  border-top: 2px solid var(--hiw-text);
+}
+
+.hiw-step-number {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hiw-text-3);
+  flex-shrink: 0;
+}
+
+.hiw-h2 {
+  font-family: var(--font-logo);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.hiw-limits .hiw-h2,
+.hiw-about .hiw-h2 {
+  padding-top: 20px;
+  margin-bottom: 18px;
+  border-top: 2px solid var(--hiw-text);
+}
+
+.hiw-h3 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 36px 0 8px;
+}
+
+/* Figures */
+
+.hiw-figure {
+  margin-top: 28px;
+  margin-bottom: 28px;
+}
+
+.hiw-figure figcaption {
+  max-width: var(--hiw-text-width);
+  margin: 12px auto 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--hiw-text-3);
+}
+
+.hiw-figure.hiw-text figcaption {
+  margin-left: 0;
+}
+
+.hiw-figure-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hiw-text-3);
+  margin: 0 0 12px !important;
+}
+
+.hiw-card {
+  background: var(--hiw-surface);
+  border: 1px solid var(--hiw-border);
+  border-radius: var(--border-radius-lg);
+}
+
+.hiw-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hiw-text-3);
+  margin: 0 0 8px !important;
+}
+
+/* Glyphs */
+
+.hiw-glyph {
+  --hiw-glyph-size: 56px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px;
+  font: inherit;
+  color: var(--hiw-text);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+  text-align: center;
+}
+
+.hiw-glyph.is-clickable {
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.hiw-glyph.is-clickable:hover {
+  background: var(--hiw-surface-2);
+}
+
+.hiw-glyph-art {
+  display: block;
+  width: var(--hiw-glyph-size);
+  height: var(--hiw-glyph-size);
+}
+
+.hiw-glyph-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hiw-glyph-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: calc(var(--hiw-glyph-size) * 0.6);
+  color: var(--hiw-text-3);
+}
+
+.hiw-glyph-label {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--hiw-text-2);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hiw-glyph-sublabel {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--hiw-text-3);
+}
+
+.hiw-glyph-lg {
+  --hiw-glyph-size: 88px;
+}
+
+.hiw-glyph-xl {
+  --hiw-glyph-size: 128px;
+}
+
+.hiw-glyph-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+
+.hiw-glyph-row .hiw-glyph {
+  --hiw-glyph-size: 72px;
+}
+
+/* Real model inputs: black on white PNGs, blended into the surface so they follow the theme */
+.hiw-specimen-img {
+  mix-blend-mode: multiply;
+}
+
+.dark-mode .hiw-specimen-img {
+  filter: invert(1);
+  mix-blend-mode: screen;
+}
+
+.hiw-specimen {
+  gap: 6px;
+}
+
+.hiw-specimen img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border: 1px solid var(--hiw-border);
+  border-radius: var(--border-radius-sm);
+}
+
+/* Step 1: flow diagram */
+
+.hiw-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 28px 24px;
+  margin-bottom: 20px;
+  background: var(--hiw-surface);
+  border: 1px solid var(--hiw-border);
+  border-radius: var(--border-radius-lg);
+}
+
+.hiw-flow-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.hiw-flow-model {
+  padding: 16px 20px;
+  background: var(--hiw-bg);
+  border: 1px solid var(--hiw-border-2);
+  border-radius: var(--border-radius-md);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.hiw-flow-model strong {
+  font-size: 17px;
+}
+
+.hiw-flow-model span,
+.hiw-flow-caption {
+  font-size: 12px;
+  color: var(--hiw-text-3);
+}
+
+.hiw-flow-arrow {
+  display: flex;
+  color: var(--hiw-text-3);
+}
+
+.hiw-vector {
+  display: grid;
+  grid-template-columns: repeat(16, 8px);
+  gap: 2px;
+}
+
+.hiw-vector span {
+  width: 8px;
+  height: 14px;
+  border-radius: 1px;
+  background: var(--hiw-text);
+}
+
+/* Step 2: alias groups */
+
+.hiw-alias-layout {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+}
+
+.hiw-alias-main {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  align-items: flex-start;
+}
+
+.hiw-alias-main > .hiw-glyph,
+.hiw-alias-small > .hiw-glyph,
+.hiw-predicted-card > .hiw-glyph {
+  flex-shrink: 0;
+}
+
+.hiw-alias-body {
+  min-width: 0;
+}
+
+.hiw-alias-title {
+  display: flex;
+  flex-direction: column;
+  margin: 4px 0 12px !important;
+  line-height: 1.3;
+}
+
+.hiw-alias-title strong {
+  font-size: 20px;
+}
+
+.hiw-alias-title span {
+  font-size: 14px;
+  color: var(--hiw-text-3);
+}
+
+.hiw-alias-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hiw-alias-small {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+}
+
+.hiw-alias-small p {
+  display: flex;
+  flex-direction: column;
+  margin: 0 !important;
+  font-size: 14px;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.hiw-alias-small p span {
+  font-size: 13px;
+  color: var(--hiw-text-3);
+}
+
+.hiw-excluded {
+  padding: 14px;
+}
+
+.hiw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hiw-chips li {
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 3px 8px;
+  color: var(--hiw-text-2);
+  background: var(--hiw-bg);
+  border: 1px solid var(--hiw-border);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.hiw-chips li.is-more {
+  color: var(--hiw-text-3);
+  border-style: dashed;
+}
+
+.hiw-chips.is-struck li {
+  text-decoration: line-through;
+  color: var(--hiw-text-3);
+}
+
+.hiw-metrics {
+  margin-top: -4px;
+}
+
+.hiw-metrics li {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  background: var(--hiw-surface);
+}
+
+/* Step 3: style strips and predictions */
+
+.hiw-strips {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 32px;
+}
+
+.hiw-strip {
+  border-top: 1px solid var(--hiw-border);
+  padding-top: 10px;
+}
+
+.hiw-strip-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px !important;
+}
+
+.hiw-strip-glyphs {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.hiw-strip-glyphs .hiw-glyph {
+  --hiw-glyph-size: 100%;
+  padding: 2px;
+}
+
+.hiw-strip-glyphs .hiw-glyph-art {
+  aspect-ratio: 1;
+  height: auto;
+}
+
+.hiw-predicted {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.hiw-predicted-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 10px 8px;
+  min-width: 0;
+}
+
+.hiw-predicted-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.hiw-predicted-body strong {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hiw-predicted-body .hiw-muted {
+  font-size: 12px;
+}
+
+.hiw-bar {
+  display: block;
+  height: 4px;
+  margin-top: 4px;
+  background: var(--hiw-surface-2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hiw-bar span {
+  display: block;
+  height: 100%;
+  background: var(--hiw-text);
+}
+
+/* Step 4: mini-map and neighbours */
+
+.hiw-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.hiw-presets button {
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 11px;
+  color: var(--hiw-text-2);
+  background: var(--hiw-bg);
+  border: 1px solid var(--hiw-border-2);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.hiw-presets button:hover {
+  border-color: var(--hiw-text);
+  color: var(--hiw-text);
+}
+
+.hiw-presets button.is-active {
+  color: var(--hiw-bg);
+  background: var(--hiw-text);
+  border-color: var(--hiw-text);
+}
+
+.hiw-presets-hint {
+  font-size: 13px;
+  margin-left: 6px;
+}
+
+.hiw-map-card {
+  padding: 8px;
+}
+
+.hiw-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+}
+
+.hiw-map-dots circle {
+  opacity: 0.45;
+}
+
+.hiw-map-focus line {
+  stroke: var(--hiw-text);
+  stroke-width: 1.2;
+}
+
+.hiw-map-neighbour {
+  fill: var(--hiw-bg);
+  stroke: var(--hiw-text);
+  stroke-width: 1.5;
+}
+
+.hiw-map-origin {
+  fill: var(--hiw-text);
+  stroke: var(--hiw-bg);
+  stroke-width: 2;
+}
+
+.hiw-map-label {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--hiw-text);
+  paint-order: stroke;
+  stroke: var(--hiw-surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.hiw-neighbours {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.hiw-neighbours-origin {
+  flex-shrink: 0;
+  padding-right: 20px;
+  border-right: 1px solid var(--hiw-border);
+}
+
+.hiw-neighbours-origin .hiw-glyph-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hiw-text);
+}
+
+.hiw-neighbours-list {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  min-width: 0;
+}
+
+.hiw-neighbours-list .hiw-glyph.is-same-style .hiw-glyph-label::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  vertical-align: 1px;
+  border-radius: 50%;
+  background: var(--hiw-text);
+}
+
+.hiw-weights {
+  list-style: none;
+  margin: 4px 0 20px;
+  padding: 0;
+  border-top: 1px solid var(--hiw-border);
+}
+
+.hiw-weights li {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hiw-border);
+  color: var(--hiw-text-2);
+}
+
+.hiw-weight {
+  flex-shrink: 0;
+  min-width: 36px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+  color: var(--hiw-text);
+}
+
+/* Step 5: categories */
+
+.hiw-categories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.hiw-category {
+  padding: 14px 16px 16px;
+}
+
+.hiw-category-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px !important;
+  font-size: 15px;
+}
+
+.hiw-category-title .hiw-muted {
+  margin-left: auto;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hiw-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--hiw-cat-color);
+  flex-shrink: 0;
+}
+
+.hiw-category-glyphs {
+  display: flex;
+  gap: 4px;
+  margin: 0 -4px 6px;
+}
+
+.hiw-category-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--hiw-text-2);
+  margin: 0 !important;
+}
+
+.hiw-stack {
+  display: flex;
+  height: 18px;
+  gap: 2px;
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.hiw-stack span {
+  display: block;
+  min-width: 3px;
+}
+
+.hiw-stack-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+.hiw-stack-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hiw-refiled {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Step 6: features */
+
+.hiw-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 32px;
+  margin: 8px 0 0;
+}
+
+.hiw-features > div {
+  padding: 14px 0;
+  border-top: 1px solid var(--hiw-border);
+}
+
+.hiw-features dt {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.hiw-features dd {
+  margin: 2px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--hiw-text-2);
+}
+
+/* Limitations */
+
+.hiw-limits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hiw-limits-list li {
+  position: relative;
+  padding: 12px 0 12px 28px;
+  border-top: 1px solid var(--hiw-border);
+  color: var(--hiw-text-2);
+}
+
+.hiw-limits-list li:first-child {
+  border-top: none;
+}
+
+.hiw-limits-list li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 23px;
+  width: 10px;
+  height: 2px;
+  background: var(--hiw-text-3);
+}
+
+.hiw-limits-list strong {
+  color: var(--hiw-text);
+}
+
+/* About */
+
+.hiw-about p {
+  color: var(--hiw-text-2);
+}
+
+.hiw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 24px 0 32px;
+}
+
+.hiw-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hiw-text);
+  text-decoration: none !important;
+  background: var(--hiw-bg);
+  border: 1px solid var(--hiw-border-2);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-normal), background var(--transition-normal);
+}
+
+.hiw-button:hover {
+  border-color: var(--hiw-text);
+}
+
+.hiw-button.is-primary {
+  color: var(--hiw-bg);
+  background: var(--hiw-text);
+  border-color: var(--hiw-text);
+}
+
+.hiw-button.is-primary:hover {
+  opacity: 0.85;
+}
+
+.hiw-credit {
+  font-size: 14px;
+  color: var(--hiw-text-3) !important;
+  padding-top: 16px;
+  border-top: 1px solid var(--hiw-border);
+}
+
+@keyframes hiwFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hiw-page {
+    animation: none;
+  }
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .hiw-alias-layout,
+  .hiw-strips {
+    grid-template-columns: 1fr;
+  }
+
+  .hiw-predicted {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hiw-categories {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .hiw-page {
+    --hiw-gutter: 18px;
+    font-size: 16px;
+  }
+
+  .hiw-topbar {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .hiw-topbar-hint {
+    display: none;
+  }
+
+  .hiw-hero {
+    padding-top: 40px;
+  }
+
+  .hiw-h1 {
+    font-size: 38px;
+  }
+
+  .hiw-lede {
+    font-size: 18px;
+  }
+
+  .hiw-h2 {
+    font-size: 27px;
+  }
+
+  .hiw-step {
+    padding-top: 56px;
+  }
+
+  .hiw-toc ol,
+  .hiw-features,
+  .hiw-predicted,
+  .hiw-categories {
+    grid-template-columns: 1fr;
+  }
+
+  .hiw-glyph-row {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .hiw-glyph-row .hiw-glyph {
+    --hiw-glyph-size: 60px;
+  }
+
+  .hiw-flow {
+    gap: 10px;
+    padding: 20px 12px;
+  }
+
+  .hiw-flow .hiw-glyph-lg {
+    --hiw-glyph-size: 56px;
+  }
+
+  .hiw-flow-model {
+    padding: 10px;
+  }
+
+  .hiw-flow-model span {
+    display: none;
+  }
+
+  .hiw-vector {
+    grid-template-columns: repeat(8, 6px);
+  }
+
+  .hiw-vector span {
+    width: 6px;
+    height: 10px;
+  }
+
+  .hiw-alias-main {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hiw-alias-main .hiw-chips {
+    justify-content: center;
+  }
+
+  .hiw-glyph-xl {
+    --hiw-glyph-size: 96px;
+  }
+
+  /* The mini-map scales down about 2x on phones: compensate in viewBox units */
+  .hiw-map-dots circle {
+    r: 2.8px;
+  }
+
+  .hiw-map-neighbour {
+    r: 7px;
+  }
+
+  .hiw-map-origin {
+    r: 10px;
+  }
+
+  .hiw-map-label {
+    font-size: 24px;
+  }
+
+  .hiw-neighbours {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .hiw-neighbours-origin {
+    padding-right: 0;
+    padding-bottom: 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--hiw-border);
+    display: flex;
+    justify-content: center;
+  }
+
+  .hiw-neighbours-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .hiw-refiled {
+    justify-content: space-between;
+    gap: 8px;
+  }
+}
+
+/* Isometric pipeline overview */
+
+.hiw-page {
+  --hiw-accent: var(--color-accent);
+}
+
+.hiw-page.dark-mode {
+  --hiw-accent: var(--color-accent-dark);
+}
+
+.hiw-iso-figure {
+  margin-top: 8px;
+}
+
+.hiw-toc-section .hiw-toc {
+  margin-top: 8px;
+}
+
+.hiw-iso {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hiw-iso-stop-strong {
+  stop-color: var(--hiw-text);
+  stop-opacity: 0.16;
+}
+
+.hiw-iso-stop-soft {
+  stop-color: var(--hiw-text);
+  stop-opacity: 0.02;
+}
+
+.hiw-iso-line {
+  fill: none;
+  stroke: var(--hiw-accent);
+  stroke-width: 2;
+  stroke-dasharray: 3 5;
+  stroke-linecap: round;
+}
+
+.hiw-iso-accent-fill {
+  fill: var(--hiw-accent);
+}
+
+.hiw-iso-glyph {
+  fill: var(--hiw-text);
+}
+
+.hiw-iso-card rect {
+  fill: var(--hiw-bg);
+  stroke: var(--hiw-border-2);
+  stroke-width: 1;
+}
+
+.hiw-iso-card.is-focus rect {
+  stroke: var(--hiw-accent);
+  stroke-width: 1.5;
+}
+
+.hiw-iso-grain {
+  filter: url(#hiw-iso-grain);
+  opacity: 0.12;
+}
+
+.dark-mode .hiw-iso-grain {
+  opacity: 0.08;
+}
+
+.hiw-iso-tile-bg {
+  fill: var(--hiw-surface);
+}
+
+.hiw-iso-tile-border {
+  fill: none;
+  stroke: var(--hiw-text);
+  stroke-opacity: 0.28;
+  stroke-width: 1;
+}
+
+.hiw-iso-anno {
+  font-size: 11px;
+  fill: var(--hiw-text-3);
+}
+
+.hiw-iso-note {
+  font-size: 11px;
+  fill: var(--hiw-text-3);
+}
+
+.hiw-iso-embed > rect {
+  fill: var(--hiw-text);
+  fill-opacity: 0.04;
+  stroke: var(--hiw-accent);
+  stroke-width: 1.5;
+}
+
+.hiw-iso-fp rect {
+  fill: var(--hiw-text);
+}
+
+.hiw-iso-fp.is-clip rect {
+  fill: var(--hiw-accent);
+}
+
+.hiw-iso-fp.is-metrics rect {
+  stroke: var(--hiw-text);
+  stroke-opacity: 0.35;
+  stroke-width: 0.75;
+}
+
+.hiw-iso-fp-label {
+  font-size: 10px;
+  fill: var(--hiw-text-2);
+}
+
+.hiw-iso-fp-weight {
+  fill: var(--hiw-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.hiw-iso-pill line {
+  stroke: var(--hiw-text);
+  stroke-opacity: 0.3;
+  stroke-width: 1;
+}
+
+.hiw-iso-pill rect {
+  fill: var(--hiw-bg);
+  stroke: var(--hiw-border-2);
+  stroke-width: 1;
+}
+
+.hiw-iso-pill text {
+  font-size: 11px;
+  fill: var(--hiw-text-2);
+}
+
+.hiw-iso-pill.is-focus line {
+  stroke: var(--hiw-accent);
+  stroke-opacity: 1;
+}
+
+.hiw-iso-pill.is-focus rect {
+  fill: var(--hiw-accent);
+  stroke: var(--hiw-accent);
+}
+
+.hiw-iso-pill.is-focus text {
+  font-weight: 600;
+  fill: var(--hiw-bg);
+}
+
+.hiw-iso-proj-bg {
+  fill: url(#hiw-iso-plane);
+  stroke: var(--hiw-text);
+  stroke-opacity: 0.15;
+  stroke-width: 1;
+}
+
+.hiw-iso-proj-dot {
+  fill: var(--hiw-text);
+  fill-opacity: 0.18;
+}
+
+.hiw-iso-axis {
+  stroke: var(--hiw-text);
+  stroke-opacity: 0.6;
+  stroke-width: 1;
+}
+
+.hiw-iso-axis-label {
+  font-size: 11px;
+  font-style: italic;
+  fill: var(--hiw-text-2);
+}
+
+.hiw-iso-tag {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--hiw-bg);
+}
+
+.hiw-iso-step {
+  cursor: pointer;
+  outline: none;
+}
+
+.hiw-iso-num {
+  fill: var(--hiw-bg);
+  stroke: var(--hiw-text-2);
+  stroke-width: 1;
+  transition: fill var(--transition-fast);
+}
+
+.hiw-iso-num-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  fill: var(--hiw-text);
+}
+
+.hiw-iso-label {
+  font-size: 13px;
+  fill: var(--hiw-text-2);
+}
+
+.hiw-iso-step:hover .hiw-iso-num,
+.hiw-iso-step:focus-visible .hiw-iso-num {
+  fill: var(--hiw-text);
+}
+
+.hiw-iso-step:hover .hiw-iso-num-text,
+.hiw-iso-step:focus-visible .hiw-iso-num-text {
+  fill: var(--hiw-bg);
+}
+
+.hiw-iso-step:hover .hiw-iso-label,
+.hiw-iso-step:focus-visible .hiw-iso-label {
+  fill: var(--hiw-text);
+}
+
+@media (max-width: 640px) {
+  /* The diagram scales to about a third on phones: keep numbers tappable, drop labels (the list below has them) */
+  .hiw-iso-label,
+  .hiw-iso-note,
+  .hiw-iso-anno {
+    display: none;
+  }
+
+  .hiw-iso-num {
+    r: 22px;
+    stroke-width: 1.5;
+  }
+
+  .hiw-iso-num-text {
+    font-size: 24px;
+  }
+}
+
+/* FontCLIP patches */
+
+.hiw-patches {
+  display: block;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  height: auto;
+  overflow: visible;
+}
+
+@media (max-width: 640px) {
+  .hiw-patches {
+    max-width: 360px;
+  }
+}
+
+.hiw-patch-model-depth {
+  fill: var(--hiw-surface-2);
+  stroke: var(--hiw-border-2);
+  stroke-width: 1;
+}
+
+.hiw-patch-model-face {
+  fill: var(--hiw-surface);
+  stroke: var(--hiw-accent);
+  stroke-width: 1.5;
+}
+
+.hiw-patch-model-name {
+  font-size: 17px;
+  font-weight: 700;
+  fill: var(--hiw-text);
+}
+
+.hiw-patch-model-sub {
+  font-size: 12px;
+  fill: var(--hiw-text-3);
+}
+
+.hiw-patch-fingerprint rect {
+  fill: var(--hiw-accent);
+}
+
+.hiw-patch-image {
+  fill: var(--hiw-surface);
+}
+
+.hiw-patch-glyph path {
+  fill: var(--hiw-text);
+}
+
+.hiw-patch-gridline line {
+  stroke: var(--hiw-accent);
+  stroke-opacity: 0.7;
+  stroke-width: 1.2;
+}
+
+.hiw-patch-crop {
+  overflow: hidden;
+}
+
+.hiw-patch-tile {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transform: translate(0, 0);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--delay);
+}
+
+.hiw-patches.is-spread .hiw-patch-tile {
+  transform: translate(var(--dx), var(--dy));
+}
+
+.hiw-patch-border {
+  fill: none;
+  stroke: var(--hiw-text);
+  stroke-opacity: 0.12;
+  stroke-width: 1;
+}
+
+.hiw-patch-label {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--hiw-text-2);
+}
+
+.hiw-patch-arrow line,
+.hiw-patch-arrow polyline {
+  fill: none;
+  stroke: var(--hiw-text-3);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hiw-patch-tile {
+    transition: none;
+  }
+}

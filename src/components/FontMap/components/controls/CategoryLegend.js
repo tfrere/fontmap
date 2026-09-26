@@ -7,7 +7,7 @@ const CategoryLegend = () => {
 
   return (
     <div className="category-legend">
-      <label className="category-legend-toggle">
+      <label className="map-control category-legend-toggle">
         <input
           type="checkbox"
           checked={useCategoryColors}

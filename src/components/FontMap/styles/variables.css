@@ -1,6 +1,6 @@
 /* CSS Variables for style normalization */
 :root {
-  /* Primary colors — backgrounds are very slightly warm (paper feel) */
+  /* Primary colors - backgrounds are very slightly warm (paper feel) */
   --color-bg-primary: #fcfbf8;
   --color-bg-secondary: #f7f5f1;
   --color-bg-tertiary: #ece9e3;
@@ -12,7 +12,7 @@
   --color-accent: #007acc;
   --color-accent-hover: #005a9e;
   
-  /* Dark mode colors — same subtle warmth on charcoal */
+  /* Dark mode colors - same subtle warmth on charcoal */
   --color-bg-primary-dark: #121110;
   --color-bg-secondary-dark: #1c1a18;
   --color-bg-tertiary-dark: #363330;
@@ -31,6 +31,13 @@
   --spacing-lg: 16px;
   --spacing-xl: 20px;
   
+  /* Map controls (bottom buttons and focus hint arrow keys) */
+  --map-control-size: 36px;
+  --map-control-gap: 6px;
+  --map-control-inset: 16px;
+  --map-control-radius: var(--border-radius-md);
+  --map-control-icon: 16px;
+
   /* Borders */
   --border-radius-sm: 4px;
   --border-radius-md: 6px;

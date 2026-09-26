@@ -1,22 +1,62 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { getFontSymbolId, generateGoogleFontsUrl } from '../utils/fontUtils';
+import { formatGoogleCategory } from '../utils/categories';
+import { formatTag, getFontStyleTags } from '../utils/fontSearch';
+import { useFontMapStore } from '../../../store/fontMapStore';
+import { useDwell, useWebFont } from '../hooks/useWebFont';
+import { ActivePreviewText, SimilarPreviewText } from './PreviewText';
 import Spinner from '../../Spinner';
 
+// A held arrow key (30 ms auto-repeat) commits a new selection every 50-100 ms,
+// bounded by the map re-render. A font kept ~30 ms longer than that slowest step
+// is where the user stopped, so only then is its web font requested.
+const ACTIVE_FONT_DWELL_MS = 130;
+const SIMILAR_FONTS_DWELL_MS = 300;
+
+// Fonts cycled inside the empty state magnifier; system fonts only, nothing to download.
 const DEFAULT_FONTS = [
-  'Arial, sans-serif',
-  'Times New Roman, serif',
   'Georgia, serif',
-  'Helvetica, sans-serif',
+  'Helvetica, Arial, sans-serif',
   'Courier New, monospace',
-  'Verdana, sans-serif',
+  'Times New Roman, serif',
   'Trebuchet MS, sans-serif',
-  'Tahoma, sans-serif'
+  'Didot, Bodoni 72, serif',
+  'Futura, Avenir, sans-serif',
 ];
+const PLACEHOLDER_CYCLE_MS = 450;
+
+const MAX_VISIBLE_ALIASES = 2;
 
 /**
  * Component to display the active font details and similar fonts
  */
-const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) => {
+const ActiveFont = ({ selectedFont, fonts, darkMode, isMobile = false, onClose, onFontSelect, onStyleSelect, activeStyleTag = null }) => {
+  const previewText = useFontMapStore(s => s.previewText);
+  const setPreviewText = useFontMapStore(s => s.setPreviewText);
+  const previewOptIn = useFontMapStore(s => s.previewTextOptIn);
+  const setPreviewOptIn = useFontMapStore(s => s.setPreviewTextOptIn);
+  const [previewFocused, setPreviewFocused] = useState(false);
+  const previewInputRef = useRef(null);
+  const textMode = previewText.length > 0;
+  const previewEditable = !isMobile || previewOptIn || textMode;
+  const activeWebFont = useWebFont(selectedFont, { enabled: textMode, delay: ACTIVE_FONT_DWELL_MS });
+  const activeSettled = activeWebFont.status === 'loaded' || activeWebFont.status === 'failed';
+  const similarDwellDone = useDwell(selectedFont?.name, textMode, SIMILAR_FONTS_DWELL_MS);
+  const canLoadSimilar = textMode && similarDwellDone && activeSettled;
+
+  const enablePreviewText = () => {
+    // Synchronous render so focus() runs inside the tap (iOS only opens the keyboard then)
+    flushSync(() => setPreviewOptIn(true));
+    previewInputRef.current?.focus();
+  };
+
+  const clearPreviewText = (event) => {
+    event.stopPropagation();
+    setPreviewText('');
+    previewInputRef.current?.blur();
+  };
+
   const [fontPreviewLoaded, setFontPreviewLoaded] = useState(false);
   const [sentencePreviewLoaded, setSentencePreviewLoaded] = useState(false);
   const [similarFontsLoaded, setSimilarFontsLoaded] = useState({});
@@ -24,7 +64,7 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
   const mainSentenceTimeout = useRef(null);
   const [placeholderFontIndex, setPlaceholderFontIndex] = useState(0);
 
-  // Reset loading states UNIQUEMENT quand selectedFont change
+  // Reset loading states ONLY when selectedFont changes
   useEffect(() => {
     setFontPreviewLoaded(false);
     setSentencePreviewLoaded(false);
@@ -38,7 +78,7 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
       mainSentenceTimeout.current = null;
     }
 
-    // <use> elements don't fire onLoad — simulate with a short timeout
+    // <use> elements don't fire onLoad - simulate with a short timeout
     const timer = setTimeout(() => setFontPreviewLoaded(true), 100);
 
     mainSentenceTimeout.current = setTimeout(() => setSentencePreviewLoaded(true), 500);
@@ -52,12 +92,11 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
   }, [selectedFont]);
 
   useEffect(() => {
-    if (selectedFont) return;
-
+    if (selectedFont) return undefined;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
     const interval = setInterval(() => {
       setPlaceholderFontIndex(prev => (prev + 1) % DEFAULT_FONTS.length);
-    }, 200);
-
+    }, PLACEHOLDER_CYCLE_MS);
     return () => clearInterval(interval);
   }, [selectedFont]);
 
@@ -119,33 +158,48 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
   if (!selectedFont) {
     return (
       <div className="font-details">
-        <div className="font-details-placeholder">
-          <div className="placeholder-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-              <text 
-                x="11" 
-                y="14" 
-                textAnchor="middle" 
-                fontSize="10" 
-                fill="currentColor" 
-                fontWeight="100"
-                opacity={0.65}
-                style={{ 
-                  fontFamily: DEFAULT_FONTS[placeholderFontIndex],
-                  fontStyle: 'normal',
-                  fontVariant: 'normal'
-                }}
+        <div className="empty-state">
+          <div className="empty-state-icon" aria-hidden="true">
+            <svg width="88" height="88" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <circle className="empty-state-lens-fill" cx="10.5" cy="10.5" r="7.5" />
+              <circle cx="10.5" cy="10.5" r="7.5" stroke="currentColor" strokeWidth="0.9" />
+              <path d="m16.1 16.1 5.2 5.2" stroke="currentColor" strokeWidth="1.6" />
+              <text
+                className="empty-state-glyph"
+                x="10.5"
+                y="13.6"
+                textAnchor="middle"
+                fontSize="9"
+                style={{ fontFamily: DEFAULT_FONTS[placeholderFontIndex] }}
               >
                 A
               </text>
             </svg>
           </div>
-          <div className="placeholder-content">
-            <h3>Explore fonts</h3>
-            <p>Click any font on the map to discover its details and find similar typefaces.</p>
-          </div>
+
+          <h3 className="empty-state-title">Explore fonts</h3>
+          <p className="empty-state-lead">
+            Click any font on the map to discover its details and find similar typefaces.
+          </p>
+
+          {/* Pointer and touch variants are swapped in CSS; keyboard-only rows hide on touch */}
+          <ul className="empty-state-hints">
+            <li>
+              <span className="hint-pointer"><kbd>drag</kbd><kbd>scroll</kbd></span>
+              <span className="hint-touch"><kbd>drag</kbd><kbd>pinch</kbd></span>
+              to move around
+            </li>
+            <li className="hint-keyboard">
+              <span>
+                <kbd aria-label="Left">←</kbd><kbd aria-label="Up">↑</kbd><kbd aria-label="Down">↓</kbd><kbd aria-label="Right">→</kbd>
+              </span>
+              to step between neighbours
+            </li>
+            <li className="hint-keyboard">
+              <span><kbd>a</kbd><span className="hint-range">-</span><kbd>z</kbd></span>
+              to switch the glyph
+            </li>
+          </ul>
         </div>
       </div>
     );
@@ -154,12 +208,14 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
   const symbolId = getFontSymbolId(selectedFont.imageName || selectedFont.name);
   const category = selectedFont.family || 'sans-serif';
   
-  // Générer l'URL Google Fonts (utiliser l'URL existante ou en forger une nouvelle)
+  // Google Fonts URL (use the existing one or build a new one)
   const googleFontsUrl = selectedFont.google_fonts_url || generateGoogleFontsUrl(selectedFont.name);
   
-  // Vérifier si c'est une police fusionnée
+  // Whether this is a merged font
   const isMergedFont = selectedFont.fusionInfo && selectedFont.fusionInfo.merged;
   const variantCount = selectedFont.variantCount || 1;
+  const aliases = selectedFont.aliases || [];
+  const styleTags = getFontStyleTags(selectedFont);
 
   return (
     <div className="font-details">
@@ -175,13 +231,13 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
         <span>Back</span>
       </button>
       <div className="font-details-content">
-        {/* Label Active Font en dehors de la carte */}
+        {/* Active Font label outside the card */}
         <div className="active-font-label">Active Font</div>
         
-        {/* Carte unifiée avec active font et bouton Google Fonts */}
+        {/* Card with the active font and the Google Fonts button */}
         <div className="active-font-card">
           <div className="active-font-content">
-            {/* Lettre à gauche */}
+            {/* Letter on the left */}
             <div className="font-letter-preview">
               {!fontPreviewLoaded && (
                 <Spinner 
@@ -210,7 +266,7 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
               </svg>
             </div>
             
-            {/* Info à droite */}
+            {/* Info on the right */}
             <div className="font-info-compact">
               <h2 className="font-name-compact">{selectedFont.name}</h2>
               {isMergedFont && (
@@ -224,8 +280,13 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
                 </div>
               )}
               <p className="font-category-compact">{category}</p>
+              {selectedFont.google_category && selectedFont.google_category !== category && (
+                <p className="font-google-category">
+                  Google Fonts: {formatGoogleCategory(selectedFont.google_category)}
+                </p>
+              )}
               
-              {/* Weights et Styles en discret */}
+              {/* Weights and styles, low-key */}
               <div className="font-metadata">
                 {selectedFont.weights && selectedFont.weights.length > 0 && (
                   <span className="font-weights">
@@ -238,12 +299,38 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
                   </span>
                 )}
               </div>
+              {styleTags.length > 0 && (
+                <div className="font-style-tags" aria-label="Styles">
+                  {styleTags.map(({ tag, predicted }) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className={`font-style-tag ${predicted ? 'predicted' : ''} ${activeStyleTag === tag ? 'active' : ''}`}
+                      onClick={() => onStyleSelect && onStyleSelect(tag)}
+                      title={predicted
+                        ? `Predicted from the glyph shapes (not tagged by Google Fonts). Highlight ${formatTag(tag)} fonts on the map`
+                        : `Highlight ${formatTag(tag)} fonts on the map`}
+                    >
+                      {formatTag(tag)}{predicted && <span aria-hidden="true">?</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {aliases.length > 0 && (
+                <p className="font-aliases" title={aliases.join(', ')}>
+                  Same Latin glyphs as: {aliases.slice(0, MAX_VISIBLE_ALIASES).join(', ')}
+                  {aliases.length > MAX_VISIBLE_ALIASES && `, +${aliases.length - MAX_VISIBLE_ALIASES} more`}
+                </p>
+              )}
             </div>
           </div>
           
-          {/* Sentence en dessous */}
-          <div className="font-sentence-compact">
-            {!sentencePreviewLoaded && (
+          {/* Sentence below */}
+          <div
+            className={`font-sentence-compact preview-sentence${textMode ? ' is-text-mode' : ''}${previewEditable ? ' is-editable' : ''}${previewFocused ? ' is-focused' : ''}`}
+            onClick={previewEditable ? () => previewInputRef.current?.focus() : undefined}
+          >
+            {!sentencePreviewLoaded && !textMode && (
               <Spinner 
                 size="16px" 
                 color={darkMode ? '#ffffff' : '#000000'} 
@@ -259,7 +346,7 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
                 width: '100%', 
                 height: 'auto', 
                 maxWidth: '100%',
-                minHeight: '49px', /* Hauteur fixe des images SVG de sentence (165x49) */
+                minHeight: '49px', /* Fixed height of the sentence SVG images (165x49) */
                 filter: darkMode ? 'invert(1)' : 'none',
                 display: sentencePreviewLoaded ? 'block' : 'none',
                 transition: 'opacity 0.15s ease-in-out'
@@ -270,9 +357,44 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
                 setSentencePreviewLoaded(true);
               }}
             />
+            {previewEditable && (
+              <ActivePreviewText
+                textarea={previewInputRef}
+                text={previewText}
+                onTextChange={setPreviewText}
+                focused={previewFocused}
+                onFocusChange={setPreviewFocused}
+                webFont={activeWebFont}
+                editable={previewEditable}
+              />
+            )}
+            {previewEditable && !textMode && !previewFocused && (
+              <span className="preview-text-hint" aria-hidden="true">click to type</span>
+            )}
+            {textMode && activeWebFont.status === 'failed' && (
+              <span className="preview-text-note">couldn't load font</span>
+            )}
+            {textMode && (
+              <button
+                type="button"
+                className="preview-text-clear"
+                onClick={clearPreviewText}
+                aria-label="Clear preview text"
+                title="Back to the default preview"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
+          {!previewEditable && (
+            <button type="button" className="preview-text-try" onClick={enablePreviewText}>
+              Try your own text
+            </button>
+          )}
 
-          {/* Bouton Google Fonts intégré dans la carte */}
+          {/* Google Fonts button inside the card */}
           <div className="font-action-section"> 
             <a 
               href={googleFontsUrl || '#'}
@@ -329,37 +451,43 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, onClose, onFontSelect }) =>
                       <span className="font-family">{font.family}</span>
                     </div>
                     <div className="similar-font-sentence">
-                      {!similarFontsLoaded[font.name] && (
-                        <Spinner 
-                          size="16px" 
-                          color={darkMode ? '#ffffff' : '#000000'} 
-                          minHeight="49px"
-                          centered={true}
-                          className="similar-font-spinner"
-                        />
+                      {textMode ? (
+                        <SimilarPreviewText font={font} text={previewText} canLoad={canLoadSimilar} />
+                      ) : (
+                        <>
+                          {!similarFontsLoaded[font.name] && (
+                            <Spinner 
+                              size="16px" 
+                              color={darkMode ? '#ffffff' : '#000000'} 
+                              minHeight="49px"
+                              centered={true}
+                              className="similar-font-spinner"
+                            />
+                          )}
+                          <img 
+                            src={sentenceImagePath}
+                            alt={`${font.name} sentence preview`}
+                            style={{ 
+                              height: 'auto', 
+                              minHeight: '49px', /* Fixed height of the sentence SVG images (165x49) */
+                              maxHeight: '49px',
+                              maxWidth: '100%',
+                              objectFit: 'contain',
+                              filter: darkMode ? 'invert(1)' : 'none',
+                              display: similarFontsLoaded[font.name] ? 'block' : 'none',
+                              transition: 'opacity 0.15s ease-in-out'
+                            }}
+                            onLoad={() => {
+                              handleImageLoad(font.name);
+                            }}
+                            onError={(e) => {
+                              // Hide image if it doesn't exist
+                              e.target.style.display = 'none';
+                              handleImageLoad(font.name);
+                            }}
+                          />
+                        </>
                       )}
-                      <img 
-                        src={sentenceImagePath}
-                        alt={`${font.name} sentence preview`}
-                        style={{ 
-                          height: 'auto', 
-                          minHeight: '49px', /* Hauteur fixe des images SVG de sentence (165x49) */
-                          maxHeight: '49px',
-                          maxWidth: '100%',
-                          objectFit: 'contain',
-                          filter: darkMode ? 'invert(1)' : 'none',
-                          display: similarFontsLoaded[font.name] ? 'block' : 'none',
-                          transition: 'opacity 0.15s ease-in-out'
-                        }}
-                        onLoad={() => {
-                          handleImageLoad(font.name);
-                        }}
-                        onError={(e) => {
-                          // Hide image if it doesn't exist
-                          e.target.style.display = 'none';
-                          handleImageLoad(font.name);
-                        }}
-                      />
                     </div>
                   </div>
                 );

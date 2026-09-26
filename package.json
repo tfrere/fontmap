@@ -1,7 +1,7 @@
 {
   "name": "fontmap",
   "version": "1.0.0",
-  "description": "Interactive map of 1,649 Google Fonts organized by visual similarity using FontCLIP + UMAP",
+  "description": "Interactive map of 1,465 Google Fonts organized by visual similarity using FontCLIP + t-SNE",
   "author": "Thibaud Frere",
   "license": "MIT",
   "homepage": ".",
@@ -38,7 +38,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "overlap": "node scripts/apply-overlap-removal.mjs",
-    "overlap:dry": "node scripts/apply-overlap-removal.mjs --dry-run"
+    "overlap:dry": "node scripts/apply-overlap-removal.mjs --dry-run",
+    "sprite": "node scripts/build-glyph-sprite.mjs"
   },
   "eslintConfig": {
     "extends": [

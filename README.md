@@ -15,9 +15,9 @@ An interactive map of 1,465 Google Fonts organized by visual similarity, using [
 
 Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-world-of-fonts-with-ai-7d9e49ff2b25) (2017, Kevin Ho), a different take on the same idea, fully open source.
 
-**[Live demo](https://huggingface.co/spaces/tfrere/fontmap)**
+**[Live demo](https://huggingface.co/spaces/tfrere/font-map)**
 
-[![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo.gif)](https://huggingface.co/spaces/tfrere/fontmap)
+[![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo.gif)](https://huggingface.co/spaces/tfrere/font-map)
 
 ## Features
 

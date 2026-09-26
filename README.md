@@ -71,9 +71,9 @@ Every push to `main` triggers a GitHub Actions workflow (`.github/workflows/depl
 
 ## Regenerating the map
 
-The data pipeline lives in [`pipeline/`](pipeline/). See its [README](pipeline/README.md) for the full chain (fonts -> renders -> FontCLIP embeddings -> metrics -> map) and setup.
+The data pipeline lives in [`pipeline/`](pipeline/). See its [README](pipeline/README.md) for the full chain from scratch (font download -> renders -> metrics -> FontCLIP embeddings -> map -> sprites) and setup. The font download and rendering steps are Node scripts in [`pipeline/render/`](pipeline/render/) (`npm run pipeline:download`, `npm run pipeline:render`, `npm run pipeline:sentences`).
 
-`build_typography_data.py` reads the precomputed FontCLIP embeddings (`pipeline/output/data/embeddings_fontclip.npz`) and writes `public/data/typography_data.json`. Run from the repo root:
+When only the map needs rebuilding, `build_typography_data.py` reads the precomputed FontCLIP embeddings (`pipeline/output/data/embeddings_fontclip.npz`) and writes `public/data/typography_data.json`. Run from the repo root:
 
 ```bash
 pipeline/.venv/bin/python pipeline/build_typography_data.py
@@ -109,6 +109,7 @@ fontmap/
 │   └── utils/                    # Glyph sprite loading
 ├── scripts/                      # Overlap removal + glyph sprite builder (Node)
 ├── pipeline/                     # Python data pipeline: FontCLIP, style tags, t-SNE
+│   ├── render/                   # Font download + SVG/PNG rendering (Node)
 │   └── experiments/              # Evaluation and model-comparison scripts
 └── package.json
 ```

@@ -28,6 +28,24 @@ const PLACEHOLDER_CYCLE_MS = 450;
 
 const MAX_VISIBLE_ALIASES = 2;
 
+// "100-900 (9)" for several weights, "400" for a single one
+const formatWeights = (weights) => {
+  const list = [...new Set((weights || []).map(Number).filter(Number.isFinite))].sort((a, b) => a - b);
+  if (list.length === 0) return null;
+  if (list.length === 1) return String(list[0]);
+  return `${list[0]}-${list[list.length - 1]} (${list.length})`;
+};
+
+const formatStyles = (styles) => {
+  const list = styles || [];
+  if (list.length === 0) return null;
+  const order = ['normal', 'italic'];
+  return [...list]
+    .sort((a, b) => order.indexOf(a) - order.indexOf(b))
+    .map(s => (s === 'normal' ? 'Roman' : s.charAt(0).toUpperCase() + s.slice(1)))
+    .join(', ');
+};
+
 /**
  * Component to display the active font details and similar fonts
  */
@@ -216,6 +234,8 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, isMobile = false, onClose, 
   const variantCount = selectedFont.variantCount || 1;
   const aliases = selectedFont.aliases || [];
   const styleTags = getFontStyleTags(selectedFont);
+  const weightsLabel = formatWeights(selectedFont.weights);
+  const stylesLabel = formatStyles(selectedFont.styles);
 
   return (
     <div className="font-details">
@@ -268,39 +288,45 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, isMobile = false, onClose, 
             
             {/* Info on the right */}
             <div className="font-info-compact">
-              <h2 className="font-name-compact">{selectedFont.name}</h2>
-              {isMergedFont && (
-                <div className="font-fusion-badge" style={{ 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  gap: '4px', 
-                  color: darkMode ? '#ffffff' : '#000000'
-                }}>
-                  <span className="fusion-text">{variantCount} variants</span>
-                </div>
-              )}
-              <p className="font-category-compact">{category}</p>
-              {selectedFont.google_category && selectedFont.google_category !== category && (
-                <p className="font-google-category">
-                  Google Fonts: {formatGoogleCategory(selectedFont.google_category)}
+              <div className="font-identity">
+                <h2 className="font-name-compact">{selectedFont.name}</h2>
+                <p className="font-category-compact">
+                  {category}
+                  {selectedFont.google_category && selectedFont.google_category !== category && (
+                    <span className="font-google-category">
+                      Google: {formatGoogleCategory(selectedFont.google_category)}
+                    </span>
+                  )}
+                  {isMergedFont && <span className="font-google-category">{variantCount} variants</span>}
                 </p>
-              )}
-              
-              {/* Weights and styles, low-key */}
-              <div className="font-metadata">
-                {selectedFont.weights && selectedFont.weights.length > 0 && (
-                  <span className="font-weights">
-                    {selectedFont.weights.join(', ')}
-                  </span>
-                )}
-                {selectedFont.styles && selectedFont.styles.length > 0 && (
-                  <span className="font-styles">
-                    {selectedFont.styles.join(', ')}
-                  </span>
-                )}
               </div>
+
+              <dl className="font-meta-list">
+                {weightsLabel && (
+                  <div className="font-meta-row">
+                    <dt>Weights</dt>
+                    <dd title={selectedFont.weights.join(', ')}>{weightsLabel}</dd>
+                  </div>
+                )}
+                {stylesLabel && (
+                  <div className="font-meta-row">
+                    <dt>Styles</dt>
+                    <dd>{stylesLabel}</dd>
+                  </div>
+                )}
+                {aliases.length > 0 && (
+                  <div className="font-meta-row">
+                    <dt>Same as</dt>
+                    <dd title={`Same Latin glyphs as ${aliases.join(', ')}`}>
+                      {aliases.slice(0, MAX_VISIBLE_ALIASES).join(', ')}
+                      {aliases.length > MAX_VISIBLE_ALIASES && ` +${aliases.length - MAX_VISIBLE_ALIASES}`}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+
               {styleTags.length > 0 && (
-                <div className="font-style-tags" aria-label="Styles">
+                <div className="font-style-tags" aria-label="Style tags">
                   {styleTags.map(({ tag, predicted }) => (
                     <button
                       key={tag}
@@ -315,12 +341,6 @@ const ActiveFont = ({ selectedFont, fonts, darkMode, isMobile = false, onClose, 
                     </button>
                   ))}
                 </div>
-              )}
-              {aliases.length > 0 && (
-                <p className="font-aliases" title={aliases.join(', ')}>
-                  Same Latin glyphs as: {aliases.slice(0, MAX_VISIBLE_ALIASES).join(', ')}
-                  {aliases.length > MAX_VISIBLE_ALIASES && `, +${aliases.length - MAX_VISIBLE_ALIASES} more`}
-                </p>
               )}
             </div>
           </div>

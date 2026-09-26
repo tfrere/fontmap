@@ -563,7 +563,7 @@
 /* Main content: letter on the left, info on the right */
 .active-font-content {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-md);
   padding: var(--spacing-md);
   background: var(--color-bg-secondary);
@@ -601,12 +601,61 @@
   filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.1));
 }
 
-/* Info on the right */
+/* Info on the right: identity, then a label / value list, then the style tags */
 .font-info-compact {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.font-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.font-meta-list {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 3px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.font-meta-row {
+  display: contents;
+}
+
+.font-meta-row dt {
+  color: var(--color-text-tertiary);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 15px;
+}
+
+.font-meta-row dd {
+  margin: 0;
+  min-width: 0;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.dark-mode .font-meta-row dt {
+  color: var(--color-text-tertiary-dark);
+}
+
+.dark-mode .font-meta-row dd {
+  color: var(--color-text-secondary-dark);
 }
 
 .font-name-compact {
@@ -615,6 +664,7 @@
   margin: 0;
   color: var(--color-text-primary);
   line-height: 1.2;
+  overflow-wrap: anywhere;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -625,11 +675,15 @@
 }
 
 .font-category-compact {
-  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  font-size: 11px;
   color: var(--color-text-secondary);
   margin: 0;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -638,46 +692,13 @@
 }
 
 .font-google-category {
-  margin: 1px 0 0;
-  font-size: 10px;
-  color: var(--color-text-tertiary);
+  font-weight: 400;
   letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-text-tertiary);
 }
 
 .dark-mode .font-google-category {
-  color: var(--color-text-tertiary-dark);
-}
-
-/* Font metadata (weights and styles) */
-.font-metadata {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 4px;
-}
-
-.font-weights, .font-styles {
-  font-size: 10px;
-  color: var(--color-text-tertiary);
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  opacity: 0.8;
-}
-
-.dark-mode .font-weights, .dark-mode .font-styles {
-  color: var(--color-text-tertiary-dark);
-}
-
-.font-aliases {
-  margin: 4px 0 0;
-  font-size: 10px;
-  line-height: 1.4;
-  color: var(--color-text-tertiary);
-  letter-spacing: 0.02em;
-  opacity: 0.8;
-}
-
-.dark-mode .font-aliases {
   color: var(--color-text-tertiary-dark);
 }
 
@@ -686,7 +707,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 6px;
 }
 
 .font-style-tag {

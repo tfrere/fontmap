@@ -46,7 +46,7 @@ jobs:
           # Hugging Face occasionally rate-limits git clones (HTTP 429);
           # retry with backoff so a transient limit doesn't fail the deploy.
           for attempt in 1 2 3 4 5; do
-            if git clone --depth 1 "https://tfrere:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf_space; then
+            if GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 "https://tfrere:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf_space; then
               break
             fi
             if [ "$attempt" = "5" ]; then
@@ -64,6 +64,10 @@ jobs:
           cp -r build hf_space/build
 
           cd hf_space
+          # The Hub rejects plain-git binaries above a small size (e.g. og-image.png),
+          # so images go through LFS (bridged to Xet storage by the Hub).
+          git lfs install --local
+          git lfs track "*.png" "*.jpg" "*.jpeg" "*.gif" "*.webp" "*.ico"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A

@@ -212,6 +212,12 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
     };
   }, []);
 
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = 'How it works - FontMap';
+    return () => { document.title = previousTitle; };
+  }, []);
+
   // Capture phase so the map's own shortcuts (Esc deselects, arrows move the
   // selection) don't fire behind the page.
   useEffect(() => {

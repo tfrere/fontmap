@@ -23,6 +23,7 @@
       #boot-loader > div { width: 32px; height: 32px; box-sizing: border-box; border: 3px solid currentColor; border-top-color: transparent; border-radius: 50%; opacity: 0.6; animation: boot-spin 0.8s linear infinite; }
       @keyframes boot-spin { to { transform: rotate(360deg); } }
     </style>
+    <noscript><style>#boot-loader { display: none; }</style></noscript>
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
@@ -32,17 +33,70 @@
           document.documentElement.dataset.theme === 'dark' ? '#121110' : '#fcfbf8';
       } catch (e) {}
     </script>
-    <meta name="description" content="Interactive map of 1,100+ Google Fonts organized by visual similarity using FontCLIP + UMAP" />
+    <meta name="color-scheme" content="light dark" />
+    <title>FontMap - 1,465 Google Fonts mapped by visual similarity</title>
+    <meta name="description" content="Explore 1,465 Google Fonts on an interactive map where look-alike typefaces sit together. Find similar fonts, search by style and preview your own text." />
+    <meta name="keywords" content="font map, Google Fonts, similar fonts, font finder, font pairing, typeface explorer, typography, FontCLIP, visual similarity" />
+    <meta name="author" content="Thibaud Frere" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <!-- Absolute URLs: link previews and crawlers don't resolve relative paths. -->
+    <link rel="canonical" href="https://tfrere-font-map.static.hf.space/index.html" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FontMap" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://tfrere-font-map.static.hf.space/index.html" />
+    <meta property="og:title" content="FontMap - Google Fonts mapped by visual similarity" />
+    <meta property="og:description" content="1,465 Google Fonts on one interactive map. Fonts that look alike sit together: click any font to find its closest visual neighbours." />
+    <meta property="og:image" content="https://tfrere-font-map.static.hf.space/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The FontMap: thousands of letter A glyphs, one per Google Font, clustered by visual style" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FontMap - Google Fonts mapped by visual similarity" />
+    <meta name="twitter:description" content="1,465 Google Fonts on one interactive map. Fonts that look alike sit together: click any font to find its closest visual neighbours." />
+    <meta name="twitter:image" content="https://tfrere-font-map.static.hf.space/og-image.png" />
+    <meta name="twitter:image:alt" content="The FontMap: thousands of letter A glyphs, one per Google Font, clustered by visual style" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "FontMap",
+        "url": "https://tfrere-font-map.static.hf.space/index.html",
+        "description": "An interactive map of 1,465 Google Fonts organized by visual similarity, built from FontCLIP embeddings, Google Fonts style tags and measured proportions.",
+        "image": "https://tfrere-font-map.static.hf.space/og-image.png",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "license": "https://opensource.org/licenses/MIT",
+        "author": { "@type": "Person", "name": "Thibaud Frere", "url": "https://huggingface.co/tfrere" },
+        "sameAs": [
+          "https://huggingface.co/spaces/tfrere/font-map",
+          "https://github.com/tfrere/fontmap"
+        ]
+      }
+    </script>
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Non render-blocking so the themed loader paints immediately; the app waits for it (id="ui-fonts") before revealing. -->
     <link id="ui-fonts" href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" onerror="this.media='all'">
-    <title>FontMap</title>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+      <main style="max-width: 640px; margin: 64px auto; padding: 0 24px; font-family: Georgia, serif; line-height: 1.5; color: #111;">
+        <h1>FontMap</h1>
+        <p>An interactive map of 1,465 Google Fonts organized by visual similarity. Fonts that look alike sit together, so you can browse by style, find typefaces similar to one you like and preview your own text.</p>
+        <p>The map is built from <a href="https://github.com/yukistavailable/FontCLIP">FontCLIP</a> image embeddings, Google Fonts style tags and measured proportions, laid out with t-SNE.</p>
+        <p>FontMap needs JavaScript to run. The source code is on <a href="https://github.com/tfrere/fontmap">GitHub</a>.</p>
+      </main>
+    </noscript>
     <!-- Same look as the app loader (.app-loader), shown while the bundle loads; React replaces it on first render. -->
     <div id="root"><div class="app-loader" id="boot-loader" role="status" aria-label="Loading FontMap"><div class="app-loader-spinner"></div></div></div>
   </body>

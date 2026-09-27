@@ -417,7 +417,7 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
                 Everything starts with a picture: each family is rendered as the type designers' test word
                 <strong> "Hamburgefonstiv"</strong>, split over two lines in a 224 x 224 px image. It packs round, straight
                 and diagonal strokes, ascenders and a descender, and it is the only thing the model ever sees of a font.
-                The "A" on the map is just for display.
+                The letter shown on the map is just for display.
               </p>
               <p>
                 Many Google Fonts families share the exact same Latin letters and only differ in the other scripts they
@@ -426,8 +426,8 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
                 in the font details. Playwrite "Guides" variants are folded into their base family too.
               </p>
               <p>
-                Icon, barcode and placeholder fonts, and the Yarndings knitting dingbats, are left out: they have no
-                letters to compare.
+                Icon, barcode and placeholder fonts, the Yarndings knitting dingbats and a few fonts with no Latin glyphs
+                at all are left out: they have no letters to compare.
                 {data.aliasTotal > 0 && <> In total, {data.aliasTotal.toLocaleString('en-US')} families live on the map as aliases.</>}
               </p>
             </div>
@@ -448,7 +448,7 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
                 ))}
               </div>
               <figcaption>
-                Eight of the {count} specimens, exactly as FontCLIP receives them.
+                Eight specimens, exactly as FontCLIP receives them.
               </figcaption>
             </figure>
             {mainGroup && (
@@ -487,7 +487,7 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
                     </div>
                   </div>
                 </div>
-                <figcaption>The biggest merged groups in the data. Noto's script variants all draw the same Latin "A".</figcaption>
+                <figcaption>The biggest merged groups in the data. Noto's script variants all draw the same Latin letters.</figcaption>
               </figure>
             )}
           </section>
@@ -511,7 +511,7 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
             <figure className="hiw-figure hiw-wide">
               <HowItWorksPatches font={diagramFocus} glyph={glyphFor(diagramFocus)} specimen={specimenFor(diagramFocus)} />
               <figcaption>
-                {diagramFocus.name}'s "A" as FontCLIP sees it. The patches are real crops of the glyph; the model
+                {diagramFocus.name}'s specimen as FontCLIP sees it. The patches are real crops of the image; the model
                 turns them into one fingerprint.
               </figcaption>
             </figure>
@@ -570,12 +570,14 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
             <div className="hiw-text">
               <p>
                 Finally, <strong>measured proportions</strong> read from the font files with fontTools help condensed and
-                extended fonts find each other, something a single glyph image captures poorly:
+                extended fonts find each other, something the fit-to-width specimen hides:
               </p>
               <ul className="hiw-chips hiw-metrics">
-                <li>glyph width</li>
+                <li>lowercase width</li>
+                <li>uppercase width</li>
                 <li>x-height</li>
                 <li>cap height</li>
+                <li>x-height / cap height</li>
                 <li>monospace</li>
                 <li>italic angle</li>
               </ul>
@@ -685,7 +687,8 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
               <p>
                 Google files {data.displayTotal.toLocaleString('en-US')} of these families as "Display", a label about usage
                 rather than form. FontMap re-files them by their actual shape, and the font details show "Google Fonts:
-                Display" when it differs. Display fonts tagged "Wacky" go to Decorative, and about 30 were corrected by hand
+                Display" when it differs. Display fonts whose main tag is a theme (Distressed, Pixel, Techno, Stencil...) or
+                that Google rates strongly "Wacky" go to Decorative, and about 30 were corrected by hand
                 after a visual review, along with a handful that Google files by their non-Latin script.
               </p>
             </div>
@@ -736,7 +739,11 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
                 </div>
                 <div>
                   <dt>Font details</dt>
-                  <dd>Click a glyph to see its tags, aliases and similar fonts.</dd>
+                  <dd>Click a glyph to see its weights, styles, tags, aliases and similar fonts.</dd>
+                </div>
+                <div>
+                  <dt>Your own text</dt>
+                  <dd>Type a sentence in the preview to see it in the open font and its neighbours, even while you hop between fonts.</dd>
                 </div>
                 <div>
                   <dt>Switch the glyph</dt>
@@ -780,8 +787,10 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
               <h2 id="hiw-about-title" className="hiw-h2">About this project</h2>
               <p>
                 This project is <strong>completely open source</strong>: you can explore the code, modify the parameters, or
-                run it on your own font collection. The <strong>complete dataset</strong> is open too, including all font
-                metadata, FontCLIP embeddings and positioning data from{' '}
+                run it on your own font collection. The <strong>map data</strong> is open too: every font's metadata, style tags,
+                position and neighbours live in{' '}
+                <a href="https://github.com/tfrere/fontmap/blob/main/public/data/typography_data.json" target="_blank" rel="noopener noreferrer">one JSON file</a>,
+                and the pipeline regenerates the renders and FontCLIP embeddings from{' '}
                 <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer">Google Fonts</a>.
               </p>
               <div className="hiw-actions">

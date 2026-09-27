@@ -146,7 +146,7 @@ const HowItWorksPatches = ({ font, glyph, specimen }) => {
       className={`hiw-patches${spread ? ' is-spread' : ''}`}
       viewBox={layout.viewBox}
       role="img"
-      aria-label={`${font.name}'s "A" rendered at 224 by 224 pixels, cut into a 7 by 7 grid of 32-pixel patches, and fed to the FontCLIP vision model, which outputs a numeric fingerprint.`}
+      aria-label={`${font.name}'s specimen rendered at 224 by 224 pixels, cut into a 7 by 7 grid of 32-pixel patches, and fed to the FontCLIP vision model, which outputs a numeric fingerprint.`}
     >
       {/* 224 x 224 render with the patch grid */}
       <g transform={`translate(${image.x + imageInset} ${image.y + imageInset}) scale(${imageScale})`}>

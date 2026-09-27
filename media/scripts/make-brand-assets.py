@@ -3,7 +3,7 @@
 Brand assets for FontMap, drawn from the real font files the pipeline downloads:
 - media/brand/fontmap-cycle.gif: 240 x 240 "A" cycling through fonts (Product Hunt thumbnail)
 - media/brand/logo-light.png / logo-dark.png: 1024 x 1024 still of the mark
-- public/favicon.ico (16/32/48), public/logo192.png, public/logo512.png
+- public/fontmap-icon.ico (16/32/48), public/logo192.png, public/logo512.png
 
 Usage (from the repo root):
   pipeline/.venv/bin/python media/scripts/make-brand-assets.py
@@ -91,7 +91,7 @@ def main():
 
     # Favicon: no dot (unreadable at 16 px), bigger glyph, dark tile for contrast on any tab bar
     icon = lambda s: draw_glyph(s, ICON_FONT, INK, PAPER, glyph_ratio=0.76, corner=0.2)
-    icon(48).save(ROOT / "public/favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)],
+    icon(48).save(ROOT / "public/fontmap-icon.ico", sizes=[(16, 16), (32, 32), (48, 48)],
                   append_images=[icon(16), icon(32)])
     draw_glyph(192, MARK_FONT, INK, PAPER, CATEGORY["serif"], corner=0.2).save(ROOT / "public/logo192.png")
     draw_glyph(512, MARK_FONT, INK, PAPER, CATEGORY["serif"], corner=0.2).save(ROOT / "public/logo512.png")

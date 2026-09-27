@@ -67,7 +67,7 @@ jobs:
           # The Hub rejects plain-git binaries above a small size (e.g. og-image.png),
           # so images go through LFS (bridged to Xet storage by the Hub).
           git lfs install --local
-          git lfs track "*.png" "*.jpg" "*.jpeg" "*.gif" "*.webp" "*.ico"
+          git lfs track "*.png" "*.jpg" "*.jpeg" "*.gif" "*.webp"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A

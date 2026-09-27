@@ -24,7 +24,9 @@
       @keyframes boot-spin { to { transform: rotate(360deg); } }
     </style>
     <noscript><style>#boot-loader { display: none; }</style></noscript>
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <!-- Not favicon.ico: Hugging Face Spaces serve their own logo at that path. -->
+    <link rel="icon" href="%PUBLIC_URL%/fontmap-icon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" href="%PUBLIC_URL%/logo192.png" sizes="192x192" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <script>

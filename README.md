@@ -1,12 +1,22 @@
 ---
 title: FontMap
-short_description: Visual font explorer powered by FontCLIP
+short_description: Google Fonts mapped by visual similarity
 emoji: 🗺️
 colorFrom: indigo
 colorTo: blue
 sdk: static
 pinned: false
 app_file: "build/index.html"
+thumbnail: https://tfrere-font-map.static.hf.space/og-image.png
+license: mit
+tags:
+  - typography
+  - fonts
+  - google-fonts
+  - data-visualization
+  - clip
+  - embeddings
+  - t-sne
 ---
 
 # FontMap
@@ -15,19 +25,25 @@ An interactive map of 1,465 Google Fonts organized by visual similarity, using [
 
 Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-world-of-fonts-with-ai-7d9e49ff2b25) (2017, Kevin Ho), a different take on the same idea, fully open source.
 
-**[Live demo](https://huggingface.co/spaces/tfrere/font-map)**
+**[Open FontMap](https://tfrere-font-map.static.hf.space/)** (full page) or see it on its [Hugging Face Space](https://huggingface.co/spaces/tfrere/font-map)
 
-[![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo.gif)](https://huggingface.co/spaces/tfrere/font-map)
+[![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo-v2.gif)](https://tfrere-font-map.static.hf.space/)
+
+[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4)
 
 ## Features
 
 - **Visual similarity map** - fonts that look alike are physically close together
 - **1,465 Google Fonts** - full catalog; fonts that ship the same Latin glyphs (e.g. Noto script variants, Battambang = Roboto Slab) and Playwrite "Guides" variants are folded into one point and stay searchable by name
-- **Click any font** - see details + 4 nearest visual neighbors
+- **Click any font** - see its weights and styles, a live specimen and its 4 nearest visual neighbours, with a link to Google Fonts
+- **Your own text** - type any sample text and it follows you as you move from font to font
+- **Any glyph** - type a letter, digit or `&` on desktop to redraw the whole map with that character (`?glyph=` keeps it in the URL)
+- **Keyboard navigation** - arrow keys step to the nearest neighbour in that direction
+- **Search** - find any font by name or by Google Fonts style tag (Humanist, Didone, Pixel, Stencil...)
 - **Filter by category** - sans-serif, serif, handwriting, monospace, decorative, blackletter (Google's Display fonts are filed by their structure, see step 6)
-- **Category colors** - toggle color coding to see how clusters map to official categories
-- **Search** - find any font by name or Google Fonts style tag
+- **Category colors** - toggle color coding to see how clusters map to categories
 - **Zoom & pan** - explore the full map with smooth D3.js navigation
+- **Dark mode**
 - **How it works** - an illustrated walkthrough of the pipeline (`#/how-it-works`)
 
 ## How it works
@@ -69,6 +85,13 @@ npm run build
 
 Every push to `main` triggers a GitHub Actions workflow (`.github/workflows/deploy.yml`) that runs `CI=false npm run build` and pushes `build/` + this README to the Space ([HF Spaces static SDK](https://huggingface.co/docs/hub/spaces-sdks-static), `app_file: build/index.html`).
 
+The static Space serves `build/` at `https://tfrere-font-map.static.hf.space/`, which is the canonical URL used by the meta tags, `sitemap.xml` and `robots.txt` in `public/`. The Space page on huggingface.co builds its own link preview from this README's frontmatter (`short_description`, `thumbnail`). Both use `public/og-image.png`, regenerated with:
+
+```bash
+node media/scripts/capture-og-image.mjs          # needs build/ served on :4173
+pipeline/.venv/bin/python media/scripts/make-og-image.py
+```
+
 ## Regenerating the map
 
 The data pipeline lives in [`pipeline/`](pipeline/). See its [README](pipeline/README.md) for the full chain from scratch (font download -> renders -> metrics -> FontCLIP embeddings -> map -> sprites) and setup. The font download and rendering steps are Node scripts in [`pipeline/render/`](pipeline/render/) (`npm run pipeline:download`, `npm run pipeline:render`, `npm run pipeline:sentences`).
@@ -108,6 +131,7 @@ fontmap/
 │   ├── store/                    # Zustand state management
 │   └── utils/                    # Glyph sprite loading
 ├── scripts/                      # Overlap removal + glyph sprite builder (Node)
+├── media/                        # Demo videos/GIFs, brand assets and the scripts that make them
 ├── pipeline/                     # Python data pipeline: FontCLIP, style tags, t-SNE
 │   ├── render/                   # Font download + SVG/PNG rendering (Node)
 │   └── experiments/              # Evaluation and model-comparison scripts

@@ -1,0 +1,19 @@
+{
+  "name": "fontmap-trailer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Typographic trailer for FontMap, rendered on a canvas in plain JavaScript",
+  "author": "Thibaud Frere",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "serve": "python3 scripts/serve.py 8765",
+    "data": "node scripts/build-data.mjs",
+    "contact": "node scripts/render.mjs contact",
+    "render": "node scripts/render.mjs video 12"
+  },
+  "dependencies": {
+    "opentype.js": "^1.3.4",
+    "puppeteer-core": "^23.11.1"
+  }
+}

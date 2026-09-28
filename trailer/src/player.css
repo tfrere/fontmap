@@ -1,0 +1,50 @@
+:root {
+  --ink: #111111;
+  --paper: #fcfbf8;
+  --bar: #0b0b0b;
+  --mute: #3a3a3a;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #0b0b0b; overflow: hidden; font-family: 'Space Mono', monospace; }
+
+#viewport { position: absolute; inset: 0 0 64px 0; overflow: hidden; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--ink); overflow: hidden; }
+#c { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+#loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #777; font-size: 26px; letter-spacing: 0.08em; background: var(--ink); }
+
+/* Chapter / timecode overlay, inverted over whatever is underneath. */
+#hud { position: absolute; inset: 0; display: none; color: #fff; mix-blend-mode: difference; pointer-events: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.45; }
+#hud.on { display: block; }
+#hud > div { position: absolute; }
+.h-tl { top: 14px; left: 20px; }
+.h-tl .num { opacity: 0.6; margin-right: 18px; }
+.h-tr { top: 14px; right: 20px; font-variant-numeric: tabular-nums; }
+.h-bl { bottom: 18px; left: 20px; opacity: 0.7; }
+.h-br { bottom: 18px; right: 20px; opacity: 0.7; }
+#hud .prog { left: 20px; right: 20px; bottom: 8px; height: 2px; background: rgba(255, 255, 255, 0.35); }
+#hud .prog i { display: block; height: 100%; background: #fff; transform-origin: left; transform: scaleX(0); }
+
+/* Player controls */
+#controls { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; display: flex; align-items: center; gap: 16px; padding: 0 18px; background: var(--bar); color: #ddd; font-size: 13px; border-top: 1px solid #222; user-select: none; }
+#controls button { height: 34px; min-width: 40px; padding: 0 12px; background: #1c1c1c; color: #ddd; border: 1px solid #333; border-radius: 6px; font: inherit; cursor: pointer; }
+#controls #play { background: var(--paper); color: var(--ink); border: 0; font-size: 14px; }
+#controls button[aria-pressed="true"] { color: var(--paper); border-color: var(--paper); }
+#controls button:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+#timeline { position: relative; flex: 1; height: 32px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
+#timeline .segs { display: flex; gap: 3px; width: 100%; height: 5px; transition: height 0.12s; }
+#timeline:hover .segs { height: 9px; }
+#timeline .seg { position: relative; flex-basis: 0; height: 100%; background: var(--mute); border-radius: 2px; overflow: hidden; }
+#timeline .seg.hover { background: #5c5c5c; }
+#timeline .seg i { position: absolute; inset: 0; background: var(--paper); transform-origin: left; transform: scaleX(0); }
+#timeline .head { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--paper); pointer-events: none; }
+#timeline .tip { position: absolute; bottom: 36px; transform: translateX(-50%); background: #1c1c1c; color: #eee; padding: 6px 10px; border-radius: 6px; white-space: nowrap; font-size: 12px; letter-spacing: 0.06em; display: none; pointer-events: none; }
+#timeline:hover .tip { display: block; }
+#time { font-variant-numeric: tabular-nums; min-width: 96px; }
+#chapter { min-width: 210px; color: var(--paper); letter-spacing: 0.08em; white-space: nowrap; }
+#download { color: #ddd; text-decoration: none; white-space: nowrap; }
+#download:hover, #download:focus-visible { color: var(--paper); outline: none; }
+
+body.render { background: #000; }
+body.render #controls, body.render #loading, body.render #hud { display: none; }
+body.render #viewport { inset: 0; }

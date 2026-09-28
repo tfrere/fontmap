@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FontMap — trailer</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="src/player.css">
+</head>
+<body>
+  <div id="viewport">
+    <div id="stage">
+      <canvas id="c" width="1920" height="1080"></canvas>
+      <div id="hud">
+        <div class="h-tl"><span class="num"></span><span class="name"></span></div>
+        <div class="h-tr tc"></div>
+        <div class="h-bl">FontMap — official trailer</div>
+        <div class="h-br">1,465 Google Fonts, mapped by how they look</div>
+        <div class="prog"><i></i></div>
+      </div>
+      <div id="loading">loading 1,465 typefaces…</div>
+    </div>
+  </div>
+  <div id="controls">
+    <button id="play" aria-label="Play or pause">▶</button>
+    <div id="timeline" aria-label="Timeline"><div class="segs"></div><div class="head"></div><div class="tip"></div></div>
+    <span id="time">0:00 / 0:17</span>
+    <span id="chapter"></span>
+    <button id="overlay" aria-pressed="false" aria-label="Show chapter titles and timecode overlay">Overlay</button>
+    <button id="mute" aria-pressed="false" aria-label="Mute">Sound on</button>
+    <a id="download" href="media/fontmap-trailer.mp4" download="fontmap-trailer.mp4">Download MP4</a>
+  </div>
+  <script src="assets/data.js"></script>
+  <script src="assets/logo.js"></script>
+  <script src="src/timeline.js"></script>
+  <script src="src/scene.js"></script>
+  <script src="assets/sounds.js"></script>
+  <script src="src/score.js"></script>
+  <script src="src/player.js"></script>
+</body>
+</html>

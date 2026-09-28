@@ -10,11 +10,11 @@ Live: https://tfrere-font-map.static.hf.space/trailer/index.html
 | 2 | 4–8 | Layers | Inversion to paper. Each new face is set in ink while the previous ones linger as hairlines, accelerating; the layers clear and Playfair lands |
 | 3 | 8–12 | 1,465 faces | Pull back from the Playfair A to all 1,465 glyphs in disorder, a running count in the corner |
 | 4–5 | 12–20 | Every face, in its place | Every glyph flies to its real FontMap position; the camera pushes in |
-| 6–7 | 20–26 | Search by style | "Serif", "Script", "Pixel" typed in a face of that style; the camera flies to each region, which lights up |
-| 7 | 26–28 | Any glyph | One keystroke, "&", and the whole map redraws as ampersands in a single wave; bell and carriage return |
+| 6 | 20–21 | Into the app | Every glyph slides to where the real app draws it; the app appears around the map, framed as a window |
+| 6–7 | 21–28 | Search · Select · Any glyph · Dark mode | Quick cuts through the live app with a cursor and a key: *Search by style.*, *Click any font.*, *Type any glyph.*, *Go dark.* The dark app grows to fill the frame |
 | 8 | 28–32 | Ink | Inversion to ink. The wordmark is drawn in outline on its metrics, then inked — *An ode to type.* |
 
-The map positions, neighbours, style tags and glyph outlines come from the FontMap repo (`public/data`).
+The map positions, neighbours, style tags and glyph outlines come from the FontMap repo (`public/data`). The app screens and the on-screen position of every glyph in the app are captured from the live site by `scripts/capture-app.mjs` into `assets/app.js`.
 
 ## Sound
 
@@ -36,6 +36,7 @@ npm install
 node scripts/fetch-fonts.mjs                 # Google Fonts woff2 -> assets/fonts
 node scripts/build-data.mjs                  # ../public/data -> assets/data.js
 node scripts/build-logo.mjs                  # assets/ttf -> assets/logo.js (end-card wordmark outlines)
+node scripts/capture-app.mjs                 # live app -> assets/app.js (screens + glyph positions)
 node scripts/build-sounds.mjs                # assets/sounds/src -> assets/sounds.js (needs the source recordings, not committed)
 ```
 

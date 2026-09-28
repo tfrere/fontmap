@@ -249,7 +249,7 @@
     whoosh(b(T.CLEAR), 0.25, 0.18);
     thump(b(T.LAND), 0.9);
     key(b(T.LAND), 0.6, 0.8);
-    drone(b(T.INVERT_BEAT), b(S.glyph[1] - 0.5), [36.71, 73.42, 110], 0.055, 200, 2600);
+    drone(b(T.INVERT_BEAT), b(S.app[1] - 0.5), [36.71, 73.42, 110], 0.055, 200, 2600);
 
     // Bar 3: zoom out, the counter rolls, "faces." lands.
     impact(b(S.chaos[0]), 0.6);
@@ -260,9 +260,9 @@
 
     // The typing is the rhythm section: keys on the eighths, ghost notes in between,
     // the space bar on the backbeat. It stops dead half a beat before the logo.
-    for (let beat = S.chaos[0] + 1; beat < S.glyph[0] + 0.5; beat += 0.25) {
+    for (let beat = S.chaos[0] + 1; beat < T.APP.out; beat += 0.25) {
       const pos = Math.round((beat % 1) * 4);
-      const inWalk = beat >= S.search[0] && beat < S.search[1];
+      const inWalk = beat >= S.app[0] && beat < S.app[1];
       const level = inWalk ? 0.55 : 1;
       const t0 = b(beat);
       if (pos === 0) {
@@ -284,23 +284,23 @@
     thump(b(S.order[0] + 3.75), 0.6);
     key(b(S.order[0] + 3.75), 0.35, 0.95);
 
-    // Bars 6-7: search by style, one name typed every two beats, its region lights up.
-    T.SEARCHES.forEach((q, i) => {
-      typeText(b(q.beat), q.query, 0.4, b(0.35) / q.query.length);
-      pluck(b(q.beat + 0.4), [587.33, 523.25, 440, 392][i], 0.12, -0.2);
+    // Bars 6-7: into the app. A soft reveal, then one click or key per feature.
+    const A = T.APP;
+    whoosh(b(A.enter), 0.8, 0.28);
+    impact(b(A.ui), 0.35);
+    [293.66, 440, 587.33].forEach((f, i) => pluck(b(A.ui) + i * 0.03, f, 0.09, (i - 1) * 0.3));
+    const click = (tt) => { key(tt, 0.35, 2, 0.1, 0.05); key(tt + 0.07, 0.18, 1.7, 0.1, 0.05); };
+    A.features.forEach((f, i) => {
+      if (f.click) click(b(f.at));
+      if (f.key) { key(b(f.at), 1, 0.75); thump(b(f.at), 0.8); }
+      if (f.type) typeText(b(f.at) + 0.08, f.type, 0.3, 0.045);
+      pluck(b(f.at), [587.33, 523.25, 440, 392][i], 0.12, -0.2);
     });
-    // One keystroke, then the map redraws in a wave: a rain of keys sweeping left to right.
-    whoosh(b(S.glyph[0]), 0.5, 0.25);
-    const g = T.GLYPH;
-    key(b(g.key), 1, 0.75);
-    thump(b(g.key), 0.9);
-    pluck(b(g.key), 587.33, 0.14);
-    for (let k = 0; k < 90; k++) {
-      const u = k / 89;
-      key(b(g.sweep[0] + (g.sweep[1] - g.sweep[0]) * u) + r() * 0.01, 0.05 + r() * 0.05, 1.3 + r(), -0.9 + 1.8 * u, 0.2);
-    }
-    riser(b(S.search[1] - 2), b(S.glyph[1] - 0.5), 0.2);
-    bell(b(S.glyph[1] - 0.5) - 0.1, 0.8);
+    const dark = A.features.find((f) => f.shot === '05-dark');
+    impact(b(dark.at), 0.55);
+    whoosh(b(A.out), 0.9, 0.3);
+    riser(b(A.out - 1.5), b(S.app[1] - 0.5), 0.2);
+    bell(b(S.app[1] - 0.5) - 0.1, 0.8);
 
     // Bar 8: the wordmark in outline on the carriage-return clunk, then inked, resolved on D major.
     const l0 = b(S.logo[0]);

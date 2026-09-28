@@ -32,16 +32,19 @@
   const CLEAR = 7.5;
   const LAND = 7.75;
 
-  // Search by style: each name is typed in a face of that style; the camera
-  // flies to its region, which lights up. The regions run right to left.
-  const SEARCHES = [
-    { beat: 20, query: 'Serif', tag: 'Serif/', family: 'Playfair Display', zoom: 1.6 },
-    { beat: 22, query: 'Script', tag: 'Script/', family: 'Great Vibes', zoom: 1.7 },
-    { beat: 24, query: 'Pixel', tag: 'Theme/Pixel', family: 'Press Start 2P', zoom: 3 },
-  ];
-
-  // One keystroke redraws the whole map with another glyph, in a single wave.
-  const GLYPH = { char: '&', key: 26.5, sweep: [26.6, 27.4] };
+  // Into the real app: the sorted map lands on the app's own map, framed as a
+  // window, then a few features in quick cuts. Screens come from scripts/capture-app.mjs.
+  const APP = {
+    enter: 20,
+    ui: 20.6,
+    features: [
+      { beat: 21, caption: 'Search by style.', click: 'search', at: 21.35, shot: '02-search', type: 'script' },
+      { beat: 22.5, caption: 'Click any font.', click: 'pick', at: 22.95, shot: '03-font', from: '01-map' },
+      { beat: 24, caption: 'Type any glyph.', key: '&', at: 24.45, shot: '04-glyph' },
+      { beat: 25.5, caption: 'Go dark.', click: 'dark', at: 25.95, shot: '05-dark' },
+    ],
+    out: 27,
+  };
 
   // End card: the wordmark is drawn in outline, then inked.
   const INK_BEAT = 29.5;
@@ -52,8 +55,11 @@
     { beat: 4, name: 'Layers' },
     { beat: 8, name: '1,465 faces' },
     { beat: 12, name: 'Every face, in its place' },
-    { beat: 20, name: 'Search by style' },
-    { beat: 26, name: 'Any glyph' },
+    { beat: 20, name: 'Into the app' },
+    { beat: 21, name: 'Search' },
+    { beat: 22.5, name: 'Select' },
+    { beat: 24, name: 'Any glyph' },
+    { beat: 25.5, name: 'Dark mode' },
     { beat: 28, name: 'Ink' },
   ];
 
@@ -61,10 +67,9 @@
     intro: [0, 8],
     chaos: [8, 12],
     order: [12, 20],
-    search: [20, 26],
-    glyph: [26, 28],
+    app: [20, 28],
     logo: [28, 32],
   };
 
-  window.TIMELINE = { BPM, BEAT, BARS, DURATION, MACRO, INVERT_BEAT, LAYERS, CLEAR, LAND, SEARCHES, GLYPH, INK_BEAT, CHAPTERS, SCENES };
+  window.TIMELINE = { BPM, BEAT, BARS, DURATION, MACRO, INVERT_BEAT, LAYERS, CLEAR, LAND, APP, INK_BEAT, CHAPTERS, SCENES };
 })();

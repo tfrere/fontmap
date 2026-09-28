@@ -38,7 +38,7 @@
   const beatOf = (t) => t / T.BEAT;
   const secOf = (b) => b * T.BEAT;
 
-  let fonts, N, paths, glyphs, index, center, landings, logo, shots;
+  let fonts, N, paths, glyphs, index, center, landings, logo, shots, appShots;
   let bd = 0;
 
   function init() {
@@ -101,20 +101,16 @@
     });
     landings.sort((a, b) => a - b);
 
+    const A = window.APP;
+    glyphs.forEach((g, i) => { const p = A.glyphs[fonts[i].id]; if (p) { g.ax = p[0]; g.ay = p[1]; g.abox = p[2]; } else { g.ax = g.mx; g.ay = g.my; g.abox = MAP_BOX; } });
+
     const L = window.LOGO;
     const logoPath = new Path2D(L.d);
     logo = { ...L, path: logoPath, outline: parseOutline(L.d, logoPath, 6) };
 
-    // Camera keyframes after the chaos: a slow push on the map, a flight to each
-    // searched region, then back out to the whole map for the glyph wave.
-    const centroid = (tag) => {
-      const hits = glyphs.filter((g, i) => fonts[i].style.startsWith(tag));
-      return [hits.reduce((a, g) => a + g.mx, 0) / hits.length, hits.reduce((a, g) => a + g.my, 0) / hits.length];
-    };
+    // After the chaos, a slow push on the finished map.
     shots = [
       { beat: T.SCENES.order[0] + 3, dur: 5, x: W / 2, y: H / 2, z: 1.2 },
-      ...T.SEARCHES.map((q) => { const [x, y] = centroid(q.tag); return { beat: q.beat, dur: 0.7, x, y, z: q.zoom }; }),
-      { beat: T.SCENES.glyph[0], dur: T.GLYPH.sweep[0] - T.SCENES.glyph[0], x: W / 2, y: H / 2, z: 1.05 },
     ];
   }
 
@@ -387,7 +383,7 @@
     else layers(ctx, b, t);
   }
 
-  // ---------- the field: chaos, order, search and the glyph wave share one camera ----------
+  // ---------- the field: chaos and order share one camera, then the map lands in the app ----------
 
   function camera(b) {
     const [c0] = T.SCENES.chaos;
@@ -402,30 +398,24 @@
     return cam;
   }
 
-  function currentSearch() {
-    let q = null;
-    for (const s of T.SEARCHES) if (bd >= s.beat) q = s;
-    return q;
-  }
+  // The app window on the paper: 82% of the frame, anchored low to leave room for the caption.
+  const WIN = { s: 0.82 };
+  WIN.w = W * WIN.s; WIN.h = H * WIN.s; WIN.x = (W - WIN.w) / 2; WIN.y = H - WIN.h - 40;
 
   function field(ctx, b, t) {
+    const A = T.APP;
+    if (b >= A.ui + 0.4) return app(ctx, b, t);
     ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, W, H);
     const [c0] = T.SCENES.chaos;
     const [o0] = T.SCENES.order;
-    const [q0, q1] = T.SCENES.search;
-    const [g0] = T.SCENES.glyph;
     const { x: cx, y: cy, z: zoom } = camera(b);
-    const [w0, w1] = T.GLYPH.sweep;
+    const entering = b >= A.enter;
+    const ui = clamp((b - A.ui) / 0.4);
 
-    // Glyphs fade back behind a caption so the line reads cleanly.
-    const countOn = 0;
-    const placeOn = clamp((b - (o0 + PLACE_AT)) / 0.5) * (1 - clamp((b - (q0 - 0.5)) / 0.5));
-    const veil = Math.max(countOn, placeOn) * 0.88;
-    const corner = clamp((b - q0) / 0.3);
-
-    const query = bd >= q0 && bd < g0 ? currentSearch() : null;
-    const lit = query ? clamp((b - (query.beat + 0.4)) / 0.15) : 0;
+    const placeOn = clamp((b - (o0 + PLACE_AT)) / 0.5) * (1 - clamp((b - (A.enter - 0.5)) / 0.5));
+    const veil = placeOn * 0.88;
+    if (entering) windowFrame(ctx, WIN, cubicInOut(b - A.enter));
 
     ctx.fillStyle = INK;
     for (let i = 0; i < N; i++) {
@@ -443,40 +433,165 @@
         rot = lerp(srot, 0, p);
         box = lerp(SCATTER_BOX * g.scl, MAP_BOX, p);
       }
-
-      let alpha = 1;
-      if (query) {
-        if (fonts[i].style.startsWith(query.tag)) box *= 1 + 0.35 * lit;
-        else alpha = 1 - 0.88 * lit;
+      let X = (x - cx) * zoom + W / 2;
+      let Y = (y - cy) * zoom + H / 2;
+      let bs = box * zoom;
+      // Each glyph slides to where the app itself draws it, inside the window.
+      if (entering) {
+        const e = cubicInOut((b - A.enter - g.jitter * 0.2) / 0.8);
+        X = lerp(X, WIN.x + g.ax * WIN.s, e);
+        Y = lerp(Y, WIN.y + g.ay * WIN.s, e);
+        bs = lerp(bs, g.abox * WIN.s, e);
       }
-
-      // The glyph wave sweeps left to right across the map.
-      let char = 'A';
-      const switchAt = lerp(w0, w1, g.mx / W);
-      if (bd >= switchAt) {
-        char = T.GLYPH.char;
-        box *= 1 + 0.35 * Math.exp(-Math.max(0, t - secOf(switchAt)) * 14);
-      }
-
-      const X = (x - cx) * zoom + W / 2;
-      const Y = (y - cy) * zoom + H / 2;
-      const bs = box * zoom;
       if (X < -bs || X > W + bs || Y < -bs || Y > H + bs) continue;
+      let alpha = 1;
       if (veil) alpha *= 1 - veil * Math.exp(-(((X - W / 2) / 640) ** 2) - (((Y - H / 2) / 190) ** 2));
-      if (corner) alpha *= 1 - 0.9 * Math.min(1, corner) * Math.exp(-(((X - 330) / 560) ** 2) - (((Y - (H - 110)) / 150) ** 2));
       ctx.globalAlpha = alpha;
-      glyph(ctx, paths[char][i], X, Y, bs, rot);
+      glyph(ctx, paths.A[i], X, Y, bs, rot);
     }
     ctx.globalAlpha = 1;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (ui > 0) screen(ctx, '01-map', WIN, ui);
 
     if (b >= c0 + 0.5 && b < o0 + 2) counter(ctx, b, t);
-    if (b >= o0 + PLACE_AT && b < q0) placeCaption(ctx, b, t);
-    if (query) searchWord(ctx, b, t, query);
-    if (bd >= g0) glyphKey(ctx, t);
+    if (b >= o0 + PLACE_AT && b < A.enter) placeCaption(ctx, b, t);
   }
 
-  // A small running count, in the same corner style as the opening.
+  function windowFrame(ctx, r, a) {
+    if (a <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.shadowColor = 'rgba(0,0,0,0.16)';
+    ctx.shadowBlur = 70;
+    ctx.shadowOffsetY = 24;
+    ctx.fillStyle = PAPER;
+    ctx.beginPath();
+    ctx.roundRect(r.x, r.y, r.w, r.h, 14);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = 'rgba(17,17,17,0.18)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function screen(ctx, name, r, alpha = 1, zoom = 1, fx = 0.5, fy = 0.5) {
+    const img = appShots[name];
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.roundRect(r.x, r.y, r.w, r.h, 14);
+    ctx.clip();
+    const w = r.w * zoom, h = r.h * zoom;
+    ctx.drawImage(img, r.x - (w - r.w) * fx, r.y - (h - r.h) * fy, w, h);
+    ctx.restore();
+  }
+
+  // Quick cuts through the app: a cursor clicks, a key is pressed, the screen answers.
+  function app(ctx, b, t) {
+    const A = T.APP;
+    const C = window.APP.clicks;
+    ctx.fillStyle = PAPER;
+    ctx.fillRect(0, 0, W, H);
+
+    let k = -1;
+    A.features.forEach((f, j) => { if (bd >= f.beat) k = j; });
+    const f = A.features[Math.max(0, k)];
+    const prev = k > 0 ? A.features[k - 1] : null;
+    const before = k < 0 ? '01-map' : f.from || (prev ? prev.shot : '01-map');
+    const name = k >= 0 && bd >= f.at ? f.shot : before;
+
+    // Out: the dark app grows to fill the frame and sinks into the ink of the end card.
+    const out = cubicInOut((b - A.out) / 0.8);
+    const r = {
+      x: lerp(WIN.x, 0, out), y: lerp(WIN.y, 0, out),
+      w: lerp(WIN.w, W, out), h: lerp(WIN.h, H, out),
+    };
+    windowFrame(ctx, r, 1 - out);
+    const push = k >= 0 ? 1 + 0.035 * clamp((b - f.beat) / 1.5) : 1;
+    const focus = f.click ? C[f.click] : [W * 0.6, H * 0.6];
+    screen(ctx, name, r, 1, push, focus[0] / W, focus[1] / H);
+    const toScreen = ([px, py]) => [r.x + (px / W) * r.w, r.y + (py / H) * r.h];
+
+    if (k >= 0 && b < A.out) {
+      // The cursor travels from where it last clicked to this feature's target.
+      const rest = [W * 0.72, H * 0.62];
+      const from = prev && prev.click ? toScreen(C[prev.click]) : (prev ? toScreen(C.pick) : toScreen(rest));
+      if (f.click) {
+        const to = toScreen(C[f.click]);
+        const u = cubicInOut((b - f.beat) / (f.at - f.beat));
+        cursor(ctx, lerp(from[0], to[0], u), lerp(from[1], to[1], u), t - secOf(f.at));
+      } else {
+        cursor(ctx, from[0], from[1], -1);
+        keycap(ctx, f.key, r.x + r.w * 0.63, r.y + r.h * 0.8, t - secOf(f.at));
+      }
+      caption(ctx, f.caption, t - secOf(f.beat));
+    }
+    if (out > 0.6) {
+      ctx.globalAlpha = (out - 0.6) / 0.4;
+      ctx.fillStyle = INK;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function caption(ctx, text, since) {
+    font(ctx, 64, 'Playfair Display', 400, 'italic');
+    const dy = reveal(ctx, since, 0.2);
+    ctx.fillStyle = INK;
+    ctx.fillText(text, WIN.x + 4, WIN.y - 36 + dy);
+    resetFx(ctx);
+  }
+
+  const ARROW = new Path2D('M0 0 L0 26 L7 20 L12 31 L17 29 L12 18.5 L21 18.5 Z');
+  function cursor(ctx, x, y, sinceClick) {
+    if (sinceClick >= 0 && sinceClick < 0.45) {
+      const u = sinceClick / 0.45;
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 1 - u;
+      ctx.beginPath();
+      ctx.arc(x, y, 8 + 34 * expoOut(u), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    const press = sinceClick >= 0 ? 1 - 0.15 * Math.exp(-sinceClick * 20) : 1;
+    ctx.setTransform(1.3 * press, 0, 0, 1.3 * press, x, y);
+    ctx.fillStyle = INK;
+    ctx.strokeStyle = PAPER;
+    ctx.lineWidth = 1.6;
+    ctx.lineJoin = 'round';
+    ctx.stroke(ARROW);
+    ctx.fill(ARROW);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  function keycap(ctx, key, x, y, since) {
+    const appear = expoOut((since + secOf(0.4)) / 0.2);
+    if (appear <= 0) return;
+    const press = since >= 0 ? 1 - 0.12 * Math.exp(-since * 18) : 1;
+    const s = 110 * press;
+    ctx.globalAlpha = appear;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.18)';
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = since >= 0 ? 4 : 10;
+    ctx.fillStyle = PAPER;
+    ctx.beginPath();
+    ctx.roundRect(x - s / 2, y - s / 2, s, s, 16);
+    ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(x - s / 2, y - s / 2, s, s, 16);
+    ctx.stroke();
+    font(ctx, 64 * press, 'Playfair Display', 400, 'italic');
+    ctx.fillStyle = INK;
+    textCentered(ctx, key, x, y);
+    ctx.globalAlpha = 1;
+  }
+
   function counter(ctx, b, t) {
     const since = t - secOf(T.SCENES.chaos[0] + 0.5);
     const out = 1 - clamp((b - (T.SCENES.order[0] + 1)) / 0.75);
@@ -491,7 +606,7 @@
 
   function placeCaption(ctx, b, t) {
     const start = T.SCENES.order[0] + PLACE_AT;
-    const out = clamp((b - (T.SCENES.search[0] - 0.5)) / 0.5);
+    const out = clamp((b - (T.APP.enter - 0.5)) / 0.5);
     const parts = [
       { text: 'Every face,', at: 0, style: 'normal' },
       { text: 'in its place.', at: 0.75, style: 'italic' },
@@ -515,37 +630,6 @@
       }
       x += p.at === 0 ? w0 : w1;
     }
-  }
-
-  // Same layout as the opening: a small label top left, the word large at bottom left.
-  function searchWord(ctx, b, t, query) {
-    label(ctx, 'Search by style', 96, 110, INK, 'left', 0.7, 17, 12);
-    const typedN = clamp(Math.floor(((bd - query.beat) / 0.35) * query.query.length) + 1, 0, query.query.length);
-    const caret = Math.floor(bd * 4) % 2 === 0 ? '|' : '';
-    const size = query.family === 'Press Start 2P' ? 64 : query.family === 'Space Mono' ? 92 : 120;
-    font(ctx, size, query.family);
-    ctx.fillStyle = INK;
-    withHalo(ctx, PAPER, 24, (draw) => draw(query.query.slice(0, typedN), 92, H - 92));
-    const w = ctx.measureText(query.query.slice(0, typedN)).width;
-    font(ctx, size, 'Source Sans 3', 400);
-    ctx.globalAlpha = 0.8;
-    ctx.fillText(caret, 92 + w + 6, H - 92);
-    ctx.globalAlpha = 1;
-  }
-
-  // One keystroke, set large like the search words; the map answers with a wave.
-  function glyphKey(ctx, t) {
-    label(ctx, 'Any glyph', 96, 110, INK, 'left', 0.7, 17, 12);
-    const since = t - secOf(T.GLYPH.key);
-    if (since < 0) return;
-    font(ctx, 150, 'Playfair Display', 400, 'italic');
-    ctx.fillStyle = INK;
-    const k = 1 + 0.08 * Math.exp(-since * 14);
-    ctx.save();
-    ctx.translate(92, H - 92);
-    ctx.scale(k, k);
-    withHalo(ctx, PAPER, 26, (draw) => draw(T.GLYPH.char, 0, 0));
-    ctx.restore();
   }
 
   // ---------- end card ----------
@@ -631,7 +715,7 @@
     ctx.filter = 'none';
     const S = T.SCENES;
     if (bd < S.intro[1]) intro(ctx, b, t);
-    else if (bd < S.glyph[1]) field(ctx, b, t);
+    else if (bd < S.app[1]) field(ctx, b, t);
     else logoCard(ctx, b, t);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
@@ -649,6 +733,13 @@
   async function ready() {
     const fontsLoaded = Promise.all(FAMILIES.map(([f, w, s]) => document.fonts.load(`${s} ${w} 40px "${f}"`, 'AaFontMap0123')));
     await Promise.race([fontsLoaded, new Promise((r) => setTimeout(r, 4000))]);
+    appShots = {};
+    await Promise.all(Object.entries(window.APP.shots).map(async ([name, src]) => {
+      const img = new Image();
+      img.src = src;
+      await img.decode();
+      appShots[name] = img;
+    }));
     init();
   }
 

@@ -16,6 +16,7 @@ const SPRITES = {
   T: 'sprites/font-sprite-upper-t.svg',
   M: 'sprites/font-sprite-upper-m.svg',
   P: 'sprites/font-sprite-upper-p.svg',
+  '&': 'sprites/font-sprite-u0026.svg',
 };
 
 const { fonts } = JSON.parse(await readFile(join(DATA, 'typography_data.json'), 'utf8'));

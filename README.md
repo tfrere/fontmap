@@ -29,7 +29,7 @@ Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-wor
 
 [![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo-v2.gif)](https://tfrere-font-map.static.hf.space/)
 
-[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (17 s)](https://tfrere-font-map.static.hf.space/trailer/) — source in [`trailer/`](trailer/)
+[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (15 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/)
 
 ## Features
 

@@ -46,7 +46,7 @@
     fonts = data.fonts;
     N = fonts.length;
     paths = {};
-    for (const [char, list] of Object.entries(data.glyphs)) paths[char] = list.map((d) => new Path2D(d));
+    for (const [char, list] of Object.entries(data.glyphs)) paths[char] = list.map((d, i) => new Path2D(d || data.glyphs.A[i]));
 
     index = new Map(fonts.map((f, i) => [f.id, i]));
     center = index.get('playfair-display');
@@ -106,17 +106,15 @@
     logo = { ...L, path: logoPath, outline: parseOutline(L.d, logoPath, 6) };
 
     // Camera keyframes after the chaos: a slow push on the map, a flight to each
-    // searched region, a dive into one glyph, then back out for the spell.
+    // searched region, then back out to the whole map for the glyph wave.
     const centroid = (tag) => {
       const hits = glyphs.filter((g, i) => fonts[i].style.startsWith(tag));
       return [hits.reduce((a, g) => a + g.mx, 0) / hits.length, hits.reduce((a, g) => a + g.my, 0) / hits.length];
     };
-    const dive = glyphs[index.get(T.DIVE.font)];
     shots = [
       { beat: T.SCENES.order[0] + 3, dur: 5, x: W / 2, y: H / 2, z: 1.2 },
       ...T.SEARCHES.map((q) => { const [x, y] = centroid(q.tag); return { beat: q.beat, dur: 0.7, x, y, z: q.zoom }; }),
-      { beat: T.DIVE.beat, dur: T.DIVE.hold - T.DIVE.beat, x: dive.mx, y: dive.my, z: GIANT_BOX / MAP_BOX * 0.8 },
-      { beat: T.DIVE.out, dur: T.SCENES.spell[0] - T.DIVE.out, x: W / 2, y: H / 2, z: 1.08 },
+      { beat: T.SCENES.glyph[0], dur: T.GLYPH.sweep[0] - T.SCENES.glyph[0], x: W / 2, y: H / 2, z: 1.05 },
     ];
   }
 
@@ -389,7 +387,7 @@
     else layers(ctx, b, t);
   }
 
-  // ---------- the field: chaos, order, search, spell share one camera ----------
+  // ---------- the field: chaos, order, search and the glyph wave share one camera ----------
 
   function camera(b) {
     const [c0] = T.SCENES.chaos;
@@ -416,19 +414,17 @@
     const [c0] = T.SCENES.chaos;
     const [o0] = T.SCENES.order;
     const [q0, q1] = T.SCENES.search;
-    const [s0] = T.SCENES.spell;
+    const [g0] = T.SCENES.glyph;
     const { x: cx, y: cy, z: zoom } = camera(b);
-    const diveIdx = index.get(T.DIVE.font);
-    const diving = bd >= T.DIVE.beat && bd < s0;
-    const closeUp = diving ? clamp((zoom * MAP_BOX - 260) / 300) : 0;
+    const [w0, w1] = T.GLYPH.sweep;
 
     // Glyphs fade back behind a caption so the line reads cleanly.
     const countOn = 0;
     const placeOn = clamp((b - (o0 + PLACE_AT)) / 0.5) * (1 - clamp((b - (q0 - 0.5)) / 0.5));
     const veil = Math.max(countOn, placeOn) * 0.88;
-    const corner = clamp((b - q0) / 0.3) + (bd >= s0 ? 1 : 0);
+    const corner = clamp((b - q0) / 0.3);
 
-    const query = bd >= q0 && bd < T.DIVE.beat ? currentSearch() : null;
+    const query = bd >= q0 && bd < g0 ? currentSearch() : null;
     const lit = query ? clamp((b - (query.beat + 0.4)) / 0.15) : 0;
 
     ctx.fillStyle = INK;
@@ -454,31 +450,19 @@
         else alpha = 1 - 0.88 * lit;
       }
 
+      // The glyph wave sweeps left to right across the map.
       let char = 'A';
-      const local = bd - s0 - g.sweep;
-      if (local >= 0) {
-        const step = Math.min(T.SPELL.length - 1, Math.floor(local / 0.5));
-        char = T.SPELL[step];
-        const since = t - secOf(s0 + g.sweep + step * 0.5);
-        box *= 1 + 0.3 * Math.exp(-Math.max(0, since) * 16);
+      const switchAt = lerp(w0, w1, g.mx / W);
+      if (bd >= switchAt) {
+        char = T.GLYPH.char;
+        box *= 1 + 0.35 * Math.exp(-Math.max(0, t - secOf(switchAt)) * 14);
       }
 
       const X = (x - cx) * zoom + W / 2;
       const Y = (y - cy) * zoom + H / 2;
       const bs = box * zoom;
       if (X < -bs || X > W + bs || Y < -bs || Y > H + bs) continue;
-      // Up close, the dived-into glyph turns back into its construction drawing.
-      if (diving && i === diveIdx && bs > 260) {
-        const c = clamp((bs - 260) / 300);
-        ctx.globalAlpha = alpha * (1 - c);
-        glyph(ctx, paths.A[i], X, Y, bs, rot);
-        ctx.globalAlpha = 1;
-        construction(ctx, i, X, Y, bs, 0, 40, 40, INK, PAPER, c);
-        ctx.fillStyle = INK;
-        continue;
-      }
       if (veil) alpha *= 1 - veil * Math.exp(-(((X - W / 2) / 640) ** 2) - (((Y - H / 2) / 190) ** 2));
-      if (closeUp && i !== diveIdx) alpha *= 1 - 0.8 * closeUp;
       if (corner) alpha *= 1 - 0.9 * Math.min(1, corner) * Math.exp(-(((X - 330) / 560) ** 2) - (((Y - (H - 110)) / 150) ** 2));
       ctx.globalAlpha = alpha;
       glyph(ctx, paths[char][i], X, Y, bs, rot);
@@ -489,8 +473,7 @@
     if (b >= c0 + 0.5 && b < o0 + 2) counter(ctx, b, t);
     if (b >= o0 + PLACE_AT && b < q0) placeCaption(ctx, b, t);
     if (query) searchWord(ctx, b, t, query);
-    if (diving) diveLabel(ctx, b, t, diveIdx);
-    if (bd >= s0) typed(ctx, t);
+    if (bd >= g0) glyphKey(ctx, t);
   }
 
   // A small running count, in the same corner style as the opening.
@@ -550,29 +533,19 @@
     ctx.globalAlpha = 1;
   }
 
-  function diveLabel(ctx, b, t, fi) {
-    const since = t - secOf(T.DIVE.beat + 0.6);
-    const out = 1 - clamp((b - T.DIVE.out) / 0.3);
-    if (since < 0 || out <= 0) return;
-    label(ctx, styleOf(fi), 96, 110, INK, 'left', 0.7 * out, 17, 12);
-    font(ctx, 120, T.DIVE.family);
-    const dy = reveal(ctx, since, 0.2);
-    ctx.globalAlpha *= out;
+  // One keystroke, set large like the search words; the map answers with a wave.
+  function glyphKey(ctx, t) {
+    label(ctx, 'Any glyph', 96, 110, INK, 'left', 0.7, 17, 12);
+    const since = t - secOf(T.GLYPH.key);
+    if (since < 0) return;
+    font(ctx, 150, 'Playfair Display', 400, 'italic');
     ctx.fillStyle = INK;
-    withHalo(ctx, PAPER, 24, (draw) => draw(fonts[fi].name, 92, H - 92 + dy));
-    resetFx(ctx);
-  }
-
-  function typed(ctx, t) {
-    const s0 = T.SCENES.spell[0];
-    const count = clamp(Math.floor((bd - s0) / 0.5) + 1, 0, T.SPELL.length);
-    const text = T.SPELL.slice(0, count).join('');
-    const caret = Math.floor((bd - s0) * 4) % 2 === 0 ? '|' : '';
-    label(ctx, 'Type any letter', 96, 110, INK, 'left', 0.7, 17, 12);
-    font(ctx, 96, 'Space Mono', 400, 'normal', 12);
-    ctx.fillStyle = INK;
-    withHalo(ctx, PAPER, 24, (draw) => draw(text + caret, 92, H - 92));
-    ctx.letterSpacing = '0px';
+    const k = 1 + 0.08 * Math.exp(-since * 14);
+    ctx.save();
+    ctx.translate(92, H - 92);
+    ctx.scale(k, k);
+    withHalo(ctx, PAPER, 26, (draw) => draw(T.GLYPH.char, 0, 0));
+    ctx.restore();
   }
 
   // ---------- end card ----------
@@ -658,7 +631,7 @@
     ctx.filter = 'none';
     const S = T.SCENES;
     if (bd < S.intro[1]) intro(ctx, b, t);
-    else if (bd < S.spell[1]) field(ctx, b, t);
+    else if (bd < S.glyph[1]) field(ctx, b, t);
     else logoCard(ctx, b, t);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }

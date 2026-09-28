@@ -1,16 +1,18 @@
 # FontMap — typographic trailer
 
-17-second black and white trailer for [FontMap](https://github.com/tfrere/fontmap), written in plain JavaScript on a single canvas. Every frame is a pure function of time (`draw(ctx, t)`), so the preview, scrubbing and the final render always match. Picture and sound share one clock: 128 BPM, 9 bars of 4/4 (16.875 s).
+15-second black and white trailer for [FontMap](https://github.com/tfrere/fontmap), written in plain JavaScript on a single canvas. Every frame is a pure function of time (`draw(ctx, t)`), so the preview, scrubbing and the final render always match. Picture and sound share one clock: 128 BPM, 8 bars of 4/4 = exactly 15 s.
 
-| Bar | Beats | Shot |
-|---|---|---|
-| 1 | 0–4 | Anatomy of a letter: macro shots on the outline of an A with its points, handles and vertical metrics (Apex, Serif, Crossbar, Counter), then a pull back |
-| 2 | 4–8 | Inversion to paper. Each new face is set in ink while the previous ones linger as hairlines, accelerating; the layers clear and Playfair lands |
-| 3 | 8–12 | Pull back from the Playfair A to all 1,465 glyphs in disorder — *1,465 faces.* |
-| 4–5 | 12–20 | Every glyph flies to its real FontMap position — *Every face, in its place.* |
-| 6–7 | 20–28 | Features: 01 Search (a style lights up its region), 02 Select, 03 Arrow keys, 04 Dark mode |
-| 8 | 28–32 | 05 Any glyph: the whole map redraws as F, O, N, T, M, A, P |
-| 9 | 32–36 | FontMap — *An ode to type.* |
+Live: https://tfrere-font-map.static.hf.space/trailer/index.html
+
+| Bar | Beats | Chapter | Shot |
+|---|---|---|---|
+| 1 | 0–4 | Anatomy of a letter | Macro shots on the outline of an A with its points, handles and vertical metrics (Apex, Serif, Crossbar, Counter), then a pull back |
+| 2 | 4–8 | Layers | Inversion to paper. Each new face is set in ink while the previous ones linger as hairlines, accelerating; the layers clear and Playfair lands |
+| 3 | 8–12 | 1,465 faces | Pull back from the Playfair A to all 1,465 glyphs in disorder, a running count in the corner |
+| 4–5 | 12–20 | Every face, in its place | Every glyph flies to its real FontMap position; the camera pushes in |
+| 6–7 | 20–26 | Search by style | "Serif", "Script", "Pixel" typed in a face of that style; the camera flies to each region, which lights up |
+| 7 | 26–28 | Any glyph | One keystroke, "&", and the whole map redraws as ampersands in a single wave; bell and carriage return |
+| 8 | 28–32 | Ink | Inversion to ink. The wordmark is drawn in outline on its metrics, then inked — *An ode to type.* |
 
 The map positions, neighbours, style tags and glyph outlines come from the FontMap repo (`public/data`).
 

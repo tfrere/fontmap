@@ -249,7 +249,7 @@
     whoosh(b(T.CLEAR), 0.25, 0.18);
     thump(b(T.LAND), 0.9);
     key(b(T.LAND), 0.6, 0.8);
-    drone(b(T.INVERT_BEAT), b(S.spell[1] - 0.5), [36.71, 73.42, 110], 0.055, 200, 2600);
+    drone(b(T.INVERT_BEAT), b(S.glyph[1] - 0.5), [36.71, 73.42, 110], 0.055, 200, 2600);
 
     // Bar 3: zoom out, the counter rolls, "faces." lands.
     impact(b(S.chaos[0]), 0.6);
@@ -260,7 +260,7 @@
 
     // The typing is the rhythm section: keys on the eighths, ghost notes in between,
     // the space bar on the backbeat. It stops dead half a beat before the logo.
-    for (let beat = S.chaos[0] + 1; beat < S.spell[1] - 0.5; beat += 0.25) {
+    for (let beat = S.chaos[0] + 1; beat < S.glyph[0] + 0.5; beat += 0.25) {
       const pos = Math.round((beat % 1) * 4);
       const inWalk = beat >= S.search[0] && beat < S.search[1];
       const level = inWalk ? 0.55 : 1;
@@ -289,24 +289,20 @@
       typeText(b(q.beat), q.query, 0.4, b(0.35) / q.query.length);
       pluck(b(q.beat + 0.4), [587.33, 523.25, 440, 392][i], 0.12, -0.2);
     });
-    // The dive into one glyph: a falling whoosh, a soft hit when it turns into its drawing, back out.
-    whoosh(b(T.DIVE.beat), b(T.DIVE.hold - T.DIVE.beat), 0.3);
-    impact(b(T.DIVE.hold), 0.45);
-    bell(b(T.DIVE.hold), 0.35);
-    whoosh(b(T.DIVE.out), 0.5, 0.25);
-    riser(b(T.DIVE.out), b(S.spell[1] - 0.5), 0.2);
+    // One keystroke, then the map redraws in a wave: a rain of keys sweeping left to right.
+    whoosh(b(S.glyph[0]), 0.5, 0.25);
+    const g = T.GLYPH;
+    key(b(g.key), 1, 0.75);
+    thump(b(g.key), 0.9);
+    pluck(b(g.key), 587.33, 0.14);
+    for (let k = 0; k < 90; k++) {
+      const u = k / 89;
+      key(b(g.sweep[0] + (g.sweep[1] - g.sweep[0]) * u) + r() * 0.01, 0.05 + r() * 0.05, 1.3 + r(), -0.9 + 1.8 * u, 0.2);
+    }
+    riser(b(S.search[1] - 2), b(S.glyph[1] - 0.5), 0.2);
+    bell(b(S.glyph[1] - 0.5) - 0.1, 0.8);
 
-    // Bar 8: the map spells FONTMAP, one note per letter.
-    const notes = [293.66, 349.23, 392, 440, 523.25, 587.33, 880];
-    T.SPELL.forEach((_, i) => {
-      const tt = b(S.spell[0] + i * 0.5);
-      key(tt, 0.75, 0.9 + i * 0.05);
-      thump(tt, 0.7);
-      pluck(tt, notes[i], 0.16, (i - 3) * 0.12);
-    });
-    bell(b(S.spell[0] + T.SPELL.length * 0.5 - 0.4), 0.8);
-
-    // Bar 9: the wordmark in outline on the carriage-return clunk, then inked, resolved on D major.
+    // Bar 8: the wordmark in outline on the carriage-return clunk, then inked, resolved on D major.
     const l0 = b(S.logo[0]);
     impact(l0, 1.1);
     carriage(l0, 1);

@@ -1,8 +1,8 @@
-// Shared clock for picture and sound: 128 BPM, 9 bars of 4/4 (16.875 s).
+// Shared clock for picture and sound: 128 BPM, 8 bars of 4/4 = exactly 15 s.
 (function () {
   const BPM = 128;
   const BEAT = 60 / BPM;
-  const BARS = 9;
+  const BARS = 8;
   const DURATION = BARS * 4 * BEAT;
 
   // Bar 1, on ink: macro shots on the anatomy of an A. `fx, fy` is the point of
@@ -35,19 +35,18 @@
   const LAND = 7.75;
 
   // Search by style: each name is typed in a face of that style; the camera
-  // flies to its region, which lights up.
+  // flies to its region, which lights up. The regions run right to left.
   const SEARCHES = [
     { beat: 20, query: 'Serif', tag: 'Serif/', family: 'Playfair Display', zoom: 1.6 },
-    { beat: 22, query: 'Pixel', tag: 'Theme/Pixel', family: 'Press Start 2P', zoom: 3 },
-    { beat: 24, query: 'Script', tag: 'Script/', family: 'Great Vibes', zoom: 1.7 },
+    { beat: 22, query: 'Script', tag: 'Script/', family: 'Great Vibes', zoom: 1.7 },
+    { beat: 24, query: 'Pixel', tag: 'Theme/Pixel', family: 'Press Start 2P', zoom: 3 },
   ];
-  // Then the camera dives into a single glyph, which turns back into its construction.
-  const DIVE = { beat: 26, font: 'great-vibes', family: 'Great Vibes', hold: 27, out: 27.4 };
+
+  // One keystroke redraws the whole map with another glyph, in a single wave.
+  const GLYPH = { char: '&', key: 26.5, sweep: [26.6, 27.4] };
 
   // End card: the wordmark is drawn in outline, then inked.
-  const INK_BEAT = 33.5;
-
-  const SPELL = ['F', 'O', 'N', 'T', 'M', 'A', 'P'];
+  const INK_BEAT = 29.5;
 
   // Player chapters, in beats.
   const CHAPTERS = [
@@ -56,19 +55,18 @@
     { beat: 8, name: '1,465 faces' },
     { beat: 12, name: 'Every face, in its place' },
     { beat: 20, name: 'Search by style' },
-    { beat: 26, name: 'Dive' },
-    { beat: 28, name: 'Any glyph' },
-    { beat: 32, name: 'Ink' },
+    { beat: 26, name: 'Any glyph' },
+    { beat: 28, name: 'Ink' },
   ];
 
   const SCENES = {
     intro: [0, 8],
     chaos: [8, 12],
     order: [12, 20],
-    search: [20, 28],
-    spell: [28, 32],
-    logo: [32, 36],
+    search: [20, 26],
+    glyph: [26, 28],
+    logo: [28, 32],
   };
 
-  window.TIMELINE = { BPM, BEAT, BARS, DURATION, MACRO, INVERT_BEAT, LAYERS, CLEAR, LAND, SEARCHES, DIVE, INK_BEAT, SPELL, CHAPTERS, SCENES };
+  window.TIMELINE = { BPM, BEAT, BARS, DURATION, MACRO, INVERT_BEAT, LAYERS, CLEAR, LAND, SEARCHES, GLYPH, INK_BEAT, CHAPTERS, SCENES };
 })();

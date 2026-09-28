@@ -27,9 +27,7 @@
     { beat: 6.5, font: 'space-mono' },
     { beat: 6.75, font: 'pacifico' },
     { beat: 7, font: 'roboto-slab' },
-    { beat: 7.125, font: 'monoton' },
-    { beat: 7.25, font: 'stardos-stencil' },
-    { beat: 7.375, font: 'libre-franklin' },
+    { beat: 7.25, font: 'libre-franklin' },
   ];
   const CLEAR = 7.5;
   const LAND = 7.75;

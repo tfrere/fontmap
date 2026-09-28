@@ -8,7 +8,7 @@
   const PAPER = '#fcfbf8';
 
   const MAP_BOX = 24;
-  const SCATTER_BOX = 30;
+  const SEA_BOX = 34;
   const GIANT_BOX = 1220;
 
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
@@ -37,7 +37,7 @@
   const beatOf = (t) => t / T.BEAT;
   const secOf = (b) => b * T.BEAT;
 
-  let fonts, N, paths, glyphs, index, center, landings, logo, shots, appShots;
+  let fonts, N, paths, glyphs, index, center, landings, logo, appShots;
   let bd = 0;
 
   function init() {
@@ -59,44 +59,15 @@
     const offX = (W - (xMax - xMin) * scale) / 2;
     const offY = (H - (yMax - yMin) * scale) / 2;
 
-    // Chaos: a jittered grid so disorder still covers the frame evenly.
     const r = rng(1465);
-    const cols = Math.ceil(Math.sqrt((N * W) / H));
-    const rows = Math.ceil(N / cols);
-    const cw = (W + 120) / cols, ch = (H + 80) / rows;
-    const cells = [];
-    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) cells.push([-60 + (i + 0.5) * cw, -40 + (j + 0.5) * ch]);
-    for (let i = cells.length - 1; i > 0; i--) {
-      const k = Math.floor(r() * (i + 1));
-      [cells[i], cells[k]] = [cells[k], cells[i]];
-    }
-    const mcx = W / 2, mcy = H / 2;
-    let maxD = 0;
-    glyphs = fonts.map((f, i) => {
-      const mx = (f.x - xMin) * scale + offX;
-      const my = (yMax - f.y) * scale + offY;
-      maxD = Math.max(maxD, Math.hypot(mx - mcx, my - mcy));
-      return {
-        mx, my,
-        sx: cells[i][0] + (r() - 0.5) * cw * 0.7,
-        sy: cells[i][1] + (r() - 0.5) * ch * 0.7,
-        rot: (r() - 0.5) * Math.PI * 1.8,
-        scl: 0.55 + r() * 0.95,
-        phase: r() * Math.PI * 2,
-        jitter: r(),
-      };
-    });
-    Object.assign(glyphs[center], { sx: W / 2, sy: H / 2, rot: 0, scl: 1, phase: 0 });
-
-    // The map sorts itself family by family; within a family, a small stagger keeps it organic.
-    const groupOf = new Map();
-    T.SORT.groups.forEach((grp) => grp.families.forEach((f) => groupOf.set(f, grp.beat)));
-    landings = [];
-    glyphs.forEach((g, i) => {
-      g.start = (groupOf.get(fonts[i].family) ?? T.SORT.groups.at(-1).beat) + g.jitter * 0.15;
-      landings.push(secOf(g.start + T.SORT.travel));
-    });
-    landings.sort((a, b) => a - b);
+    glyphs = fonts.map((f) => ({
+      mx: (f.x - xMin) * scale + offX,
+      my: (yMax - f.y) * scale + offY,
+      jitter: r(),
+      phase: r() * Math.PI * 2,
+    }));
+    seaLayout(r);
+    landings = glyphs.map((g) => secOf(T.SEA.tide + g.jitter * T.SEA.spread + T.SEA.travel - T.SEA.spread)).sort((a, b) => a - b);
 
     const A = window.APP;
     glyphs.forEach((g, i) => { const p = A.glyphs[fonts[i].id]; if (p) { g.ax = p[0]; g.ay = p[1]; g.abox = p[2]; } else { g.ax = g.mx; g.ay = g.my; g.abox = MAP_BOX; } });
@@ -105,8 +76,32 @@
     const logoPath = new Path2D(L.d);
     logo = { ...L, path: logoPath, outline: parseOutline(L.d, logoPath, 6) };
 
-    // The camera holds still once the chaos is revealed.
-    shots = [];
+  }
+
+  // Seen from above: a staggered field one cell past every edge, so the sea bleeds
+  // evenly off the frame instead of a few letters poking out.
+  function seaLayout(r) {
+    let c = 40;
+    for (let k = 0; k < 6; k++) c = Math.sqrt(((W + 2 * c) * (H + 2 * c)) / N);
+    const cols = Math.round((W + 2 * c) / c);
+    const rows = Math.ceil(N / cols);
+    const cw = (W + 2 * c) / cols, ch = (H + 2 * c) / rows;
+    const cells = [];
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) cells.push([-c + (i + 0.25 + (j % 2) * 0.5) * cw, -c + (j + 0.5) * ch]);
+    for (let i = cells.length - 1; i > 0; i--) {
+      const k = Math.floor(r() * (i + 1));
+      [cells[i], cells[k]] = [cells[k], cells[i]];
+    }
+    let near = 0;
+    cells.forEach(([x, y], k) => { if (Math.hypot(x - W / 2, y - H / 2) < Math.hypot(cells[near][0] - W / 2, cells[near][1] - H / 2)) near = k; });
+    [cells[near], cells[center]] = [cells[center], cells[near]];
+    glyphs.forEach((g, i) => Object.assign(g, {
+      sx: cells[i][0] + (r() - 0.5) * cw * 0.3,
+      sy: cells[i][1] + (r() - 0.5) * ch * 0.3,
+      rot: (r() - 0.5) * 0.45,
+      box: SEA_BOX * (0.9 + 0.2 * r()),
+    }));
+    Object.assign(glyphs[center], { sx: W / 2, sy: H / 2, rot: 0, box: SEA_BOX });
   }
 
   // ---------- drawing helpers ----------
@@ -378,59 +373,79 @@
     else layers(ctx, b, t);
   }
 
-  // ---------- the field: chaos and order share one camera, then the map lands in the app ----------
+  // ---------- the sea: 1,465 A's rolling like water, then charted as the map, then the app ----------
 
-  function camera(b) {
-    const [c0] = T.SCENES.chaos;
-    let cam = { x: W / 2, y: H / 2, z: Math.exp(lerp(Math.log(GIANT_BOX / SCATTER_BOX), 0, quartOut((b - c0) / 2.4))) };
-    let from = { x: W / 2, y: H / 2, z: 1 };
-    for (const s of shots) {
-      if (b < s.beat) break;
-      const u = cubicInOut((b - s.beat) / s.dur);
-      cam = { x: lerp(from.x, s.x, u), y: lerp(from.y, s.y, u), z: Math.exp(lerp(Math.log(from.z), Math.log(s.z), u)) };
-      from = s;
-    }
-    return cam;
+  const OMEGA = (2 * Math.PI) / (4 * T.BEAT);
+
+  // Swell over the sea seen from above, in [-1, 1]; one long crest every bar.
+  const swell = (x, y, t) => 0.65 * Math.sin(x * 0.0075 + y * 0.004 - OMEGA * t) + 0.35 * Math.sin(y * 0.009 - x * 0.0035 - OMEGA * 1.5 * t + 1.7);
+
+  // How much the water moves: builds during the pull back, calms as the tide goes out.
+  function seaAmp(b, i) {
+    const [s0] = T.SCENES.sea;
+    const a = clamp((b - s0 - 0.8) / 2) * (1 - cubicInOut((b - T.SEA.tide) / 2));
+    return i === center ? a * clamp((b - s0 - 1.5) / 1.5) : a;
+  }
+
+  // The whole sea goes out at once; each glyph takes the same long glide, a little staggered.
+  const tideOf = (g, b) => cubicInOut((b - T.SEA.tide - g.jitter * T.SEA.spread) / (T.SEA.travel - T.SEA.spread));
+
+  function seaSprites(b, t) {
+    const S = T.SEA;
+    const [s0] = T.SCENES.sea;
+    const zoom = Math.exp(lerp(Math.log(GIANT_BOX / SEA_BOX), 0, cubicInOut((b - s0) / S.pull)));
+    // Once charted, the islands keep a faint breath of the swell until the app takes over.
+    const breath = 0.15 * clamp((b - S.land) / 1.5) * (1 - clamp((b - (T.APP.enter - 1)) / 1));
+    const out = glyphs.map((g, i) => {
+      const a = seaAmp(b, i);
+      const h = swell(g.sx, g.sy, t);
+      let x = g.sx, y = g.sy - 12 * h * a;
+      let box = g.box * (1 + 0.4 * h * a);
+      let rot = g.rot + 0.3 * a * Math.cos(g.sx * 0.0075 + g.sy * 0.004 - OMEGA * t);
+      let alpha = 1 - 0.7 * a * (1 - h) / 2;
+      const p = tideOf(g, b);
+      if (p > 0) {
+        // A shared sideways drift, so the sea flows out as one current rather than scattering.
+        const dx = g.mx - x, dy = g.my - y, d = Math.hypot(dx, dy) || 1;
+        const curl = Math.sin(Math.PI * p) * (0.4 + g.jitter) * 70;
+        x = lerp(x, g.mx, p) - (dy / d) * curl;
+        y = lerp(y, g.my, p) + (dx / d) * curl;
+        box = lerp(box, MAP_BOX, p);
+        rot = lerp(rot, 0, p);
+        alpha = lerp(alpha, 1, p);
+      }
+      if (breath) box *= 1 + breath * swell(g.mx, g.my, t);
+      // Neighbours too close to the lens would pop in beside the giant A; they fade in as they shrink.
+      if (i !== center) alpha *= clamp((900 - box * zoom) / 400);
+      return { i, X: (x - W / 2) * zoom + W / 2, Y: (y - H / 2) * zoom + H / 2, bs: box * zoom, rot, alpha, h };
+    });
+    // Crests pass over troughs.
+    return b < S.land ? out.sort((u, v) => u.h - v.h) : out;
   }
 
   // The app window on the paper: 82% of the frame, anchored low to leave room for the caption.
   const WIN = { s: 0.82 };
   WIN.w = W * WIN.s; WIN.h = H * WIN.s; WIN.x = (W - WIN.w) / 2; WIN.y = H - WIN.h - 40;
 
+  const shown = (b, start, end) => clamp((b - start) / 0.5) * (1 - clamp((b - end) / 0.5));
+
   function field(ctx, b, t) {
-    const A = T.APP;
+    const A = T.APP, S = T.SEA;
     if (b >= A.ui + 0.4) return app(ctx, b, t);
     ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, W, H);
-    const [c0] = T.SCENES.chaos;
-    const [o0] = T.SCENES.order;
-    const { x: cx, y: cy, z: zoom } = camera(b);
+    const [s0] = T.SCENES.sea;
     const entering = b >= A.enter;
     const ui = clamp((b - A.ui) / 0.4);
-
-    const placeOn = clamp((b - T.SORT.caption) / 0.5) * (1 - clamp((b - (A.enter - 0.5)) / 0.5));
-    const veil = placeOn * 0.88;
     if (entering) windowFrame(ctx, WIN, cubicInOut(b - A.enter));
 
+    const sprites = seaSprites(b, t);
+    // Captions over the glyphs get a soft clearing of paper behind them.
+    const veil = 0.88 * Math.max(shown(b, S.caption, S.tide - 0.5), shown(b, S.charted, A.enter - 0.5));
     ctx.fillStyle = INK;
-    for (let i = 0; i < N; i++) {
-      const g = glyphs[i];
-      const drift = i === center ? 0 : 1;
-      const wob = clamp((b - c0) / 2);
-      const sx = g.sx + drift * wob * 7 * Math.sin(t * 0.9 + g.phase);
-      const sy = g.sy + drift * wob * 7 * Math.cos(t * 0.7 + g.phase * 1.3);
-      const srot = g.rot + drift * wob * 0.25 * Math.sin(t * 0.5 + g.phase);
-      let x = sx, y = sy, rot = srot, box = SCATTER_BOX * g.scl;
-      if (b >= g.start) {
-        const p = cubicInOut((b - g.start) / T.SORT.travel);
-        x = lerp(sx, g.mx, p);
-        y = lerp(sy, g.my, p);
-        rot = lerp(srot, 0, p);
-        box = lerp(SCATTER_BOX * g.scl, MAP_BOX, p);
-      }
-      let X = (x - cx) * zoom + W / 2;
-      let Y = (y - cy) * zoom + H / 2;
-      let bs = box * zoom;
+    for (const s of sprites) {
+      const g = glyphs[s.i];
+      let { X, Y, bs } = s;
       // Each glyph slides to where the app itself draws it, inside the window.
       if (entering) {
         const e = cubicInOut((b - A.enter - g.jitter * 0.2) / 0.8);
@@ -439,17 +454,18 @@
         bs = lerp(bs, g.abox * WIN.s, e);
       }
       if (X < -bs || X > W + bs || Y < -bs || Y > H + bs) continue;
-      let alpha = 1;
+      let alpha = s.alpha;
       if (veil) alpha *= 1 - veil * Math.exp(-(((X - W / 2) / 640) ** 2) - (((Y - H / 2) / 190) ** 2));
       ctx.globalAlpha = alpha;
-      glyph(ctx, paths.A[i], X, Y, bs, rot);
+      glyph(ctx, paths.A[s.i], X, Y, bs, s.rot);
     }
     ctx.globalAlpha = 1;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (ui > 0) screen(ctx, '01-map', WIN, ui);
 
-    if (b >= c0 + 0.5 && b < o0 + 2) counter(ctx, b, t);
-    if (b >= T.SORT.caption && b < A.enter) placeCaption(ctx, b, t);
+    if (b >= s0 + 0.5 && b < S.tide) counter(ctx, b, t);
+    phrase(ctx, b, t, S.caption, S.tide - 0.5, 'A sea of ', 'type.', H / 2 + 40);
+    phrase(ctx, b, t, S.charted, A.enter - 0.5, 'Now, ', 'charted.', H / 2 + 40);
   }
 
   function windowFrame(ctx, r, a) {
@@ -592,8 +608,8 @@
   }
 
   function counter(ctx, b, t) {
-    const since = t - secOf(T.SCENES.chaos[0] + 0.5);
-    const out = 1 - clamp((b - (T.SCENES.order[0] + 1)) / 0.75);
+    const since = t - secOf(T.SCENES.sea[0] + 0.5);
+    const out = 1 - clamp((b - (T.SEA.tide - 0.5)) / 0.5);
     const n = Math.round(N * quartOut(since / secOf(2)));
     font(ctx, 17, 'Space Mono');
     ctx.fillStyle = INK;
@@ -603,32 +619,28 @@
     label(ctx, 'Google Fonts', W - 96, 110, INK, 'right', 0.7 * out, 17, 12);
   }
 
-  function placeCaption(ctx, b, t) {
-    const start = T.SORT.caption;
-    const out = clamp((b - (T.APP.enter - 0.5)) / 0.5);
-    const parts = [
-      { text: 'Every face,', at: 0, style: 'normal' },
-      { text: 'in its place.', at: 0.75, style: 'italic' },
-    ];
-    const size = 118;
+  // A two-part line, roman then italic half a beat later, centred on the frame.
+  function phrase(ctx, b, t, start, end, roman, italic, y, size = 118, halo = 30) {
+    if (b < start || b >= end + 0.5) return;
+    const out = clamp((b - end) / 0.5);
     font(ctx, size, 'Playfair Display');
-    const w0 = ctx.measureText('Every face, ').width;
+    const w0 = ctx.measureText(roman).width;
     font(ctx, size, 'Playfair Display', 400, 'italic');
-    const w1 = ctx.measureText('in its place.').width;
+    const w1 = ctx.measureText(italic).width;
     let x = W / 2 - (w0 + w1) / 2;
-    const y = H / 2 + 40;
-    for (const p of parts) {
-      const since = t - secOf(start + p.at);
-      font(ctx, size, 'Playfair Display', 400, p.style);
+    [[roman, 0, 'normal', w0], [italic, 0.25, 'italic', w1]].forEach(([text, at, style, w]) => {
+      const since = t - secOf(start + at);
       if (since >= 0) {
+        font(ctx, size, 'Playfair Display', 400, style);
         const dy = reveal(ctx, since, 0.22);
         ctx.globalAlpha *= 1 - out;
         ctx.fillStyle = INK;
-        withHalo(ctx, PAPER, 30, (draw) => draw(p.text, x, y + dy));
+        if (halo) withHalo(ctx, PAPER, halo, (draw) => draw(text.trimEnd(), x, y + dy));
+        else ctx.fillText(text.trimEnd(), x, y + dy);
         resetFx(ctx);
       }
-      x += p.at === 0 ? w0 : w1;
-    }
+      x += w;
+    });
   }
 
   // ---------- end card ----------

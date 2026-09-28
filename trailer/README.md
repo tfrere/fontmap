@@ -1,6 +1,6 @@
 # FontMap — typographic trailer
 
-17-second black and white trailer for [FontMap](https://github.com/tfrere/fontmap), written in plain JavaScript on a single canvas. Every frame is a pure function of time (`draw(ctx, t)`), so the preview, scrubbing and the final render always match. Picture and sound share one clock: 128 BPM, 9 bars of 4/4 (16.875 s).
+19-second black and white trailer for [FontMap](https://github.com/tfrere/fontmap), written in plain JavaScript on a single canvas. Every frame is a pure function of time (`draw(ctx, t)`), so the preview, scrubbing and the final render always match. Picture and sound share one clock: 128 BPM, 10 bars of 4/4 (18.75 s).
 
 Live: https://tfrere-font-map.static.hf.space/trailer/index.html
 
@@ -8,11 +8,11 @@ Live: https://tfrere-font-map.static.hf.space/trailer/index.html
 |---|---|---|---|
 | 1 | 0–4 | Anatomy of a letter | Macro shots on the outline of an A with its points, handles and vertical metrics (Apex, Serif, Crossbar, Counter), then a pull back |
 | 2 | 4–8 | Layers | Inversion to paper. Each new face is set in ink while the previous ones linger as hairlines, accelerating; the layers clear and Playfair lands |
-| 3 | 8–12 | 1,465 faces | Pull back from the Playfair A to all 1,465 glyphs in disorder, a running count in the corner |
-| 4–5 | 12–18 | Every face, in its place | The map sorts itself family by family, one family landing on each beat (sans-serif, serif, handwriting, the rest), each with its chord; then the caption. No camera move |
-| 5 | 18–19.5 | Into the app | Every glyph slides to where the real app draws it; the app appears around the map, framed as a window |
-| 6–8 | 19.5–32 | Search · Select · Navigate · Any glyph · Dark mode | One feature every two beats in the live app, with a cursor or a key: *Search by style.*, *Click any font.*, *Walk to its neighbours.* (arrow keys), *Type any glyph.*, *Go dark.* The dark app grows to fill the frame |
-| 9 | 32–36 | Ink | The wordmark is drawn in outline on its metrics, then inked — *An ode to type.* |
+| 3–4 | 8–13 | A sea of type | Slow pull back from the Playfair A into all 1,465 glyphs, a sea filling the frame with a running count; a swell rolls through it once a bar — *A sea of type.* |
+| 4–6 | 13–22 | Now, charted | The tide goes out in one long move and leaves the map as islands, landing on the downbeat of bar 5 — *Now, charted.* No camera move |
+| 6 | 22–23.5 | Into the app | Every glyph slides to where the real app draws it; the app appears around the map, framed as a window |
+| 7–9 | 23.5–36 | Search · Select · Navigate · Any glyph · Dark mode | One feature every two beats in the live app, with a cursor or a key: *Search by style.*, *Click any font.*, *Walk to its neighbours.* (arrow keys), *Type any glyph.*, *Go dark.* The dark app grows to fill the frame |
+| 10 | 36–40 | Ink | The wordmark is drawn in outline on its metrics, then inked — *An ode to type.* |
 
 The map positions, neighbours, style tags and glyph outlines come from the FontMap repo (`public/data`). The app screens and the on-screen position of every glyph in the app are captured from the live site by `scripts/capture-app.mjs` into `assets/app.js`.
 
@@ -42,7 +42,7 @@ node scripts/build-sounds.mjs                # assets/sounds/src -> assets/sound
 
 `assets/data.js` and `assets/sounds.js` are already built, so the steps above are only needed to regenerate them.
 
-Preview: `python3 scripts/serve.py 8765` (a static server that disables caching) and open `http://localhost:8765/trailer.html`. The player has a chaptered timeline (hover for the chapter name, click or drag to scrub), a chapter/timecode overlay and a link to the rendered MP4.
+Preview: `python3 scripts/serve.py 8765` (a static server that disables caching) and open `http://localhost:8765/index.html`. The player has a chaptered timeline (hover for the chapter name, click or drag to scrub), a chapter/timecode overlay and a link to the rendered MP4.
 
 | Key | Action |
 |---|---|

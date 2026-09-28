@@ -76,6 +76,7 @@
     function noiseSrc(t, dur) {
       const s = ctx.createBufferSource();
       s.buffer = noise;
+      s.loop = true;
       s.start(t, r() * 1.5);
       s.stop(t + dur + 0.05);
       return s;
@@ -212,6 +213,40 @@
       }));
     }
 
+    // Surf seen from above: filtered noise that swells and falls once a bar, with the picture's swell.
+    function surf(t0, t1, amp) {
+      const period = b(4);
+      const lp = filter('lowpass', 500, 0.6);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, 0);
+      g.gain.setValueAtTime(0.0001, t0);
+      for (let c = t0; c < t1; c += period) {
+        const peak = amp * clamp((c - t0) / period + 0.4, 0, 1);
+        lp.frequency.setValueAtTime(420, c);
+        lp.frequency.exponentialRampToValueAtTime(2600, c + period * 0.55);
+        lp.frequency.exponentialRampToValueAtTime(420, c + period);
+        g.gain.exponentialRampToValueAtTime(peak, c + period * 0.55);
+        g.gain.exponentialRampToValueAtTime(peak * 0.15, c + period);
+      }
+      g.gain.exponentialRampToValueAtTime(0.0001, t1);
+      noiseSrc(t0, t1 - t0).connect(lp).connect(g);
+      out(g, 0.4);
+    }
+
+    // The water drawn back: a long hiss that sinks and thins out.
+    function backwash(t0, t1, amp) {
+      const bp = filter('bandpass', 3000, 0.8);
+      bp.frequency.setValueAtTime(3200, t0);
+      bp.frequency.exponentialRampToValueAtTime(300, t1);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, 0);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(amp, t0 + 0.25);
+      g.gain.exponentialRampToValueAtTime(0.0001, t1);
+      noiseSrc(t0, t1 - t0).connect(bp).connect(g);
+      out(g, 0.45);
+    }
+
     function pluck(t, freq, amp, pan = 0) {
       const bus = ctx.createGain();
       out(bus, 0.4, pan);
@@ -251,28 +286,31 @@
     key(b(T.LAND), 0.6, 0.8);
     drone(b(T.INVERT_BEAT), b(S.app[1] - 0.5), [36.71, 73.42, 110], 0.055, 200, 2600);
 
-    // Bar 3: the pull back into chaos, the counter rolls, a short rise into the sort.
-    impact(b(S.chaos[0]), 0.6);
-    whoosh(b(S.chaos[0]), 1.1, 0.35);
-    for (let tt = b(S.chaos[0] + 0.5); tt < b(S.chaos[0] + 2.5); tt += 0.03 + r() * 0.012) key(tt, 0.08, 2 + r() * 0.4, (r() - 0.5) * 0.4, 0.05);
-    riser(b(S.chaos[1] - 1), b(S.chaos[1]) - 0.02, 0.14);
+    // Bars 3-4: the pull back into the sea. The counter rolls, then the swell: surf
+    // breathing once a bar, keys as spray, the margin bell as a buoy.
+    const E = T.SEA;
+    const s0 = S.sea[0];
+    impact(b(s0), 0.6);
+    whoosh(b(s0), b(T.SEA.pull), 0.35);
+    for (let tt = b(s0 + 0.5); tt < b(s0 + 2.5); tt += 0.03 + r() * 0.012) key(tt, 0.08, 2 + r() * 0.4, (r() - 0.5) * 0.4, 0.05);
+    surf(b(s0), b(E.tide + 2), 0.16);
+    for (let tt = b(s0 + 1.5); tt < b(E.tide); tt += 0.07 + r() * 0.12) key(tt, 0.03 + r() * 0.04, 2.1 + r() * 0.5, (r() - 0.5) * 1.2, 0.3);
+    typeText(b(E.caption), 'A sea of', 0.3, 0.035);
+    typeText(b(E.caption + 0.25), 'type.', 0.3, 0.035);
+    bell(b(E.caption + 0.5), 0.5);
 
-    // Bars 4-5: one family lands on each beat, each with its chord and a short
-    // shower of keys, like sorts dropping into the case. The chords climb to the caption.
-    const chords = [
-      [146.83, 220, 293.66, 349.23],
-      [116.54, 174.61, 233.08, 293.66],
-      [174.61, 261.63, 349.23, 440],
-      [110, 220, 277.18, 329.63],
-    ];
-    T.SORT.groups.forEach((grp, i) => {
-      whoosh(b(grp.beat), 0.35, 0.12);
-      const land = b(grp.beat + 1);
-      thump(land, 0.85);
-      chords[i].forEach((f, j) => pluck(land + j * 0.012, f, 0.08, (j - 1.5) * 0.25));
-      for (let k = 0; k < 26; k++) key(b(grp.beat + T.SORT.travel) + r() * b(0.15), 0.05 + r() * 0.06, 1.3 + r() * 1.2, (r() - 0.5) * 0.9, 0.2);
-    });
-    [146.83, 220, 293.66, 369.99].forEach((f, j) => pluck(b(T.SORT.caption) + 0.1 + j * 0.02, f, 0.07, (j - 1.5) * 0.3));
+    // The tide goes out in one breath: a long backwash, one chord held under it,
+    // and the whole sea lands at once on the map, like a tray of sorts set down.
+    riser(b(E.tide - 1), b(E.tide) - 0.02, 0.12);
+    impact(b(E.tide), 0.55);
+    backwash(b(E.tide), b(E.land), 0.3);
+    [146.83, 220, 293.66, 349.23].forEach((f, j) => pluck(b(E.tide) + j * 0.03, f, 0.08, (j - 1.5) * 0.3));
+    for (const t0 of landings) if (r() < 0.12) key(t0 + (r() - 0.5) * 0.02, 0.03 + r() * 0.05, 1.4 + r() * 1.1, (r() - 0.5) * 0.9, 0.15);
+    thump(b(E.land), 0.9);
+    [146.83, 220, 293.66, 369.99].forEach((f, j) => pluck(b(E.land) + j * 0.015, f, 0.1, (j - 1.5) * 0.25));
+    typeText(b(E.charted), 'Now,', 0.3, 0.035);
+    typeText(b(E.charted + 0.25), 'charted.', 0.3, 0.035);
+    carriage(b(E.charted + 0.25), 0.4);
 
     // Bars 5-8: into the app. The typing comes back as the rhythm section, quieter:
     // keys on the eighths, ghost notes in between, the space bar on the backbeat.

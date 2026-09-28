@@ -1,8 +1,8 @@
-// Shared clock for picture and sound: 128 BPM, 9 bars of 4/4 (16.875 s).
+// Shared clock for picture and sound: 128 BPM, 10 bars of 4/4 (18.75 s).
 (function () {
   const BPM = 128;
   const BEAT = 60 / BPM;
-  const BARS = 9;
+  const BARS = 10;
   const DURATION = BARS * 4 * BEAT;
 
   // Bar 1, on ink: macro shots on the anatomy of an A. `fx, fy` is the point of
@@ -32,58 +32,58 @@
   const CLEAR = 7.5;
   const LAND = 7.75;
 
-  // The map sorts itself family by family, one family landing on each beat.
-  const SORT = {
-    groups: [
-      { beat: 12, families: ['sans-serif'] },
-      { beat: 13, families: ['serif'] },
-      { beat: 14, families: ['handwriting'] },
-      { beat: 15, families: ['monospace', 'decorative', 'blackletter'] },
-    ],
-    travel: 0.85,
-    caption: 16,
+  // Bars 3-5, a sea of type: the camera pulls back from the A into 1,465 A's rolling
+  // like water under a slow swell, then the tide goes out in one long move and
+  // leaves the map as islands, landing on the downbeat of bar 5.
+  const SEA = {
+    pull: 3,
+    caption: 9.5,
+    tide: 13,
+    spread: 0.4,
+    travel: 3,
+    land: 16,
+    charted: 16,
   };
 
   // Into the real app: the sorted map lands on the app's own map, framed as a
   // window, then one feature every couple of beats. Screens come from scripts/capture-app.mjs.
   const APP = {
-    enter: 18,
-    ui: 18.6,
+    enter: 22,
+    ui: 22.6,
     features: [
-      { beat: 19.5, caption: 'Search by style.', click: 'search', at: 20, shot: '02-search', type: 'script' },
-      { beat: 22, caption: 'Click any font.', click: 'pick', at: 22.5, shot: '03-font', from: '01-map' },
-      { beat: 24, caption: 'Walk to its neighbours.', keys: [{ key: '→', at: 24.5, shot: '03b-nav' }, { key: '↓', at: 25.25, shot: '03c-nav' }] },
-      { beat: 26, caption: 'Type any glyph.', key: '&', at: 26.5, shot: '04-glyph' },
-      { beat: 28, caption: 'Go dark.', click: 'dark', at: 28.5, shot: '05-dark' },
+      { beat: 23.5, caption: 'Search by style.', click: 'search', at: 24, shot: '02-search', type: 'script' },
+      { beat: 26, caption: 'Click any font.', click: 'pick', at: 26.5, shot: '03-font', from: '01-map' },
+      { beat: 28, caption: 'Walk to its neighbours.', keys: [{ key: '→', at: 28.5, shot: '03b-nav' }, { key: '↓', at: 29.25, shot: '03c-nav' }] },
+      { beat: 30, caption: 'Type any glyph.', key: '&', at: 30.5, shot: '04-glyph' },
+      { beat: 32, caption: 'Go dark.', click: 'dark', at: 32.5, shot: '05-dark' },
     ],
-    out: 30.75,
+    out: 34.75,
   };
 
   // End card: the wordmark is drawn in outline, then inked.
-  const INK_BEAT = 33.5;
+  const INK_BEAT = 37.5;
 
   // Player chapters, in beats.
   const CHAPTERS = [
     { beat: 0, name: 'Anatomy of a letter' },
     { beat: 4, name: 'Layers' },
-    { beat: 8, name: '1,465 faces' },
-    { beat: 12, name: 'Every face, in its place' },
-    { beat: 18, name: 'Into the app' },
-    { beat: 19.5, name: 'Search' },
-    { beat: 22, name: 'Select' },
-    { beat: 24, name: 'Navigate' },
-    { beat: 26, name: 'Any glyph' },
-    { beat: 28, name: 'Dark mode' },
-    { beat: 32, name: 'Ink' },
+    { beat: 8, name: 'A sea of type' },
+    { beat: 13, name: 'Now, charted' },
+    { beat: 22, name: 'Into the app' },
+    { beat: 23.5, name: 'Search' },
+    { beat: 26, name: 'Select' },
+    { beat: 28, name: 'Navigate' },
+    { beat: 30, name: 'Any glyph' },
+    { beat: 32, name: 'Dark mode' },
+    { beat: 36, name: 'Ink' },
   ];
 
   const SCENES = {
     intro: [0, 8],
-    chaos: [8, 12],
-    order: [12, 18],
-    app: [18, 32],
-    logo: [32, 36],
+    sea: [8, 22],
+    app: [22, 36],
+    logo: [36, 40],
   };
 
-  window.TIMELINE = { BPM, BEAT, BARS, DURATION, MACRO, INVERT_BEAT, LAYERS, CLEAR, LAND, SORT, APP, INK_BEAT, CHAPTERS, SCENES };
+  window.TIMELINE = { BPM, BEAT, BARS, DURATION, MACRO, INVERT_BEAT, LAYERS, CLEAR, LAND, SEA, APP, INK_BEAT, CHAPTERS, SCENES };
 })();

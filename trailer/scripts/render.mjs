@@ -31,7 +31,7 @@ const fromDataURL = (u) => Buffer.from(u.split(',')[1], 'base64');
 
 async function renderAudio() {
   const b64 = await page.evaluate(() => window.__trailer.audioWavBase64());
-  const file = join(OUT, 'score.wav');
+  const file = join(OUT, (process.env.OUTNAME || 'score') + '.wav');
   await writeFile(file, Buffer.from(b64, 'base64'));
   console.log('wrote', file);
   return file;
@@ -54,7 +54,7 @@ if (mode === 'contact') {
 } else if (mode === 'video') {
   const samples = +(arg || 6);
   const wav = await renderAudio();
-  const file = join(OUT, 'fontmap-trailer.mp4');
+  const file = join(OUT, (process.env.OUTNAME || 'fontmap-trailer') + '.mp4');
   const ff = spawn('ffmpeg', [
     '-y', '-loglevel', 'error',
     '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'png', '-i', '-',

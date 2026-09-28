@@ -57,6 +57,14 @@ await page.addStyleTag({ content: '.glyph-hitbox { pointer-events: none !importa
 await page.mouse.move(1000, 22);
 await shot('03-font');
 
+// Arrow keys step to the nearest neighbour in that direction.
+await page.keyboard.press('ArrowRight');
+await wait(1500);
+await shot('03b-nav');
+await page.keyboard.press('ArrowDown');
+await wait(1500);
+await shot('03c-nav');
+
 await page.keyboard.type('&');
 await wait(1800);
 await shot('04-glyph');
@@ -69,7 +77,7 @@ await shot('05-dark');
 
 // Screenshots are embedded as data URLs so the canvas never gets tainted by file:// images.
 const shots = {};
-for (const name of ['01-map', '02-search', '03-font', '04-glyph', '05-dark']) {
+for (const name of ['01-map', '02-search', '03-font', '03b-nav', '03c-nav', '04-glyph', '05-dark']) {
   shots[name] = 'data:image/jpeg;base64,' + (await readFile(join(OUT, `${name}.jpg`))).toString('base64');
 }
 await writeFile(join(ROOT, 'assets/app.js'), 'window.APP=' + JSON.stringify({ glyphs, clicks: { search, pick, dark }, shots }) + ';\n');

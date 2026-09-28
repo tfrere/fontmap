@@ -251,50 +251,59 @@
     key(b(T.LAND), 0.6, 0.8);
     drone(b(T.INVERT_BEAT), b(S.app[1] - 0.5), [36.71, 73.42, 110], 0.055, 200, 2600);
 
-    // Bar 3: zoom out, the counter rolls, "faces." lands.
+    // Bar 3: the pull back into chaos, the counter rolls, a short rise into the sort.
     impact(b(S.chaos[0]), 0.6);
     whoosh(b(S.chaos[0]), 1.1, 0.35);
-    for (let tt = b(S.chaos[0] + 1.25); tt < b(S.chaos[0] + 2.5); tt += 0.028 + r() * 0.012) key(tt, 0.1, 2 + r() * 0.4, (r() - 0.5) * 0.4, 0.05);
-    thump(b(S.chaos[0] + 2.5), 0.7);
-    key(b(S.chaos[0] + 2.5), 0.5, 0.9);
+    for (let tt = b(S.chaos[0] + 0.5); tt < b(S.chaos[0] + 2.5); tt += 0.03 + r() * 0.012) key(tt, 0.08, 2 + r() * 0.4, (r() - 0.5) * 0.4, 0.05);
+    riser(b(S.chaos[1] - 1), b(S.chaos[1]) - 0.02, 0.14);
 
-    // The typing is the rhythm section: keys on the eighths, ghost notes in between,
-    // the space bar on the backbeat. It stops dead half a beat before the logo.
-    for (let beat = S.chaos[0] + 1; beat < T.APP.out; beat += 0.25) {
+    // Bars 4-5: one family lands on each beat, each with its chord and a short
+    // shower of keys, like sorts dropping into the case. The chords climb to the caption.
+    const chords = [
+      [146.83, 220, 293.66, 349.23],
+      [116.54, 174.61, 233.08, 293.66],
+      [174.61, 261.63, 349.23, 440],
+      [110, 220, 277.18, 329.63],
+    ];
+    T.SORT.groups.forEach((grp, i) => {
+      whoosh(b(grp.beat), 0.35, 0.12);
+      const land = b(grp.beat + 1);
+      thump(land, 0.85);
+      chords[i].forEach((f, j) => pluck(land + j * 0.012, f, 0.08, (j - 1.5) * 0.25));
+      for (let k = 0; k < 26; k++) key(b(grp.beat + T.SORT.travel) + r() * b(0.15), 0.05 + r() * 0.06, 1.3 + r() * 1.2, (r() - 0.5) * 0.9, 0.2);
+    });
+    [146.83, 220, 293.66, 369.99].forEach((f, j) => pluck(b(T.SORT.caption) + 0.1 + j * 0.02, f, 0.07, (j - 1.5) * 0.3));
+
+    // Bars 5-8: into the app. The typing comes back as the rhythm section, quieter:
+    // keys on the eighths, ghost notes in between, the space bar on the backbeat.
+    const A = T.APP;
+    for (let beat = A.enter; beat < A.out; beat += 0.25) {
       const pos = Math.round((beat % 1) * 4);
-      const inWalk = beat >= S.app[0] && beat < S.app[1];
-      const level = inWalk ? 0.55 : 1;
       const t0 = b(beat);
       if (pos === 0) {
-        key(t0, 0.34 * level, 1, (r() - 0.5) * 0.3, 0.08);
-        if (Math.floor(beat) % 2 === 1) space(t0, 0.5 * level);
-        if (beat >= S.order[0]) thump(t0, inWalk ? 0.35 : 0.55);
+        key(t0, 0.2, 1, (r() - 0.5) * 0.3, 0.08);
+        if (Math.floor(beat) % 2 === 1) space(t0, 0.3);
+        thump(t0, 0.35);
       } else if (pos === 2) {
-        key(t0, 0.24 * level, 1.1, (r() - 0.5) * 0.4, 0.08);
-      } else if (r() < 0.45) {
-        key(t0, 0.11 * level, 1.4, (r() - 0.5) * 0.6, 0.05);
+        key(t0, 0.14, 1.1, (r() - 0.5) * 0.4, 0.08);
+      } else if (r() < 0.4) {
+        key(t0, 0.07, 1.4, (r() - 0.5) * 0.6, 0.05);
       }
     }
-
-    // Bars 4-5: 1,465 sorts drop into the case.
-    const rain = landings.filter((_, i) => i % 3 === 0);
-    rain.forEach((tt) => key(tt, 0.05 + r() * 0.07, 1.3 + r() * 1.3, (r() - 0.5) * 0.9, 0.2));
-    thump(b(S.order[0] + 3), 0.6);
-    key(b(S.order[0] + 3), 0.35, 0.85);
-    thump(b(S.order[0] + 3.75), 0.6);
-    key(b(S.order[0] + 3.75), 0.35, 0.95);
-
-    // Bars 6-7: into the app. A soft reveal, then one click or key per feature.
-    const A = T.APP;
     whoosh(b(A.enter), 0.8, 0.28);
     impact(b(A.ui), 0.35);
     [293.66, 440, 587.33].forEach((f, i) => pluck(b(A.ui) + i * 0.03, f, 0.09, (i - 1) * 0.3));
     const click = (tt) => { key(tt, 0.35, 2, 0.1, 0.05); key(tt + 0.07, 0.18, 1.7, 0.1, 0.05); };
-    A.features.forEach((f, i) => {
+    const notes = [587.33, 523.25, 440, 493.88, 392, 349.23];
+    let n = 0;
+    A.features.forEach((f) => {
       if (f.click) click(b(f.at));
       if (f.key) { key(b(f.at), 1, 0.75); thump(b(f.at), 0.8); }
-      if (f.type) typeText(b(f.at) + 0.08, f.type, 0.3, 0.045);
-      pluck(b(f.at), [587.33, 523.25, 440, 392][i], 0.12, -0.2);
+      if (f.type) typeText(b(f.at) + 0.08, f.type, 0.3, 0.05);
+      (f.keys || [f]).forEach((e) => {
+        if (f.keys) { key(b(e.at), 0.8, 0.8); thump(b(e.at), 0.6); }
+        pluck(b(e.at), notes[n++ % notes.length], 0.12, -0.2);
+      });
     });
     const dark = A.features.find((f) => f.shot === '05-dark');
     impact(b(dark.at), 0.55);
@@ -302,7 +311,7 @@
     riser(b(A.out - 1.5), b(S.app[1] - 0.5), 0.2);
     bell(b(S.app[1] - 0.5) - 0.1, 0.8);
 
-    // Bar 8: the wordmark in outline on the carriage-return clunk, then inked, resolved on D major.
+    // Bar 9: the wordmark in outline on the carriage-return clunk, then inked, resolved on D major.
     const l0 = b(S.logo[0]);
     impact(l0, 1.1);
     carriage(l0, 1);

@@ -42,6 +42,7 @@ const out = {
     x: +f.x.toFixed(1),
     y: +f.y.toFixed(1),
     style: f.style_tag,
+    family: f.family,
     n: f.neighbors.map((id) => index.get(id)).filter((i) => i !== undefined),
   })),
   glyphs,

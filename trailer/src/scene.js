@@ -10,7 +10,6 @@
   const MAP_BOX = 24;
   const SCATTER_BOX = 30;
   const GIANT_BOX = 1220;
-  const PLACE_AT = 3;
 
   const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
   const lerp = (a, b, u) => a + (b - a) * u;
@@ -89,15 +88,13 @@
     });
     Object.assign(glyphs[center], { sx: W / 2, sy: H / 2, rot: 0, scl: 1, phase: 0 });
 
-    // Settling ripples out from the middle of the map.
-    let tLand = 0;
-    for (let s = 0; s < 3; s += 0.001) if (spring(s) >= 1) { tLand = s; break; }
+    // The map sorts itself family by family; within a family, a small stagger keeps it organic.
+    const groupOf = new Map();
+    T.SORT.groups.forEach((grp) => grp.families.forEach((f) => groupOf.set(f, grp.beat)));
     landings = [];
-    glyphs.forEach((g) => {
-      const d = Math.hypot(g.mx - mcx, g.my - mcy) / maxD;
-      g.delay = d * 2.2 + g.jitter * 0.45;
-      g.sweep = (g.mx / W) * 0.35;
-      landings.push(secOf(T.SCENES.order[0] + g.delay) + tLand);
+    glyphs.forEach((g, i) => {
+      g.start = (groupOf.get(fonts[i].family) ?? T.SORT.groups.at(-1).beat) + g.jitter * 0.15;
+      landings.push(secOf(g.start + T.SORT.travel));
     });
     landings.sort((a, b) => a - b);
 
@@ -108,10 +105,8 @@
     const logoPath = new Path2D(L.d);
     logo = { ...L, path: logoPath, outline: parseOutline(L.d, logoPath, 6) };
 
-    // After the chaos, a slow push on the finished map.
-    shots = [
-      { beat: T.SCENES.order[0] + 3, dur: 5, x: W / 2, y: H / 2, z: 1.2 },
-    ];
+    // The camera holds still once the chaos is revealed.
+    shots = [];
   }
 
   // ---------- drawing helpers ----------
@@ -413,7 +408,7 @@
     const entering = b >= A.enter;
     const ui = clamp((b - A.ui) / 0.4);
 
-    const placeOn = clamp((b - (o0 + PLACE_AT)) / 0.5) * (1 - clamp((b - (A.enter - 0.5)) / 0.5));
+    const placeOn = clamp((b - T.SORT.caption) / 0.5) * (1 - clamp((b - (A.enter - 0.5)) / 0.5));
     const veil = placeOn * 0.88;
     if (entering) windowFrame(ctx, WIN, cubicInOut(b - A.enter));
 
@@ -426,8 +421,8 @@
       const sy = g.sy + drift * wob * 7 * Math.cos(t * 0.7 + g.phase * 1.3);
       const srot = g.rot + drift * wob * 0.25 * Math.sin(t * 0.5 + g.phase);
       let x = sx, y = sy, rot = srot, box = SCATTER_BOX * g.scl;
-      if (b >= o0) {
-        const p = spring(t - secOf(o0 + g.delay));
+      if (b >= g.start) {
+        const p = cubicInOut((b - g.start) / T.SORT.travel);
         x = lerp(sx, g.mx, p);
         y = lerp(sy, g.my, p);
         rot = lerp(srot, 0, p);
@@ -454,7 +449,7 @@
     if (ui > 0) screen(ctx, '01-map', WIN, ui);
 
     if (b >= c0 + 0.5 && b < o0 + 2) counter(ctx, b, t);
-    if (b >= o0 + PLACE_AT && b < A.enter) placeCaption(ctx, b, t);
+    if (b >= T.SORT.caption && b < A.enter) placeCaption(ctx, b, t);
   }
 
   function windowFrame(ctx, r, a) {
@@ -498,8 +493,11 @@
     A.features.forEach((f, j) => { if (bd >= f.beat) k = j; });
     const f = A.features[Math.max(0, k)];
     const prev = k > 0 ? A.features[k - 1] : null;
-    const before = k < 0 ? '01-map' : f.from || (prev ? prev.shot : '01-map');
-    const name = k >= 0 && bd >= f.at ? f.shot : before;
+    const lastShot = (x) => x.shot || x.keys.at(-1).shot;
+    let name = k < 0 ? '01-map' : f.from || (prev ? lastShot(prev) : '01-map');
+    let press = null;
+    if (k >= 0 && f.keys) for (const kk of f.keys) { if (bd >= kk.at) name = kk.shot; if (!press || bd >= kk.at - 0.25) press = kk; }
+    else if (k >= 0 && bd >= f.at) name = f.shot;
 
     // Out: the dark app grows to fill the frame and sinks into the ink of the end card.
     const out = cubicInOut((b - A.out) / 0.8);
@@ -508,16 +506,17 @@
       w: lerp(WIN.w, W, out), h: lerp(WIN.h, H, out),
     };
     windowFrame(ctx, r, 1 - out);
-    const push = k >= 0 ? 1 + 0.035 * clamp((b - f.beat) / 1.5) : 1;
-    const focus = f.click ? C[f.click] : [W * 0.6, H * 0.6];
-    screen(ctx, name, r, 1, push, focus[0] / W, focus[1] / H);
+    screen(ctx, name, r);
     const toScreen = ([px, py]) => [r.x + (px / W) * r.w, r.y + (py / H) * r.h];
 
     if (k >= 0 && b < A.out) {
       // The cursor travels from where it last clicked to this feature's target.
       const rest = [W * 0.72, H * 0.62];
       const from = prev && prev.click ? toScreen(C[prev.click]) : (prev ? toScreen(C.pick) : toScreen(rest));
-      if (f.click) {
+      if (f.keys) {
+        cursor(ctx, from[0], from[1], -1);
+        keycap(ctx, press.key, r.x + r.w * 0.63, r.y + r.h * 0.8, t - secOf(press.at));
+      } else if (f.click) {
         const to = toScreen(C[f.click]);
         const u = cubicInOut((b - f.beat) / (f.at - f.beat));
         cursor(ctx, lerp(from[0], to[0], u), lerp(from[1], to[1], u), t - secOf(f.at));
@@ -605,7 +604,7 @@
   }
 
   function placeCaption(ctx, b, t) {
-    const start = T.SCENES.order[0] + PLACE_AT;
+    const start = T.SORT.caption;
     const out = clamp((b - (T.APP.enter - 0.5)) / 0.5);
     const parts = [
       { text: 'Every face,', at: 0, style: 'normal' },

@@ -1,10 +1,11 @@
-// Downloads the latin woff2 subset of each Google Font used by the trailer text.
-import { writeFile, mkdir } from 'node:fs/promises';
+// Downloads the latin woff2 subset of each Google Font used by the trailer text and
+// embeds them as data URLs in assets/fonts.css. Served files would go through the
+// Hugging Face CDN redirect, which has no CORS header, so browsers would refuse them.
+import { writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = join(ROOT, 'assets/fonts');
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36';
 
 export const FONTS = [
@@ -23,7 +24,6 @@ export const FONTS = [
   { id: 'stardos-stencil', family: 'Stardos Stencil', axes: 'wght@700' },
 ];
 
-await mkdir(OUT, { recursive: true });
 const faces = [];
 for (const f of FONTS) {
   const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(f.family)}${f.axes ? ':' + f.axes : ''}&display=block`;
@@ -34,10 +34,9 @@ for (const f of FONTS) {
     const style = /font-style:\s*(\w+)/.exec(b)[1];
     const weight = /font-weight:\s*(\d+)/.exec(b)[1];
     const src = /url\((https:[^)]+\.woff2)\)/.exec(b)[1];
-    const file = `${f.id}-${weight}${style === 'italic' ? 'i' : ''}.woff2`;
-    await writeFile(join(OUT, file), Buffer.from(await (await fetch(src)).arrayBuffer()));
-    faces.push(`@font-face{font-family:'${f.family}';font-style:${style};font-weight:${weight};font-display:block;src:url(fonts/${file}) format('woff2');}`);
-    console.log('ok', file);
+    const data = Buffer.from(await (await fetch(src)).arrayBuffer()).toString('base64');
+    faces.push(`@font-face{font-family:'${f.family}';font-style:${style};font-weight:${weight};font-display:block;src:url(data:font/woff2;base64,${data}) format('woff2');}`);
+    console.log('ok', f.family, weight, style);
   }
 }
 await writeFile(join(ROOT, 'assets/fonts.css'), faces.join('\n') + '\n');

@@ -4,6 +4,14 @@
 
 Live: https://tfrere-font-map.static.hf.space/trailer/index.html
 
+Run it locally (Python 3 only, nothing to install):
+
+```bash
+python3 trailer/scripts/serve.py     # from the repo root, or `npm run serve` inside trailer/
+```
+
+then open http://localhost:8765/index.html.
+
 | Bar | Beats | Chapter | Shot |
 |---|---|---|---|
 | 1 | 0–4 | Anatomy of a letter | Macro shots on the outline of an A with its points, handles and vertical metrics (Apex, Serif, Crossbar, Counter), then a pull back |
@@ -42,7 +50,7 @@ node scripts/build-sounds.mjs                # assets/sounds/src -> assets/sound
 
 `assets/data.js` and `assets/sounds.js` are already built, so the steps above are only needed to regenerate them.
 
-Preview: `python3 scripts/serve.py 8765` (a static server that disables caching) and open `http://localhost:8765/index.html`. The player has a chaptered timeline (hover for the chapter name, click or drag to scrub), a chapter/timecode overlay and a link to the rendered MP4.
+Preview: `python3 scripts/serve.py` (a static server on port 8765 that disables caching) and open `http://localhost:8765/index.html`. The player has a chaptered timeline (hover for the chapter name, click or drag to scrub), a chapter/timecode overlay and a link to the rendered MP4.
 
 | Key | Action |
 |---|---|

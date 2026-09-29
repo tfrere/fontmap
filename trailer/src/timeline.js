@@ -68,7 +68,7 @@
     { beat: 0, name: 'Anatomy of a letter' },
     { beat: 4, name: 'Layers' },
     { beat: 8, name: 'A sea of type' },
-    { beat: 13, name: 'Now, charted' },
+    { beat: 13, name: 'Like finds like' },
     { beat: 22, name: 'Into the app' },
     { beat: 23.5, name: 'Search' },
     { beat: 26, name: 'Select' },

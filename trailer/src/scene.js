@@ -465,7 +465,7 @@
 
     if (b >= s0 + 0.5 && b < S.tide) counter(ctx, b, t);
     phrase(ctx, b, t, S.caption, S.tide - 0.5, 'A sea of ', 'type.', H / 2 + 40);
-    phrase(ctx, b, t, S.charted, A.enter - 0.5, 'Now, ', 'charted.', H / 2 + 40);
+    phrase(ctx, b, t, S.charted, A.enter - 0.5, 'Like finds ', 'like.', H / 2 + 40);
   }
 
   function windowFrame(ctx, r, a) {

@@ -293,8 +293,8 @@
     chord(b(E.tide), [146.83, 220, 293.66, 349.23], 0.07, 0.03, 0.3);
     thump(b(E.land), 0.7);
     chord(b(E.land), [146.83, 220, 293.66, 369.99], 0.08, 0.015, 0.25);
-    typeText(b(E.charted), 'Now,', 0.25, 0.035);
-    typeText(b(E.charted + 0.25), 'charted.', 0.25, 0.035);
+    typeText(b(E.charted), 'Like finds', 0.25, 0.035);
+    typeText(b(E.charted + 0.25), 'like.', 0.25, 0.035);
 
     // Bars 6-9: into the app. A light pulse of keys on the beat, a thud per bar;
     // each action gets its own click or key and a note.

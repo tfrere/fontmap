@@ -17,7 +17,7 @@ then open http://localhost:8765/index.html.
 | 1 | 0–4 | Anatomy of a letter | Macro shots on the outline of an A with its points, handles and vertical metrics (Apex, Serif, Crossbar, Counter), then a pull back |
 | 2 | 4–8 | Layers | Inversion to paper. Each new face is set in ink while the previous ones linger as hairlines, accelerating; the layers clear and Playfair lands |
 | 3–4 | 8–13 | A sea of type | Slow pull back from the Playfair A into all 1,465 glyphs, a sea filling the frame with a running count; a swell rolls through it once a bar — *A sea of type.* |
-| 4–6 | 13–22 | Now, charted | The tide goes out in one long move and leaves the map as islands, landing on the downbeat of bar 5 — *Now, charted.* No camera move |
+| 4–6 | 13–22 | Like finds like | The tide goes out in one long move and leaves the map as islands, landing on the downbeat of bar 5 — *Like finds like.* No camera move |
 | 6 | 22–23.5 | Into the app | Every glyph slides to where the real app draws it; the app appears around the map, framed as a window |
 | 7–9 | 23.5–36 | Search · Select · Navigate · Any glyph · Dark mode | One feature every two beats in the live app, with a cursor or a key: *Search by style.*, *Click any font.*, *Walk to its neighbours.* (arrow keys), *Type any glyph.*, *Go dark.* The dark app grows to fill the frame |
 | 10 | 36–40 | Ink | The wordmark is drawn in outline on its metrics, then inked — *An ode to type.* |

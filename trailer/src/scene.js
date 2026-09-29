@@ -344,14 +344,12 @@
     ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, W, H);
     const shown = T.LAYERS.filter((l) => bd >= l.beat);
-    const landed = bd >= T.LAND;
-    const cur = landed ? { beat: T.LAND, font: 'playfair-display' } : shown[shown.length - 1];
-    const fade = 1 - clamp((b - T.CLEAR) / (T.LAND - T.CLEAR));
+    const cur = shown[shown.length - 1];
 
     ctx.strokeStyle = INK;
-    shown.slice(0, landed ? shown.length : -1).forEach((l, j, all) => {
+    shown.slice(0, -1).forEach((l, j, all) => {
       const age = all.length - j;
-      ctx.globalAlpha = fade * Math.max(0.12, 0.55 - age * 0.05);
+      ctx.globalAlpha = Math.max(0.12, 0.55 - age * 0.05);
       const k = GIANT_BOX / 80;
       ctx.setTransform(k, 0, 0, k, W / 2 - 40 * k, H / 2 - 40 * k);
       ctx.lineWidth = 1.3 / k;

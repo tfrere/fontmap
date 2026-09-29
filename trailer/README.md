@@ -15,7 +15,7 @@ then open http://localhost:8765/index.html.
 | Bar | Beats | Chapter | Shot |
 |---|---|---|---|
 | 1 | 0–4 | Anatomy of a letter | Macro shots on the outline of an A with its points, handles and vertical metrics (Apex, Serif, Crossbar, Counter), then a pull back |
-| 2 | 4–8 | Layers | Inversion to paper. Each new face is set in ink while the previous ones linger as hairlines, accelerating; the layers clear and Playfair lands |
+| 2 | 4–8 | Layers | Inversion to paper. Each new face is set in ink while the previous ones linger as hairlines, on eighths, then sixteenths, then thirty-seconds; the stack drops to Playfair alone on the downbeat of bar 3, where the sea begins |
 | 3–4 | 8–13 | A sea of type | Slow pull back from the Playfair A into all 1,465 glyphs, a sea filling the frame with a running count; a swell rolls through it once a bar — *A sea of type.* |
 | 4–6 | 13–22 | Like finds like | The tide goes out in one long move and leaves the map as islands, landing on the downbeat of bar 5 — *Like finds like.* No camera move |
 | 6 | 22–23.5 | Into the app | Every glyph slides to where the real app draws it; the app appears around the map, framed as a window |

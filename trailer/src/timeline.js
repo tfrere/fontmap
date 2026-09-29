@@ -16,7 +16,8 @@
   const INVERT_BEAT = 4;
 
   // Bar 2, on paper: each new face is set in ink while the previous ones stay
-  // behind as hairlines, accelerating; then the layers clear and Playfair lands.
+  // behind as hairlines, on eighths, then sixteenths, then thirty-seconds; the
+  // stack drops to Playfair alone on the downbeat of bar 3, where the sea begins.
   const LAYERS = [
     { beat: 4, font: 'playfair-display' },
     { beat: 4.5, font: 'bebas-neue' },
@@ -28,9 +29,12 @@
     { beat: 6.75, font: 'pacifico' },
     { beat: 7, font: 'roboto-slab' },
     { beat: 7.25, font: 'libre-franklin' },
+    { beat: 7.5, font: 'lobster' },
+    { beat: 7.625, font: 'monoton' },
+    { beat: 7.75, font: 'cinzel' },
+    { beat: 7.875, font: 'vt323' },
   ];
-  const CLEAR = 7.5;
-  const LAND = 7.75;
+  const LAND = 8;
 
   // Bars 3-5, a sea of type: the camera pulls back from the A into 1,465 A's rolling
   // like water under a slow swell, then the tide goes out in one long move and
@@ -85,5 +89,5 @@
     logo: [36, 40],
   };
 
-  window.TIMELINE = { BPM, BEAT, BARS, DURATION, MACRO, INVERT_BEAT, LAYERS, CLEAR, LAND, SEA, APP, INK_BEAT, CHAPTERS, SCENES };
+  window.TIMELINE = { BPM, BEAT, BARS, DURATION, MACRO, INVERT_BEAT, LAYERS, LAND, SEA, APP, INK_BEAT, CHAPTERS, SCENES };
 })();

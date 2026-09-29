@@ -267,14 +267,16 @@
     bell(b(T.MACRO[3].beat), 0.6);
     carriage(b(T.INVERT_BEAT), 0.8);
 
-    // Bar 2: inversion; one key per new face, then Playfair lands.
+    // Bar 2: inversion; one key per new face, rolling faster and a touch louder,
+    // then the drop to Playfair on the downbeat of bar 3.
     impact(b(T.INVERT_BEAT), 0.8);
     T.LAYERS.slice(1).forEach((l) => {
-      const onEighth = Number.isInteger(l.beat * 2);
-      key(b(l.beat), onEighth ? 0.5 : 0.35, 0.9 + r() * 0.25, (r() - 0.5) * 0.4, 0.08);
+      const k = (l.beat - T.INVERT_BEAT) / (T.LAND - T.INVERT_BEAT);
+      key(b(l.beat), 0.3 + 0.2 * k, 0.9 + r() * 0.25, (r() - 0.5) * 0.4, 0.08);
       if (Number.isInteger(l.beat)) thump(b(l.beat), 0.5);
     });
-    thump(b(T.LAND), 0.7);
+    impact(b(T.LAND), 0.55);
+    thump(b(T.LAND), 0.8);
     key(b(T.LAND), 0.5, 0.8);
     drone(b(T.INVERT_BEAT), b(S.app[1] - 0.5), [36.71, 73.42, 110], 0.045, 200, 2200);
 

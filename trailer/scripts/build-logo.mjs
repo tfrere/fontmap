@@ -1,5 +1,6 @@
 // Sets the end-card wordmark in Playfair Display with its real outlines and kerning
 // and writes the path plus vertical metrics (in font units, baseline at y = 0) to assets/logo.js.
+import { spawnSync } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,3 +27,7 @@ const logo = {
 };
 await writeFile(join(ROOT, 'assets/logo.js'), 'window.LOGO=' + JSON.stringify(logo) + ';\n');
 console.log(WORD, 'width', logo.width, 'cap', logo.capHeight, 'x', logo.xHeight);
+
+// Overlapping contours merged into one outline (also re-merges assets/data.js).
+const merge = spawnSync('python3', [join(ROOT, 'scripts/merge-outlines.py')], { stdio: 'inherit' });
+if (merge.status !== 0) throw new Error('scripts/merge-outlines.py failed (pip install skia-pathops fonttools freetype-py numpy)');

@@ -74,7 +74,7 @@
 
     const L = window.LOGO;
     const logoPath = new Path2D(L.d);
-    logo = { ...L, path: logoPath, outline: parseOutline(L.d, logoPath, 6) };
+    logo = { ...L, path: logoPath, outline: parseOutline(L.d) };
 
   }
 
@@ -187,16 +187,16 @@
     label(ctx, styleOf(fi), 96, H - 96, fg, 'left', alpha);
   }
 
-  // On-curve points, off-curve handles and bounds of an SVG path, for the construction view.
+  // On-curve points, off-curve handles and bounds of an SVG path, for the construction
+  // view. Outlines are merged at build time (scripts/merge-outlines.py), so every
+  // point is on the visible edge.
   const outlines = new Map();
-  const probe = document.createElement('canvas').getContext('2d');
   function outline(fi) {
-    if (!outlines.has(fi)) outlines.set(fi, parseOutline(window.FONTMAP_DATA.glyphs.A[fi], paths.A[fi]));
+    if (!outlines.has(fi)) outlines.set(fi, parseOutline(window.FONTMAP_DATA.glyphs.A[fi]));
     return outlines.get(fi);
   }
 
-  // Points buried inside the filled shape (overlapping contours) are flagged hidden.
-  function parseOutline(d, path2d, eps = 0.7) {
+  function parseOutline(d) {
     const tokens = d.match(/[a-zA-Z]|-?\d*\.?\d+(?:e[-+]?\d+)?/g) || [];
     const on = [], off = [];
     let i = 0, cmd = '', x = 0, y = 0, sx = 0, sy = 0, px = 0, py = 0;
@@ -224,14 +224,7 @@
       if (!/[QTCS]/i.test(cmd)) { px = x; py = y; }
     }
     const xs = on.map((p) => p[0]), ys = on.map((p) => p[1]);
-    const buried = ([u, v]) => [[eps, eps], [-eps, eps], [eps, -eps], [-eps, -eps]].every(([du, dv]) => probe.isPointInPath(path2d, u + du, v + dv));
-    const o = {
-      on, off,
-      onVisible: on.map((p) => !buried(p)),
-      offVisible: off.map((p) => !buried(p) && !buried([p[2], p[3]])),
-      minX: Math.min(...xs), maxX: Math.max(...xs), top: Math.min(...ys), base: Math.max(...ys),
-    };
-    return o;
+    return { on, off, minX: Math.min(...xs), maxX: Math.max(...xs), top: Math.min(...ys), base: Math.max(...ys) };
   }
 
   // The A as a type designer sees it: outline, points, handles and vertical metrics.
@@ -261,30 +254,24 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Overlapping contours (a crossbar drawn over the stems) would show inner
-    // lines: stroke twice as wide, then fill with the background so only the
-    // outer edge of the merged shape remains.
     ctx.globalAlpha = alpha;
-    ctx.lineWidth = 4.4 * px;
+    ctx.lineWidth = 2.2 * px;
     ctx.stroke(paths.A[fi]);
-    ctx.fillStyle = bg;
-    ctx.fill(paths.A[fi]);
 
     ctx.globalAlpha = 0.5 * alpha;
     ctx.lineWidth = px;
     ctx.beginPath();
-    o.off.forEach(([hx, hy, ax, ay], j) => { if (o.offVisible[j]) { ctx.moveTo(ax, ay); ctx.lineTo(hx, hy); } });
+    o.off.forEach(([hx, hy, ax, ay]) => { ctx.moveTo(ax, ay); ctx.lineTo(hx, hy); });
     ctx.stroke();
 
     ctx.globalAlpha = alpha;
     ctx.lineWidth = 1.4 * px;
-    o.off.forEach(([hx, hy], j) => {
-      if (!o.offVisible[j]) return;
+    o.off.forEach(([hx, hy]) => {
       ctx.beginPath(); ctx.arc(hx, hy, 4.5 * px, 0, Math.PI * 2); ctx.fillStyle = bg; ctx.fill(); ctx.stroke();
     });
     const sq = 9 * px;
     ctx.fillStyle = color;
-    o.on.forEach(([ax, ay], j) => { if (o.onVisible[j]) ctx.fillRect(ax - sq / 2, ay - sq / 2, sq, sq); });
+    o.on.forEach(([ax, ay]) => ctx.fillRect(ax - sq / 2, ay - sq / 2, sq, sq));
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
 
@@ -707,24 +694,21 @@
     if (inked < 1) {
       ctx.globalAlpha = draw * (1 - inked);
       ctx.strokeStyle = PAPER;
-      ctx.lineWidth = 4.4 * px;
+      ctx.lineWidth = 2.2 * px;
       ctx.stroke(logo.path);
-      ctx.fillStyle = INK;
-      ctx.fill(logo.path);
       ctx.lineWidth = px;
       ctx.globalAlpha = 0.5 * draw * (1 - inked);
       ctx.beginPath();
-      o.off.forEach(([hx, hy, ax, ay], j) => { if (o.offVisible[j]) { ctx.moveTo(ax, ay); ctx.lineTo(hx, hy); } });
+      o.off.forEach(([hx, hy, ax, ay]) => { ctx.moveTo(ax, ay); ctx.lineTo(hx, hy); });
       ctx.stroke();
       ctx.globalAlpha = draw * (1 - inked);
       ctx.lineWidth = 1.4 * px;
-      o.off.forEach(([hx, hy], j) => {
-        if (!o.offVisible[j]) return;
+      o.off.forEach(([hx, hy]) => {
         ctx.beginPath(); ctx.arc(hx, hy, 2.6 * px, 0, Math.PI * 2); ctx.fillStyle = INK; ctx.fill(); ctx.stroke();
       });
       const sq = 5.5 * px;
       ctx.fillStyle = PAPER;
-      o.on.forEach(([ax, ay], j) => { if (o.onVisible[j]) ctx.fillRect(ax - sq / 2, ay - sq / 2, sq, sq); });
+      o.on.forEach(([ax, ay]) => ctx.fillRect(ax - sq / 2, ay - sq / 2, sq, sq));
     }
     if (inked > 0) {
       ctx.globalAlpha = inked;

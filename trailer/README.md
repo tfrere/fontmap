@@ -37,18 +37,20 @@ Impacts, thuds, drone, surf and plucks are synthesised with the Web Audio API in
 
 ## Usage
 
-Requires Node 18+, Google Chrome and ffmpeg.
+Requires Node 18+, Google Chrome and ffmpeg; rebuilding the glyph data also needs Python 3 with `pip install skia-pathops fonttools freetype-py numpy`.
 
 ```bash
 npm install
 node scripts/fetch-fonts.mjs                 # Google Fonts woff2 -> assets/fonts
-node scripts/build-data.mjs                  # ../public/data -> assets/data.js
+node scripts/build-data.mjs                  # ../public/data -> assets/data.js (then merges overlapping contours)
 node scripts/build-logo.mjs                  # assets/ttf -> assets/logo.js (end-card wordmark outlines)
 node scripts/capture-app.mjs                 # live app -> assets/app.js (screens + glyph positions)
 node scripts/build-sounds.mjs                # assets/sounds/src -> assets/sounds.js (needs the source recordings, not committed)
 ```
 
 `assets/data.js` and `assets/sounds.js` are already built, so the steps above are only needed to regenerate them.
+
+Many sprites draw a crossbar or a serif as its own contour laid over the stems, which shows as lines through the letter once it is stroked. `scripts/merge-outlines.py` (run by `build-data.mjs` and `build-logo.mjs`) merges every glyph and the wordmark into one outline with Skia's path ops, and keeps the original wherever the merged shape would fill differently.
 
 Preview: `python3 scripts/serve.py` (a static server on port 8765 that disables caching) and open `http://localhost:8765/index.html`, or open `index.html` straight from disk.
 

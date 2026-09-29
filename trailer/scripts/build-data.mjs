@@ -1,5 +1,6 @@
 // Extracts from a FontMap checkout the map positions, neighbours, style tags and
 // the glyph outlines the trailer needs, into assets/data.js.
+import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -49,3 +50,7 @@ const out = {
 };
 await writeFile(join(ROOT, 'assets/data.js'), 'window.FONTMAP_DATA=' + JSON.stringify(out) + ';\n');
 console.log('fonts', out.fonts.length);
+
+// Overlapping contours merged into one outline per glyph.
+const merge = spawnSync('python3', [join(ROOT, 'scripts/merge-outlines.py')], { stdio: 'inherit' });
+if (merge.status !== 0) throw new Error('scripts/merge-outlines.py failed (pip install skia-pathops fonttools freetype-py numpy)');

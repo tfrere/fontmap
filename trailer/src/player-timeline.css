@@ -1,0 +1,115 @@
+/* Player timeline (src/player-timeline.js), from the Reachy Mini trailer, with
+   the yellow accent swapped for paper white. Theme through the custom
+   properties below; everything else is scoped under .tl. */
+.tl {
+  --tl-accent: #fcfbf8;
+  --tl-ink: #0b0b0c;
+  --tl-clip: #333;
+  --tl-clip-hover: #555;
+  --tl-wave: #4a4a4a;
+  --tl-grid: #ffffff24;
+  --tl-beat: #fcfbf880;
+  --tl-beatline: #ffffff38;
+  --tl-tick: #6a6a6a;
+  --tl-text: #f3efe6;
+  --tl-muted: #8a8a8a;
+  --tl-tip-bg: #1c1c1c;
+  --tl-gutter: 78px;
+  /* Edit view rows, on a 6 px rhythm. */
+  --tl-gap: 6px;
+  --tl-ruler-h: 20px;
+  --tl-name: 16px;
+  --tl-shot: 60px;
+  --tl-music-h: 44px;
+  --tl-sfx-h: 16px;
+  position: relative;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.tl:focus, .tl:focus-visible { outline: none; }
+.tl-scroll { position: relative; overflow: hidden; }
+.tl-body { position: relative; }
+.tl-clips { position: relative; display: flex; gap: 2px; }
+.tl-clip { position: relative; flex-basis: 0; min-width: 0; overflow: hidden; background: var(--tl-clip); border-radius: 2px; }
+.tl-clip.hover { background: var(--tl-clip-hover); }
+.tl-fill { position: absolute; inset: 0; background: var(--tl-accent); transform-origin: left; transform: scaleX(0); }
+.tl-gutter, .tl-ruler, .tl-wave, .tl-sfx, .tl-strip, .tl-label, .tl-chip { display: none; }
+.tl-wave canvas, .tl-ruler canvas { position: absolute; left: 0; top: 0; }
+.tl-wave-lit { position: absolute; left: 0; top: 0; bottom: 0; overflow: hidden; }
+.tl-head { position: absolute; left: 0; top: 0; pointer-events: none; }
+.tl-tip { position: absolute; bottom: calc(100% + 12px); transform: translateX(-50%); display: none; flex-direction: column; gap: 4px; padding: 6px 10px 7px; border-radius: 6px; background: var(--tl-tip-bg); color: #eee; font-size: 12px; letter-spacing: 0.06em; white-space: nowrap; pointer-events: none; }
+.tl:hover .tl-tip:not(.off) { display: flex; }
+.tl-tip img { display: none; width: 192px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 3px; background: #111; margin-bottom: 2px; }
+.tl-tip.has-img img { display: block; }
+.tl-tip-frame { display: none; width: 192px; aspect-ratio: 16 / 9; border-radius: 3px; background: #111 no-repeat; margin-bottom: 2px; }
+.tl.has-frames .tl-tip-frame { display: block; }
+.tl-film { display: none; position: absolute; left: 0; top: 0; pointer-events: none; }
+.tl-tip-meta { color: var(--tl-muted); font-size: 10px; white-space: pre; }
+.tl-tip-meta:empty { display: none; }
+
+/* Light: a viewer bar. Chapters fill up in white; a knob shows on hover. */
+.tl[data-mode='light'] .tl-scroll { padding: 10px 0; overflow: visible; }
+.tl[data-mode='light'] .tl-clips { height: 9px; transform: scaleY(0.56); transition: transform 0.12s; }
+.tl[data-mode='light']:hover .tl-clips { transform: none; }
+.tl[data-mode='light'] .tl-head { top: 50%; }
+.tl[data-mode='light'] .tl-head::before { content: ''; position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; background: var(--tl-accent); transform: scale(0); transition: transform 0.12s; }
+.tl[data-mode='light']:hover .tl-head::before { transform: scale(1); }
+
+/* Expanded: an edit view. Track headers on the left, lanes on the right
+   (zoomable): ruler, shots (name over image), music with the beat grid,
+   sound effects. Headers sit on their lane's first line. */
+.tl[data-mode='expanded'] { display: grid; grid-template-columns: var(--tl-gutter) 1fr; }
+.tl[data-mode='expanded'] .tl-gutter { display: block; padding-top: var(--tl-gap); }
+.tl-gh { display: flex; align-items: center; margin-top: var(--tl-gap); padding-right: 10px; color: var(--tl-muted); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+.tl-gh-ruler { height: var(--tl-ruler-h); margin-top: 0; gap: 3px; }
+.tl-gh-shots { display: grid; grid-template-rows: var(--tl-name) 1fr; align-items: center; justify-items: start; height: calc(var(--tl-name) + var(--tl-shot)); }
+.tl-gh-music { height: var(--tl-music-h); }
+.tl-gh-sfx { height: var(--tl-sfx-h); }
+.tl-zoom, .tl-toggle { font: inherit; color: var(--tl-muted); background: none; border: 1px solid #333; border-radius: 3px; cursor: pointer; }
+.tl-zoom { flex: none; width: 18px; height: 16px; padding: 0; line-height: 14px; font-size: 11px; }
+.tl-zoom-fit { width: auto; padding: 0 4px; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+.tl-zoom:disabled { opacity: 0.35; cursor: default; }
+.tl-toggle { height: 16px; padding: 0 5px; line-height: 14px; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+.tl-toggle[aria-pressed='true'] { color: var(--tl-accent); border-color: var(--tl-accent); }
+.tl-zoom:enabled:hover, .tl-toggle:hover { color: var(--tl-text); border-color: #555; }
+.tl-zoom:focus-visible, .tl-toggle:focus-visible { outline: 1px solid var(--tl-accent); outline-offset: 1px; }
+
+.tl[data-mode='expanded'] .tl-scroll { overflow-x: auto; padding: var(--tl-gap) 0; scrollbar-width: thin; scrollbar-color: #444 transparent; }
+.tl[data-mode='expanded'] .tl-ruler { display: block; position: relative; height: var(--tl-ruler-h); }
+/* Shots: a name line (lightly tinted, so cuts show) over the image. */
+.tl[data-mode='expanded'] .tl-clips { height: calc(var(--tl-name) + var(--tl-shot)); margin-top: var(--tl-gap); }
+.tl[data-mode='expanded'] .tl-clip { border-radius: 3px; background: none; }
+.tl[data-mode='expanded'] .tl-clip::before { content: ''; position: absolute; inset: 0; background: linear-gradient(#ffffff0a var(--tl-name), #1a1a1a 0); pointer-events: none; }
+.tl[data-mode='expanded'] .tl-clip.hover::before { background: linear-gradient(#ffffff14 var(--tl-name), #1a1a1a 0); }
+.tl[data-mode='expanded'] .tl-clip.on::before { background: linear-gradient(#fcfbf817 var(--tl-name), #1a1a1a 0); }
+.tl[data-mode='expanded'] .tl-clip::after { content: ''; position: absolute; inset: var(--tl-name) 0 0; border: 1px solid #ffffff14; border-radius: 0 0 3px 3px; pointer-events: none; }
+.tl[data-mode='expanded'] .tl-clip.on::after { border: 2px solid var(--tl-accent); }
+.tl[data-mode='expanded'] .tl-fill { display: none; }
+.tl[data-mode='expanded'] .tl-strip { display: block; position: absolute; inset: var(--tl-name) 0 0; background: left center / auto 100% no-repeat; opacity: 0.8; transition: opacity 0.12s; }
+.tl[data-mode='expanded'] .tl-clip.hover .tl-strip { opacity: 1; }
+.tl[data-mode='expanded'] .tl-label { display: block; position: absolute; z-index: 4; left: 0; right: 0; top: 0; height: var(--tl-name); padding: 0 6px; line-height: var(--tl-name); color: #9a9a9a; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl[data-mode='expanded'] .tl-clip.hover .tl-label { color: var(--tl-text); }
+.tl[data-mode='expanded'] .tl-clip.on .tl-label { color: var(--tl-accent); }
+.tl[data-mode='expanded'] .tl-clip.narrow .tl-label { display: none; }
+/* With the frames sprite: a filmstrip canvas under the clips, dimmed a little
+   except under the pointer. */
+.tl.has-frames[data-mode='expanded'] .tl-film { display: block; top: var(--tl-name); }
+.tl.has-frames[data-mode='expanded'] .tl-strip { display: none; }
+.tl.has-frames[data-mode='expanded'] .tl-clip::before { background: linear-gradient(#ffffff0a var(--tl-name), #0b0b0c33 0); }
+.tl.has-frames[data-mode='expanded'] .tl-clip.hover::before { background: linear-gradient(#ffffff14 var(--tl-name), transparent 0); }
+.tl.has-frames[data-mode='expanded'] .tl-clip.on::before { background: linear-gradient(#fcfbf817 var(--tl-name), transparent 0); }
+.tl[data-mode='expanded'] .tl-wave { display: block; position: relative; height: var(--tl-music-h); margin-top: var(--tl-gap); }
+.tl[data-mode='expanded'] .tl-sfx { display: block; position: relative; height: var(--tl-sfx-h); margin-top: var(--tl-gap); }
+.tl-event { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: var(--tl-wave); box-shadow: 0 0 0 1px var(--tl-ink); font-size: 9px; line-height: 16px; letter-spacing: 0.04em; white-space: nowrap; }
+.tl-event span { display: none; position: absolute; top: 0; }
+.tl-event.inside span { display: block; left: 5px; color: #d0d0d0; }
+.tl-event.side span { display: block; left: calc(100% + 4px); color: var(--tl-muted); }
+.tl-event.lit { background: var(--tl-accent); }
+.tl-event.inside.lit span { color: var(--tl-ink); }
+.tl-event.side.lit span { color: var(--tl-accent); }
+/* Playhead: a timecode chip on the ruler and a line through the lanes,
+   behind the shot names. */
+.tl[data-mode='expanded'] .tl-head { z-index: 3; bottom: 0; width: 0; }
+.tl[data-mode='expanded'] .tl-head::after { content: ''; position: absolute; left: -1px; top: var(--tl-ruler-h); bottom: 0; width: 2px; background: var(--tl-accent); }
+.tl[data-mode='expanded'] .tl-chip { display: block; position: absolute; top: 2px; padding: 1px 5px; border-radius: 2px; background: var(--tl-accent); color: var(--tl-ink); font-size: 10px; line-height: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }

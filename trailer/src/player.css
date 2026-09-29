@@ -11,7 +11,16 @@ html, body { margin: 0; height: 100%; background: #0b0b0b; overflow: hidden; fon
 #viewport { position: absolute; inset: 0; overflow: hidden; }
 #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--ink); overflow: hidden; }
 #c { position: absolute; inset: 0; width: 1920px; height: 1080px; }
-#loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #777; font-size: 26px; letter-spacing: 0.08em; background: var(--ink); }
+/* Loader, as in the Reachy Mini trailer: the arc grows as each step lands. */
+.ld-overlay { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: var(--bar); transition: opacity 0.3s ease; }
+.ld-overlay.ld-out { opacity: 0; pointer-events: none; }
+body.render .ld-overlay { display: none; }
+.ld-ring { width: 56px; height: 56px; overflow: visible; animation: ld-spin 1.1s linear infinite; }
+.ld-ring circle { fill: none; stroke-width: 2; }
+.ld-track { stroke: var(--paper); opacity: 0.12; }
+.ld-arc { stroke: var(--paper); stroke-linecap: round; stroke-dasharray: 0.12 1; transition: stroke-dasharray 0.25s ease; }
+@keyframes ld-spin { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) { .ld-ring { animation-duration: 4s; } }
 
 /* Chapter / timecode overlay, inverted over whatever is underneath. */
 #hud { position: absolute; inset: 0; display: none; color: #fff; mix-blend-mode: difference; pointer-events: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.45; }
@@ -82,5 +91,5 @@ body.idle #controls { opacity: 0; transform: translateY(10px); pointer-events: n
 #chapter { min-width: 190px; color: var(--paper); letter-spacing: 0.08em; white-space: nowrap; }
 
 body.render { background: #000; }
-body.render #controls, body.render #loading, body.render #hud { display: none; }
+body.render #controls, body.render #hud { display: none; }
 body.render #viewport { inset: 0; }

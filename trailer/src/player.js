@@ -58,7 +58,22 @@
     contactSheet,
     audioWavBase64: () => window.Score.renderWavBase64(window.Trailer.landings),
   };
-  if (renderMode) return;
+  const loader = document.querySelector('.ld-overlay');
+  if (renderMode) {
+    loader.remove();
+    return;
+  }
+  let ldDone = 0;
+  let ldTotal = 0;
+  const step = (p) => {
+    ldTotal++;
+    return p.then((v) => {
+      const k = ++ldDone / ldTotal;
+      loader.setAttribute('aria-valuenow', String(Math.round(k * 100)));
+      loader.querySelector('.ld-arc').style.strokeDasharray = `${0.12 + 0.76 * k} 1`;
+      return v;
+    });
+  };
 
   const { Timeline, timecode, clock: mmss } = window.PlayerTimeline;
   const D = T.DURATION;
@@ -235,7 +250,9 @@
 
   const audioReady = readyPromise.then(() => window.Score.render(window.Trailer.landings));
 
-  Promise.all([readyPromise, audioReady]).then(([, buf]) => {
+  // Key frames are drawn synchronously: yield a frame first so the loader can paint its progress.
+  const framesPainted = Promise.all([readyPromise, audioReady]).then(() => new Promise(requestAnimationFrame));
+  Promise.all([step(readyPromise), step(audioReady), step(framesPainted)]).then(([, buf]) => {
     buffer = buf;
     const narrow = matchMedia('(max-width: 640px)').matches;
     let savedMode = 'light';
@@ -359,7 +376,8 @@
 
     showHud();
     fit();
-    document.getElementById('loading').remove();
+    loader.classList.add('ld-out');
+    setTimeout(() => loader.remove(), 350);
     requestAnimationFrame(loop);
     buildFrames(tl);
   });

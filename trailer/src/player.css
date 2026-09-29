@@ -8,7 +8,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #0b0b0b; overflow: hidden; font-family: 'Space Mono', monospace; }
 
-#viewport { position: absolute; inset: 0 0 64px 0; overflow: hidden; }
+#viewport { position: absolute; inset: 0; overflow: hidden; }
 #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--ink); overflow: hidden; }
 #c { position: absolute; inset: 0; width: 1920px; height: 1080px; }
 #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #777; font-size: 26px; letter-spacing: 0.08em; background: var(--ink); }
@@ -25,25 +25,61 @@ html, body { margin: 0; height: 100%; background: #0b0b0b; overflow: hidden; fon
 #hud .prog { left: 20px; right: 20px; bottom: 8px; height: 2px; background: rgba(255, 255, 255, 0.35); }
 #hud .prog i { display: block; height: 100%; background: #fff; transform-origin: left; transform: scaleX(0); }
 
-/* Player controls */
-#controls { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; display: flex; align-items: center; gap: 16px; padding: 0 18px; background: var(--bar); color: #ddd; font-size: 13px; border-top: 1px solid #222; user-select: none; }
-#controls button { height: 34px; min-width: 40px; padding: 0 12px; background: #1c1c1c; color: #ddd; border: 1px solid #333; border-radius: 6px; font: inherit; cursor: pointer; }
-#controls #play { background: var(--paper); color: var(--ink); border: 0; font-size: 14px; }
-#controls button[aria-pressed="true"] { color: var(--paper); border-color: var(--paper); }
-#controls button:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
-#timeline { position: relative; flex: 1; height: 32px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
-#timeline .segs { display: flex; gap: 3px; width: 100%; height: 5px; transition: height 0.12s; }
-#timeline:hover .segs { height: 9px; }
-#timeline .seg { position: relative; flex-basis: 0; height: 100%; background: var(--mute); border-radius: 2px; overflow: hidden; }
-#timeline .seg.hover { background: #5c5c5c; }
-#timeline .seg i { position: absolute; inset: 0; background: var(--paper); transform-origin: left; transform: scaleX(0); }
-#timeline .head { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--paper); pointer-events: none; }
-#timeline .tip { position: absolute; bottom: 36px; transform: translateX(-50%); background: #1c1c1c; color: #eee; padding: 6px 10px; border-radius: 6px; white-space: nowrap; font-size: 12px; letter-spacing: 0.06em; display: none; pointer-events: none; }
-#timeline:hover .tip { display: block; }
+/* Player controls, as in the Reachy Mini trailer, in black and white */
+#controls { position: absolute; left: 0; right: 0; bottom: 0; min-height: 64px; display: flex; flex-wrap: wrap; align-items: center; column-gap: 16px; padding: 0 18px; background: #0b0b0c; color: #ddd; font-size: 13px; border-top: 1px solid #222; user-select: none; }
+#play, #mute, #overlay, #tlmode, #download { box-sizing: border-box; height: 34px; min-width: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; background: #1c1c1c; color: #ddd; border: 1px solid #333; border-radius: 6px; font: inherit; text-decoration: none; white-space: nowrap; cursor: pointer; transition: color 0.12s, border-color 0.12s; }
+#mute:hover, #overlay:hover, #tlmode:hover, #download:hover { color: #fff; border-color: #555; }
+#controls #play { width: 34px; min-width: 0; padding: 0; justify-content: center; background: var(--paper); color: var(--ink); border: 0; }
+#play:focus-visible, #mute:focus-visible, #overlay:focus-visible, #tlmode:focus-visible, #download:focus-visible, #volume:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+#controls svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+/* Right cluster: Overlay (edit view only, appears on the left so the rest never moves), Edit view, MP4 */
+#right { margin-left: auto; gap: 10px; }
+#controls #overlay { display: none; padding: 0 11px; }
+#controls.tl-open #overlay { display: inline-flex; animation: ctl-in 200ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+@keyframes ctl-in { from { opacity: 0; transform: translateX(12px); } }
+@media (prefers-reduced-motion: reduce) { #controls.tl-open #overlay { animation: none; } }
+#overlay i { box-sizing: border-box; width: 9px; height: 9px; border: 1px solid #666; border-radius: 2px; transition: background-color 0.12s, border-color 0.12s; }
+#overlay[aria-pressed='true'] i { background: var(--paper); border-color: var(--paper); }
+#controls #download { gap: 6px; padding: 0 11px 0 9px; }
+#download svg { width: 14px; height: 14px; }
+/* Volume: mute button + short slider, next to play */
+#vol { gap: 8px; }
+#controls #mute { width: 34px; min-width: 0; padding: 0; justify-content: center; }
+#mute .spk { fill: currentColor; stroke: none; }
+#mute .x, #mute[aria-pressed='true'] .w1, #mute[aria-pressed='true'] .w2, #mute[data-level='0'] .w1, #mute[data-level='0'] .w2, #mute[data-level='1'] .w2 { display: none; }
+#mute[aria-pressed='true'] .x, #mute[data-level='0'] .x { display: inline; }
+/* Grey fill at rest, so it doesn't read as a second progress bar next to the timeline */
+#volume { --fill: 100%; --fill-color: #9a9a9a; width: 72px; height: 18px; margin: 0; -webkit-appearance: none; appearance: none; background: none; cursor: pointer; border-radius: 3px; }
+#volume::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--fill-color) var(--fill), #333 var(--fill)); }
+#volume::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--fill-color) var(--fill), #333 var(--fill)); }
+#volume::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; margin-top: -4px; border: 0; border-radius: 50%; background: #ddd; transition: transform 70ms, background-color 70ms; }
+#volume::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: #ddd; }
+#vol:hover #volume, #volume:focus-visible, #volume:active { --fill-color: var(--paper); }
+#volume:hover::-webkit-slider-thumb, #volume:active::-webkit-slider-thumb { transform: scale(1.2); background: #fff; }
+@media (max-width: 1000px) { #controls #volume { display: none; } }
+#controls { transition: opacity 0.35s, transform 0.35s; }
+/* Rows stick to the bottom, so the open / close height animation reveals the timeline above the buttons */
+#controls { align-content: flex-end; }
+body.idle { cursor: none; }
+body.idle #controls { opacity: 0; transform: translateY(10px); pointer-events: none; }
+#timeline { flex: 1; min-width: 0; }
+#controls.tl-open { padding-top: 6px; }
+#controls.tl-open #timeline { flex: 1 0 100%; order: -1; }
+#controls.tl-open #tlmode { color: var(--paper); border-color: var(--paper); }
+/* Shortcut keycap: depth is a shadow, not a border, so pressing it doesn't move the label */
+#controls #tlmode { gap: 9px; padding-right: 8px; }
+#tlmode kbd { box-sizing: border-box; width: 18px; height: 17px; margin-top: -2px; display: inline-grid; place-items: center; font-family: inherit; font-size: 10px; font-weight: 500; line-height: 1; color: #9a9a9a; background: #262626; border: 1px solid #3a3a3a; border-radius: 4px; box-shadow: 0 2px 0 #333; transition: transform 70ms, box-shadow 70ms, color 70ms, background-color 70ms, border-color 70ms; }
+#tlmode.down kbd { transform: translateY(2px); box-shadow: 0 0 0 #333; color: #fff; background: #303030; border-color: #4a4a4a; }
+#controls.tl-open #tlmode kbd { color: var(--paper); background: #2a2a2a; border-color: #6a6a6a; box-shadow: 0 2px 0 #444; }
+#controls.tl-open #tlmode.down kbd { box-shadow: 0 0 0 #444; color: #fff; background: #333; border-color: #888; }
+#controls > :not(#timeline) { flex: none; height: 34px; margin-block: 15px; display: inline-flex; align-items: center; }
 #time { font-variant-numeric: tabular-nums; min-width: 96px; }
-#chapter { min-width: 210px; color: var(--paper); letter-spacing: 0.08em; white-space: nowrap; }
-#download { color: #ddd; text-decoration: none; white-space: nowrap; }
-#download:hover, #download:focus-visible { color: var(--paper); outline: none; }
+#controls.tl-open #time { min-width: 150px; }
+@media (max-width: 640px) {
+  #controls { flex-wrap: nowrap; column-gap: 12px; padding: 0 12px; }
+  #controls > #chapter, #controls #tlmode, #controls #overlay, #controls #volume { display: none; }
+}
+#chapter { min-width: 190px; color: var(--paper); letter-spacing: 0.08em; white-space: nowrap; }
 
 body.render { background: #000; }
 body.render #controls, body.render #loading, body.render #hud { display: none; }

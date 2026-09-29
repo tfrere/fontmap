@@ -5,6 +5,7 @@
   <title>FontMap — trailer</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="src/player-timeline.css">
   <link rel="stylesheet" href="src/player.css">
 </head>
 <body>
@@ -23,12 +24,20 @@
   </div>
   <div id="controls">
     <button id="play" aria-label="Play or pause">▶</button>
-    <div id="timeline" aria-label="Timeline"><div class="segs"></div><div class="head"></div><div class="tip"></div></div>
-    <span id="time">0:00 / 0:17</span>
+    <div id="vol">
+      <button id="mute" aria-pressed="false" aria-label="Mute" aria-keyshortcuts="M" title="Mute (M)" data-level="2">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path class="spk" d="M2.5 6h2.5l3.5-3v10l-3.5-3h-2.5z" /><path class="w1" d="M10.8 6.2a2.6 2.6 0 0 1 0 3.6" /><path class="w2" d="M12.6 4.2a5.4 5.4 0 0 1 0 7.6" /><path class="x" d="M11 6.2l3.6 3.6m0-3.6l-3.6 3.6" /></svg>
+      </button>
+      <input id="volume" type="range" min="0" max="100" step="1" value="100" aria-label="Volume" aria-keyshortcuts="ArrowUp ArrowDown" title="Volume (up / down arrows)" />
+    </div>
+    <div id="timeline" aria-label="Timeline"></div>
+    <span id="time">0:00 / 0:19</span>
     <span id="chapter"></span>
-    <button id="overlay" aria-pressed="false" aria-label="Show chapter titles and timecode overlay">Overlay</button>
-    <button id="mute" aria-pressed="false" aria-label="Mute">Sound on</button>
-    <a id="download" href="media/fontmap-trailer.mp4" download="fontmap-trailer.mp4">Download MP4</a>
+    <div id="right">
+      <button id="overlay" aria-pressed="true" aria-label="Overlay: chapter titles and timecode on the image" aria-keyshortcuts="O" title="Chapter titles and timecode on the image (O)"><i aria-hidden="true"></i>Overlay</button>
+      <button id="tlmode" aria-pressed="false" aria-label="Edit view: shots, music and sound tracks" aria-keyshortcuts="T" title="Edit view (T)">Edit view<kbd aria-hidden="true">T</kbd></button>
+      <a id="download" href="media/fontmap-trailer.mp4" download="fontmap-trailer.mp4" aria-label="Download MP4" title="Download MP4"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8m-3.5-3.5l3.5 3.5 3.5-3.5M3 13.5h10" /></svg>MP4</a>
+    </div>
   </div>
   <script src="assets/data.js"></script>
   <script src="assets/logo.js"></script>
@@ -37,6 +46,7 @@
   <script src="src/scene.js"></script>
   <script src="assets/sounds.js"></script>
   <script src="src/score.js"></script>
+  <script src="src/player-timeline.js"></script>
   <script src="src/player.js"></script>
 </body>
 </html>

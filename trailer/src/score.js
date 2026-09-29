@@ -17,8 +17,11 @@
 
   const decode = (ctx, b64) => ctx.decodeAudioData(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer);
 
+  // Returns the sound-effect events (start, end, label) for the player's SFX lane.
   async function build(ctx, landings) {
     const r = rng(2026);
+    const events = [];
+    const log = (start, end, label) => events.push({ start, end, label });
     const S0 = window.SOUNDS;
     const keyBufs = await Promise.all(S0.keys.map((k) => decode(ctx, k)));
     const bellBuf = await decode(ctx, S0.bell);
@@ -47,7 +50,7 @@
     const verb = ctx.createConvolver();
     verb.buffer = ir;
     const verbIn = ctx.createGain();
-    verbIn.gain.value = 0.32;
+    verbIn.gain.value = 0.22;
     const verbTone = ctx.createBiquadFilter();
     verbTone.type = 'lowpass';
     verbTone.frequency.value = 5200;
@@ -133,6 +136,7 @@
     }
 
     function impact(t, amp) {
+      log(t, t + 1.2, 'impact');
       const bus = ctx.createGain();
       out(bus, 0.5);
       const o = osc('sine', 95, t, 2.6);
@@ -149,15 +153,18 @@
     }
 
     function bell(t, amp) {
+      log(t, t + 1, 'bell');
       sample(bellBuf, t, amp * 1.3, 1, 0.15, 0.35);
     }
 
     // Carriage return, timed so its final clunk lands on `t`.
     function carriage(t, amp) {
+      log(t - S0.retLead, t + 0.2, 'carriage return');
       sample(retBuf, t - S0.retLead, amp * 1.3, 1, -0.1, 0.25);
     }
 
     function whoosh(t, dur, amp) {
+      log(t, t + dur, 'whoosh');
       const bp = filter('bandpass', 5000, 1.2);
       bp.frequency.setValueAtTime(6000, t);
       bp.frequency.exponentialRampToValueAtTime(220, t + dur);
@@ -168,29 +175,6 @@
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       noiseSrc(t, dur).connect(bp).connect(g);
       out(g, 0.35);
-    }
-
-    function riser(t0, t1, amp) {
-      const bp = filter('bandpass', 400, 2.5);
-      bp.frequency.setValueAtTime(350, t0);
-      bp.frequency.exponentialRampToValueAtTime(7500, t1);
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(0.0001, 0);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(amp, t1 - 0.01);
-      g.gain.setValueAtTime(0, t1);
-      noiseSrc(t0, t1 - t0).connect(bp).connect(g);
-      out(g, 0.25);
-      const o = osc('sawtooth', 110, t0, t1 - t0);
-      o.frequency.exponentialRampToValueAtTime(440, t1);
-      const lp = filter('lowpass', 900);
-      const og = ctx.createGain();
-      og.gain.setValueAtTime(0.0001, 0);
-      og.gain.setValueAtTime(0.0001, t0);
-      og.gain.exponentialRampToValueAtTime(amp * 0.35, t1 - 0.01);
-      og.gain.setValueAtTime(0, t1);
-      o.connect(lp).connect(og);
-      out(og, 0.2);
     }
 
     // Low detuned-saw drone; the filter opens as the story builds.
@@ -215,6 +199,7 @@
 
     // Surf seen from above: filtered noise that swells and falls once a bar, with the picture's swell.
     function surf(t0, t1, amp) {
+      log(t0, t1, 'surf');
       const period = b(4);
       const lp = filter('lowpass', 500, 0.6);
       const g = ctx.createGain();
@@ -235,6 +220,7 @@
 
     // The water drawn back: a long hiss that sinks and thins out.
     function backwash(t0, t1, amp) {
+      log(t0, t1, 'backwash');
       const bp = filter('bandpass', 3000, 0.8);
       bp.frequency.setValueAtTime(3200, t0);
       bp.frequency.exponentialRampToValueAtTime(300, t1);
@@ -254,7 +240,13 @@
       osc('triangle', freq * 2, t, 0.5).connect(env(t, amp * 0.25, 0.4, 0.002)).connect(bus);
     }
 
+    function chord(t, freqs, amp, stagger, spread) {
+      freqs.forEach((f, j) => pluck(t + j * stagger, f, amp, (j - (freqs.length - 1) / 2) * spread));
+      log(t, t + 1.3, 'chord');
+    }
+
     function typeText(t, text, amp, gap = 0.034) {
+      log(t, t + text.length * gap + 0.05, `type "${text}"`);
       [...text].forEach((ch, i) => {
         if (ch !== ' ') key(t + i * gap + r() * 0.008, amp * (0.8 + r() * 0.4), 0.85 + r() * 0.3, (r() - 0.5) * 0.3);
       });
@@ -262,109 +254,89 @@
 
     const S = T.SCENES;
 
-    // Bar 1: macro shots on the anatomy of the A, one boom per shot, then the pull back.
-    drone(0, b(T.INVERT_BEAT) - 0.02, [36.71, 55], 0.05, 140, 700);
-    T.MACRO.forEach((m, i) => {
-      impact(b(m.beat), i === 0 ? 0.8 : 0.5);
-      thump(b(m.beat), 0.9);
-      key(b(m.beat) + 0.02, 0.25, 1.8, (i - 1.5) * 0.3, 0.4);
-    });
-    riser(b(T.MACRO[3].beat + 0.2), b(T.INVERT_BEAT) - 0.02, 0.12);
-    bell(b(T.MACRO[3].beat), 0.8);
-    carriage(b(T.INVERT_BEAT), 0.9);
+    // Kept sparse on purpose: one weighty hit per section, typewriter sounds only
+    // where something is typed or set, and no risers.
 
-    // Bar 2: inversion; one key per new face, accelerating, then the layers clear and Playfair lands.
-    impact(b(T.INVERT_BEAT), 1);
+    // Bar 1: macro shots on the anatomy of the A, a soft thud and a key per shot.
+    drone(0, b(T.INVERT_BEAT) - 0.02, [36.71, 55], 0.04, 140, 600);
+    impact(0, 0.7);
+    T.MACRO.forEach((m, i) => {
+      thump(b(m.beat), 0.7);
+      key(b(m.beat) + 0.02, 0.2, 1.8, (i - 1.5) * 0.3, 0.3);
+    });
+    bell(b(T.MACRO[3].beat), 0.6);
+    carriage(b(T.INVERT_BEAT), 0.8);
+
+    // Bar 2: inversion; one key per new face, then Playfair lands.
+    impact(b(T.INVERT_BEAT), 0.8);
     T.LAYERS.slice(1).forEach((l) => {
       const onEighth = Number.isInteger(l.beat * 2);
-      key(b(l.beat), onEighth ? 0.6 : 0.42, 0.9 + r() * 0.25, (r() - 0.5) * 0.4);
-      if (onEighth) thump(b(l.beat), Number.isInteger(l.beat) ? 0.75 : 0.5);
+      key(b(l.beat), onEighth ? 0.5 : 0.35, 0.9 + r() * 0.25, (r() - 0.5) * 0.4, 0.08);
+      if (Number.isInteger(l.beat)) thump(b(l.beat), 0.5);
     });
-    riser(b(T.LAYERS[8].beat), b(T.LAND), 0.16);
-    whoosh(b(T.CLEAR), 0.25, 0.18);
-    thump(b(T.LAND), 0.9);
-    key(b(T.LAND), 0.6, 0.8);
-    drone(b(T.INVERT_BEAT), b(S.app[1] - 0.5), [36.71, 73.42, 110], 0.055, 200, 2600);
+    thump(b(T.LAND), 0.7);
+    key(b(T.LAND), 0.5, 0.8);
+    drone(b(T.INVERT_BEAT), b(S.app[1] - 0.5), [36.71, 73.42, 110], 0.045, 200, 2200);
 
-    // Bars 3-4: the pull back into the sea. The counter rolls, then the swell: surf
-    // breathing once a bar, keys as spray, the margin bell as a buoy.
+    // Bars 3-4: the pull back into the sea. A few ticks while the count rolls, then
+    // only the surf, breathing once a bar.
     const E = T.SEA;
     const s0 = S.sea[0];
-    impact(b(s0), 0.6);
-    whoosh(b(s0), b(T.SEA.pull), 0.35);
-    for (let tt = b(s0 + 0.5); tt < b(s0 + 2.5); tt += 0.03 + r() * 0.012) key(tt, 0.08, 2 + r() * 0.4, (r() - 0.5) * 0.4, 0.05);
-    surf(b(s0), b(E.tide + 2), 0.16);
-    for (let tt = b(s0 + 1.5); tt < b(E.tide); tt += 0.07 + r() * 0.12) key(tt, 0.03 + r() * 0.04, 2.1 + r() * 0.5, (r() - 0.5) * 1.2, 0.3);
-    typeText(b(E.caption), 'A sea of', 0.3, 0.035);
-    typeText(b(E.caption + 0.25), 'type.', 0.3, 0.035);
-    bell(b(E.caption + 0.5), 0.5);
+    whoosh(b(s0), b(E.pull), 0.2);
+    for (let tt = b(s0 + 0.5); tt < b(s0 + 2.5); tt += 0.07 + r() * 0.03) key(tt, 0.05, 2 + r() * 0.4, (r() - 0.5) * 0.4, 0.04);
+    surf(b(s0), b(E.tide + 2), 0.12);
+    typeText(b(E.caption), 'A sea of', 0.25, 0.035);
+    typeText(b(E.caption + 0.25), 'type.', 0.25, 0.035);
 
-    // The tide goes out in one breath: a long backwash, one chord held under it,
-    // and the whole sea lands at once on the map, like a tray of sorts set down.
-    riser(b(E.tide - 1), b(E.tide) - 0.02, 0.12);
-    impact(b(E.tide), 0.55);
-    backwash(b(E.tide), b(E.land), 0.3);
-    [146.83, 220, 293.66, 349.23].forEach((f, j) => pluck(b(E.tide) + j * 0.03, f, 0.08, (j - 1.5) * 0.3));
-    for (const t0 of landings) if (r() < 0.12) key(t0 + (r() - 0.5) * 0.02, 0.03 + r() * 0.05, 1.4 + r() * 1.1, (r() - 0.5) * 0.9, 0.15);
-    thump(b(E.land), 0.9);
-    [146.83, 220, 293.66, 369.99].forEach((f, j) => pluck(b(E.land) + j * 0.015, f, 0.1, (j - 1.5) * 0.25));
-    typeText(b(E.charted), 'Now,', 0.3, 0.035);
-    typeText(b(E.charted + 0.25), 'charted.', 0.3, 0.035);
-    carriage(b(E.charted + 0.25), 0.4);
+    // The tide goes out in one breath over a held chord, and lands on the downbeat.
+    backwash(b(E.tide), b(E.land), 0.2);
+    chord(b(E.tide), [146.83, 220, 293.66, 349.23], 0.07, 0.03, 0.3);
+    thump(b(E.land), 0.7);
+    chord(b(E.land), [146.83, 220, 293.66, 369.99], 0.08, 0.015, 0.25);
+    typeText(b(E.charted), 'Now,', 0.25, 0.035);
+    typeText(b(E.charted + 0.25), 'charted.', 0.25, 0.035);
 
-    // Bars 5-8: into the app. The typing comes back as the rhythm section, quieter:
-    // keys on the eighths, ghost notes in between, the space bar on the backbeat.
+    // Bars 6-9: into the app. A light pulse of keys on the beat, a thud per bar;
+    // each action gets its own click or key and a note.
     const A = T.APP;
-    for (let beat = A.enter; beat < A.out; beat += 0.25) {
-      const pos = Math.round((beat % 1) * 4);
+    for (let beat = A.enter; beat < A.out; beat += 0.5) {
       const t0 = b(beat);
-      if (pos === 0) {
-        key(t0, 0.2, 1, (r() - 0.5) * 0.3, 0.08);
-        if (Math.floor(beat) % 2 === 1) space(t0, 0.3);
-        thump(t0, 0.35);
-      } else if (pos === 2) {
-        key(t0, 0.14, 1.1, (r() - 0.5) * 0.4, 0.08);
-      } else if (r() < 0.4) {
-        key(t0, 0.07, 1.4, (r() - 0.5) * 0.6, 0.05);
-      }
+      if (Number.isInteger(beat)) key(t0, 0.12, 1, (r() - 0.5) * 0.3, 0.05);
+      else key(t0, 0.06, 1.2, (r() - 0.5) * 0.4, 0.04);
+      if (beat % 4 === 0) thump(t0, 0.35);
     }
-    whoosh(b(A.enter), 0.8, 0.28);
-    impact(b(A.ui), 0.35);
-    [293.66, 440, 587.33].forEach((f, i) => pluck(b(A.ui) + i * 0.03, f, 0.09, (i - 1) * 0.3));
-    const click = (tt) => { key(tt, 0.35, 2, 0.1, 0.05); key(tt + 0.07, 0.18, 1.7, 0.1, 0.05); };
+    chord(b(A.ui), [293.66, 440, 587.33], 0.08, 0.03, 0.3);
+    const click = (tt) => { log(tt, tt + 0.15, 'click'); key(tt, 0.3, 2, 0.1, 0.04); key(tt + 0.07, 0.14, 1.7, 0.1, 0.04); };
     const notes = [587.33, 523.25, 440, 493.88, 392, 349.23];
     let n = 0;
     A.features.forEach((f) => {
       if (f.click) click(b(f.at));
-      if (f.key) { key(b(f.at), 1, 0.75); thump(b(f.at), 0.8); }
-      if (f.type) typeText(b(f.at) + 0.08, f.type, 0.3, 0.05);
+      if (f.key) { log(b(f.at), b(f.at) + 0.15, `key ${f.key}`); key(b(f.at), 0.8, 0.75); }
+      if (f.type) typeText(b(f.at) + 0.08, f.type, 0.25, 0.05);
       (f.keys || [f]).forEach((e) => {
-        if (f.keys) { key(b(e.at), 0.8, 0.8); thump(b(e.at), 0.6); }
-        pluck(b(e.at), notes[n++ % notes.length], 0.12, -0.2);
+        if (f.keys) { log(b(e.at), b(e.at) + 0.15, `key ${e.key}`); key(b(e.at), 0.7, 0.8); }
+        pluck(b(e.at), notes[n++ % notes.length], 0.1, -0.2);
       });
     });
-    const dark = A.features.find((f) => f.shot === '05-dark');
-    impact(b(dark.at), 0.55);
-    whoosh(b(A.out), 0.9, 0.3);
-    riser(b(A.out - 1.5), b(S.app[1] - 0.5), 0.2);
-    bell(b(S.app[1] - 0.5) - 0.1, 0.8);
+    whoosh(b(A.out), 0.9, 0.16);
+    bell(b(S.app[1] - 0.5) - 0.1, 0.6);
 
-    // Bar 9: the wordmark in outline on the carriage-return clunk, then inked, resolved on D major.
+    // Bar 10: the wordmark in outline on the carriage-return clunk, then inked, resolved on D major.
     const l0 = b(S.logo[0]);
-    impact(l0, 1.1);
-    carriage(l0, 1);
-    drone(l0, T.DURATION, [73.42, 110, 146.83, 185], 0.03, 900, 500, 0.5);
+    impact(l0, 0.8);
+    carriage(l0, 0.8);
+    drone(l0, T.DURATION, [73.42, 110, 146.83, 185], 0.025, 900, 500, 0.5);
     const inkT = b(T.INK_BEAT);
-    thump(inkT, 1);
-    key(inkT, 0.9, 0.7);
-    impact(inkT, 0.5);
-    [146.83, 220, 293.66, 369.99, 440].forEach((f, i) => pluck(inkT, f, 0.1, (i - 2) * 0.2));
-    typeText(b(T.INK_BEAT + 0.5), 'An ode to type.', 0.18, 0.03);
+    thump(inkT, 0.8);
+    key(inkT, 0.7, 0.7);
+    chord(inkT, [146.83, 220, 293.66, 369.99, 440], 0.09, 0, 0.2);
+    typeText(b(T.INK_BEAT + 0.5), 'An ode to type.', 0.15, 0.03);
+    return events.sort((a, c) => a.start - c.start);
   }
 
   async function render(landings) {
     const ctx = new OfflineAudioContext(2, Math.ceil(T.DURATION * SR), SR);
-    await build(ctx, landings);
+    Score.events = await build(ctx, landings);
     const buf = await ctx.startRendering();
     let peak = 0;
     for (let c = 0; c < 2; c++) for (const v of buf.getChannelData(c)) peak = Math.max(peak, Math.abs(v));
@@ -394,5 +366,6 @@
     return btoa(s);
   }
 
-  window.Score = { render, renderWavBase64 };
+  const Score = { render, renderWavBase64, events: [] };
+  window.Score = Score;
 })();

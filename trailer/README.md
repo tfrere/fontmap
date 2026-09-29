@@ -33,7 +33,7 @@ Typewriter keys, space bar, margin bell and carriage return are real recordings,
 - [Freesound 345955](https://freesound.org/people/knufds/sounds/345955/) — margin bell
 - [Freesound 318686](https://freesound.org/people/ramsamba/sounds/318686/) — carriage return
 
-Impacts, thuds, drone, risers and plucks are synthesised with the Web Audio API in `src/score.js`. The typing plays the rhythm section: keys on the eighths, ghost notes in between, the space bar on the backbeat.
+Impacts, thuds, drone, surf and plucks are synthesised with the Web Audio API in `src/score.js`. The mix is kept sparse: one weighty hit per section, typewriter sounds where something is typed or set, and a light pulse of keys under the app tour.
 
 ## Usage
 
@@ -50,18 +50,23 @@ node scripts/build-sounds.mjs                # assets/sounds/src -> assets/sound
 
 `assets/data.js` and `assets/sounds.js` are already built, so the steps above are only needed to regenerate them.
 
-Preview: `python3 scripts/serve.py` (a static server on port 8765 that disables caching) and open `http://localhost:8765/index.html`. The player has a chaptered timeline (hover for the chapter name, click or drag to scrub), a chapter/timecode overlay and a link to the rendered MP4.
+Preview: `python3 scripts/serve.py` (a static server on port 8765 that disables caching) and open `http://localhost:8765/index.html`, or open `index.html` straight from disk.
+
+The player uses the timeline of the [Reachy Mini trailer](https://huggingface.co/spaces/tfrere/reachy-mini-trailer) (`src/player-timeline.js`), in black and white. The viewer bar has one segment per chapter and shows the exact frame under the pointer. The edit view (`T`) adds a time ruler, one clip per chapter with its filmstrip, the soundtrack's waveform on the beat grid and a lane with the sound effects. Frames, waveform and effects are computed in the page from the picture and the rendered score.
 
 | Key | Action |
 |---|---|
 | Space | Play / pause |
 | ← / → | Back / forward one beat (Shift: one bar) |
+| ↑ / ↓ | Volume |
 | , / . | Back / forward one frame |
 | p / n | Previous / next chapter |
-| o | Chapter and timecode overlay |
+| t | Edit view |
+| + / − / 0 | Zoom the edit view in / out / fit |
+| o | Chapter and timecode overlay (on by default in the edit view) |
 | m | Mute |
 
-`?t=7.5` opens at a given time, `?hud` opens with the overlay on. Frame 0 is black on purpose (fade-in).
+`?t=7.5` opens at a given time, `?hud` forces the overlay on. Frame 0 is black on purpose (fade-in).
 
 Render:
 
@@ -80,3 +85,4 @@ Set `CHROME=/path/to/chrome` if Chrome is not at `/usr/local/bin/google-chrome`.
 - `src/scene.js` — the picture
 - `src/score.js` — the soundtrack
 - `src/player.js` — preview player and headless render hooks
+- `src/player-timeline.js`, `src/player-timeline.css` — the player timeline, from the Reachy Mini trailer

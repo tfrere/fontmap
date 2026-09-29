@@ -37,7 +37,7 @@
   const beatOf = (t) => t / T.BEAT;
   const secOf = (b) => b * T.BEAT;
 
-  let fonts, N, paths, glyphs, index, center, landings, logo, appShots;
+  let fonts, N, paths, glyphs, index, center, landings, logo, appShots, litKeys;
   let bd = 0;
 
   function init() {
@@ -523,6 +523,18 @@
     screen(ctx, name, r);
     const toScreen = ([px, py]) => [r.x + (px / W) * r.w, r.y + (py / H) * r.h];
 
+    // The app's own arrow keys light up while the key is down, a little longer than
+    // the app's 220 ms so the eye catches it.
+    const lit = f.keys && press && litKeys[press.shot];
+    const sinceLit = press ? t - secOf(press.at) : -1;
+    if (lit && sinceLit >= 0 && sinceLit < 0.4) {
+      const [x, y, w, h] = lit.rect;
+      const [sx, sy] = toScreen([x, y]);
+      ctx.globalAlpha = 1 - clamp((sinceLit - 0.3) / 0.1);
+      ctx.drawImage(lit.img, sx, sy, (w / W) * r.w, (h / H) * r.h);
+      ctx.globalAlpha = 1;
+    }
+
     if (k >= 0 && b < A.out) {
       // The cursor travels from where it last clicked to this feature's target.
       const rest = [W * 0.72, H * 0.62];
@@ -579,6 +591,7 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
+  const ARROW_KEYS = { '→': 0, '↓': Math.PI / 2, '←': Math.PI, '↑': -Math.PI / 2 };
   function keycap(ctx, key, x, y, since) {
     const appear = expoOut((since + secOf(0.4)) / 0.2);
     if (appear <= 0) return;
@@ -599,9 +612,28 @@
     ctx.beginPath();
     ctx.roundRect(x - s / 2, y - s / 2, s, s, 16);
     ctx.stroke();
-    font(ctx, 64 * press, 'Playfair Display', 400, 'italic');
-    ctx.fillStyle = INK;
-    textCentered(ctx, key, x, y);
+    const turn = ARROW_KEYS[key];
+    if (turn !== undefined) {
+      // Drawn, not set: Playfair has no arrows and the fallback glyphs don't match.
+      const l = 22 * press;
+      ctx.setTransform(Math.cos(turn), Math.sin(turn), -Math.sin(turn), Math.cos(turn), x, y);
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 4 * press;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-l, 0);
+      ctx.lineTo(l, 0);
+      ctx.moveTo(l - 13 * press, -13 * press);
+      ctx.lineTo(l, 0);
+      ctx.lineTo(l - 13 * press, 13 * press);
+      ctx.stroke();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    } else {
+      font(ctx, 64 * press, 'Playfair Display', 400, 'italic');
+      ctx.fillStyle = INK;
+      textCentered(ctx, key, x, y);
+    }
     ctx.globalAlpha = 1;
   }
 
@@ -742,13 +774,18 @@
   async function ready() {
     const fontsLoaded = Promise.all(FAMILIES.map(([f, w, s]) => document.fonts.load(`${s} ${w} 40px "${f}"`, 'AaFontMap0123')));
     await Promise.race([fontsLoaded, new Promise((r) => setTimeout(r, 4000))]);
-    appShots = {};
-    await Promise.all(Object.entries(window.APP.shots).map(async ([name, src]) => {
+    const decode = async (src) => {
       const img = new Image();
       img.src = src;
       await img.decode();
-      appShots[name] = img;
-    }));
+      return img;
+    };
+    appShots = {};
+    litKeys = {};
+    await Promise.all([
+      ...Object.entries(window.APP.shots).map(async ([name, src]) => { appShots[name] = await decode(src); }),
+      ...Object.entries(window.APP.keys).map(async ([name, k]) => { litKeys[name] = { rect: k.rect, img: await decode(k.src) }; }),
+    ]);
     init();
   }
 

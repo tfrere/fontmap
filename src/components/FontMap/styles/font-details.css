@@ -1177,12 +1177,12 @@
 
 .preview-text-hint {
   right: var(--spacing-md);
-  opacity: 0;
+  opacity: 0.5;
   transition: opacity var(--transition-fast);
 }
 
 .preview-sentence.is-editable:hover .preview-text-hint {
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 .preview-text-note {

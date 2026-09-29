@@ -1273,6 +1273,14 @@
   fill: var(--hiw-text-3);
 }
 
+/* Opaque backing under the translucent stages, so the axis passing behind them is hidden */
+.hiw-iso-embed > rect.hiw-iso-occluder,
+.hiw-iso-occluder {
+  fill: var(--hiw-bg);
+  fill-opacity: 1;
+  stroke: none;
+}
+
 .hiw-iso-embed > rect {
   fill: var(--hiw-text);
   fill-opacity: 0.04;

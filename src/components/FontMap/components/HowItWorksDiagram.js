@@ -147,12 +147,18 @@ const HowItWorksDiagram = ({ focus, specimens, fonts, glyphFor, specimenFor = ()
   // The followed font is the front specimen, the others fan out behind it
   const highlighted = SPECIMEN_COUNT - 1;
   const specimenList = [...specimens.filter(f => f.id !== focus.id).slice(0, SPECIMEN_COUNT - 1), focus];
-  // The axis is drawn over every plane, so it starts where it leaves the front specimen's
-  // outline instead of crossing its glyph: along the axis, plane u grows 1:1 and v by 2 sin(angle).
+  // The axis starts where it leaves the front specimen's outline instead of crossing its
+  // glyph: along the axis, plane u grows 1:1 and v by 2 sin(angle).
   const specimenExit = Math.min(SPECIMEN_W / 2, SPECIMEN_H / 2 / (2 * Math.sin(ANGLE)));
-  const lineStart = onAxis(highlighted * SPECIMEN_GAP + specimenExit);
-  const lineEnd = onAxis(PROJ_T);
-  const axisPath = `M${lineStart[0]},${lineStart[1]} L${lineEnd[0]},${lineEnd[1]}`;
+  const lineT = highlighted * SPECIMEN_GAP + specimenExit;
+  // It pierces each stage at its centre: one segment per gap, painted after the stage it
+  // leaves and before the one it reaches, so it runs in front of the first and behind the
+  // next. The dash offset keeps the pattern continuous across segments.
+  const axisSegment = (t0, t1) => {
+    const [x0, y0] = onAxis(t0);
+    const [x1, y1] = onAxis(t1);
+    return <path className="hiw-iso-line" d={`M${x0},${y0} L${x1},${y1}`} style={{ strokeDashoffset: lineT - t0 }} />;
+  };
 
   const num = (n, t, u, v, anchor) => {
     const [x, y] = inPlane(t, u, v);
@@ -236,6 +242,8 @@ const HowItWorksDiagram = ({ focus, specimens, fonts, glyphFor, specimenFor = ()
         );
       })}
 
+      {axisSegment(lineT, PATCH_T)}
+
       {/* 2. FontCLIP: the specimen cut into patches, spread apart */}
       <g transform={planeMatrix(PATCH_T)}>
         {Array.from({ length: GRID * GRID }, (_, i) => {
@@ -258,8 +266,11 @@ const HowItWorksDiagram = ({ focus, specimens, fonts, glyphFor, specimenFor = ()
       </g>
       <AnnoText t={PATCH_T} u={0} v={-PATCH_SPAN / 2 - 8}>patches</AnnoText>
 
+      {axisSegment(PATCH_T, EMBED_T)}
+
       {/* 3. The fingerprint: FontCLIP, style tag and proportion blocks stacked into one vector */}
       <g transform={planeMatrix(EMBED_T)} className="hiw-iso-embed">
+        <rect className="hiw-iso-occluder" x={-EMBED_SIZE / 2} y={-EMBED_SIZE / 2} width={EMBED_SIZE} height={EMBED_SIZE} />
         <rect x={-EMBED_SIZE / 2} y={-EMBED_SIZE / 2} width={EMBED_SIZE} height={EMBED_SIZE} vectorEffect="non-scaling-stroke" />
         {FP_LAYOUT.map((block) => {
           const shades = seededShades(`${focus.id}:${block.id}`, block.rows * block.cols);
@@ -284,6 +295,8 @@ const HowItWorksDiagram = ({ focus, specimens, fonts, glyphFor, specimenFor = ()
           );
         })}
       </g>
+      {axisSegment(EMBED_T, PROJ_T)}
+      <circle className="hiw-iso-accent-fill" cx={embedCenter[0]} cy={embedCenter[1]} r={4.5} />
       {pills.map((tag, i) => {
         const [dx, dy] = pillAnchors[i];
         const x = embedCenter[0] + dx;
@@ -300,6 +313,7 @@ const HowItWorksDiagram = ({ focus, specimens, fonts, glyphFor, specimenFor = ()
 
       {/* 4. t-SNE projection */}
       <g transform={planeMatrix(PROJ_T)} className="hiw-iso-proj">
+        <rect className="hiw-iso-occluder" x={model.projOffset[0]} y={model.projOffset[1]} width={PROJ_W} height={PROJ_H} />
         <rect className="hiw-iso-proj-bg" x={model.projOffset[0]} y={model.projOffset[1]} width={PROJ_W} height={PROJ_H} vectorEffect="non-scaling-stroke" />
         <rect className="hiw-iso-grain" x={model.projOffset[0]} y={model.projOffset[1]} width={PROJ_W} height={PROJ_H} />
         {model.projDots.map((p, i) => <circle key={i} className="hiw-iso-proj-dot" cx={p[0]} cy={p[1]} r={0.9} />)}
@@ -314,8 +328,6 @@ const HowItWorksDiagram = ({ focus, specimens, fonts, glyphFor, specimenFor = ()
         </g>
       </g>
 
-      <path className="hiw-iso-line" d={axisPath} />
-      <circle className="hiw-iso-accent-fill" cx={embedCenter[0]} cy={embedCenter[1]} r={4.5} />
 
       {num(1, highlighted * SPECIMEN_GAP, -SPECIMEN_W / 2 - 24, SPECIMEN_H / 2 + 30)}
       {num(2, PATCH_T, -PATCH_SPAN / 2 - 16, PATCH_SPAN / 2 + 28)}

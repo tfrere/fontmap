@@ -763,42 +763,42 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
             </div>
           </section>
 
-          {/* Limitations */}
-          <section className="hiw-step hiw-limits" aria-labelledby="hiw-limits-title">
-            <div className="hiw-text">
-              <h2 id="hiw-limits-title" className="hiw-h2">What the map can't tell you</h2>
-              <ul className="hiw-limits-list">
-                <li>
-                  <strong>A glyph is not a typeface.</strong> One letter, or a few, can't capture spacing, the texture of a
-                  paragraph or the italics.
-                </li>
-                <li>
-                  <strong>Tags are incomplete.</strong> About {percent(data.predictedShare)} of fonts have no Google tag and
-                  get a predicted style instead, which can be wrong.
-                </li>
-                <li>
-                  <strong>Position is relative.</strong> t-SNE keeps neighbourhoods, not global distances: how far apart two
-                  distant islands sit means little.
-                </li>
-                <li>
-                  <strong>Categories simplify.</strong> Six colors can't do justice to fonts that sit between styles.
-                </li>
-              </ul>
-            </div>
-          </section>
-
           {/* About */}
           <section className="hiw-step hiw-about" aria-labelledby="hiw-about-title">
             <div className="hiw-text">
               <h2 id="hiw-about-title" className="hiw-h2">About this project</h2>
               <p>
-                This project is <strong>completely open source</strong>: you can explore the code, modify the parameters, or
-                run it on your own font collection. The <strong>map data</strong> is open too: every font's metadata, style tags,
-                position and neighbours live in{' '}
+                FontMap is <strong>completely open source</strong> (MIT): change the parameters, run it on your own font
+                collection or reuse the data. Every font's metadata, style tags, position and neighbours live in{' '}
                 <a href="https://github.com/tfrere/fontmap/blob/main/public/data/typography_data.json" target="_blank" rel="noopener noreferrer">one JSON file</a>,
-                and the pipeline regenerates the renders and FontCLIP embeddings from{' '}
+                and the pipeline rebuilds the renders and FontCLIP embeddings from{' '}
                 <a href="https://fonts.google.com" target="_blank" rel="noopener noreferrer">Google Fonts</a>.
               </p>
+              <dl className="hiw-credits">
+                <div>
+                  <dt>Made by</dt>
+                  <dd>
+                    <a href="https://tfrere.com" target="_blank" rel="noopener noreferrer">Thibaud Frere</a>, with a lot of help from Claude Opus 5.5, on
+                    the <a href="trailer/index.html">typographic trailer</a> as much as on the map, the pipeline and
+                    the <a href="#/experiments">experiments</a>.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Built on</dt>
+                  <dd>
+                    <a href="https://github.com/yukistavailable/FontCLIP" target="_blank" rel="noopener noreferrer">FontCLIP</a> (Tatsukawa et al., Eurographics
+                    2024) for the embeddings, <a href="https://github.com/fonttools/fonttools" target="_blank" rel="noopener noreferrer">fontTools</a> for the
+                    metrics, and Google Fonts for the fonts, their tags and their usage.
+                  </dd>
+                </div>
+                <div>
+                  <dt>Inspired by</dt>
+                  <dd>
+                    <a href="https://medium.com/ideo-stories/organizing-the-world-of-fonts-with-ai-7d9e49ff2b25" target="_blank" rel="noopener noreferrer">IDEO's
+                    Font Map</a> (Kevin Ho, 2017), which is no longer online.
+                  </dd>
+                </div>
+              </dl>
               <div className="hiw-actions">
                 <a href="https://github.com/tfrere/fontmap" target="_blank" rel="noopener noreferrer" className="hiw-button">
                   View source on GitHub
@@ -808,9 +808,6 @@ const HowItWorksPage = ({ onClose, onPickFont, darkMode, fontCount, fonts, glyph
                   Back to the map
                 </button>
               </div>
-              <p className="hiw-credit">
-                Made by Thibaud Frere - <a href="https://tfrere.com" target="_blank" rel="noopener noreferrer">tfrere.com</a>
-              </p>
             </div>
           </section>
         </main>

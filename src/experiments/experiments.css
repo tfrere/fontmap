@@ -799,6 +799,33 @@
 
 .exp-index #hero-map.is-in { opacity: 1; }
 
+/* Shown while the hero map or a preview loads; it waits a beat so quick loads never flash it. */
+.exp-index .media-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 1.5px solid var(--line);
+  border-top-color: var(--ink-3);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: exp-spin 0.8s linear infinite, exp-spinner-in 0.3s ease 0.25s backwards;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+@keyframes exp-spinner-in { from { opacity: 0; } }
+
+.exp-index .is-in ~ .media-spinner { opacity: 0; visibility: hidden; }
+
+/* The hero map sits in the right part of the band on wide screens, under the text otherwise. */
+.exp-index .hero .media-spinner { left: 78%; }
+
+@media (max-width: 860px) {
+  .exp-index .hero .media-spinner { top: 72%; left: 50%; }
+}
+
 .exp-index .hero-text {
   position: relative;
   max-width: 1240px;
@@ -866,6 +893,7 @@
   aspect-ratio: 16 / 10;
   border: 1px solid var(--line);
   border-radius: 14px;
+  position: relative;
   background: var(--bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 20px 50px -20px rgba(0, 0, 0, 0.18);
 }
@@ -881,7 +909,9 @@
 
 .exp-index .row-media canvas.is-in { opacity: 1; }
 
-.exp-index .row-media video { transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.exp-index .row-media video { opacity: 0; transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+.exp-index .row-media video.is-in { opacity: 1; }
 
 /* The trailer is black on white; inverted it matches the dark theme. */
 [data-theme='dark'] .exp-index .row-media video { filter: invert(1) hue-rotate(180deg); }

@@ -40,9 +40,13 @@ const ROWS = [
   },
 ];
 
+function MediaSpinner() {
+  return <span className="media-spinner" aria-hidden="true" />;
+}
+
 function CanvasPreview({ mount, label }) {
   const [ref] = useController(mount);
-  return <canvas ref={ref} role="img" aria-label={label} />;
+  return <><canvas ref={ref} role="img" aria-label={label} /><MediaSpinner /></>;
 }
 
 // Muted so it may autoplay; it only loads and plays while on screen.
@@ -51,15 +55,20 @@ function VideoPreview({ src, poster }) {
   useEffect(() => {
     const video = ref.current;
     video.muted = true;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const show = () => video.classList.add('is-in');
+    const still = new Image();
+    still.onload = show;
+    still.src = poster;
+    video.addEventListener('loadeddata', show);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return () => { still.onload = null; };
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) video.play().catch(() => {});
       else video.pause();
     }, { threshold: 0.2 });
     observer.observe(video);
-    return () => observer.disconnect();
-  }, []);
-  return <video ref={ref} src={src} poster={poster} muted loop playsInline preload="none" aria-hidden="true" />;
+    return () => { still.onload = null; observer.disconnect(); };
+  }, [poster]);
+  return <><video ref={ref} src={src} poster={poster} muted loop playsInline preload="none" aria-hidden="true" /><MediaSpinner /></>;
 }
 
 // The trailer is a standalone page outside the app, so it gets a plain link.
@@ -86,6 +95,7 @@ export default function ExperimentsIndex() {
 
       <header className="hero">
         <canvas id="hero-map" ref={heroRef} aria-hidden="true" />
+        <MediaSpinner />
         <div className="hero-text">
           <p className="kicker">FontMap · Experiments</p>
           <h1>Other ways to read <em>the&nbsp;map.</em></h1>

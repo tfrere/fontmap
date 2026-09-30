@@ -53,7 +53,7 @@ export default function ExperimentsIndex() {
       </Topbar>
 
       <header className="hero">
-        <canvas ref={heroRef} aria-hidden="true" />
+        <canvas id="hero-map" ref={heroRef} aria-hidden="true" />
         <div className="hero-text">
           <p className="kicker">FontMap · Experiments</p>
           <h1>Other ways to read <em>the&nbsp;map.</em></h1>

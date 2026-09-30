@@ -53,7 +53,7 @@ export default function Designers() {
           <h1>Who drew the fonts<br /><em>you know?</em></h1>
           <p className="gallery-lede">
             Google Fonts credits <strong id="designer-count">632</strong> designers and foundries. Each card is one of
-            them: their name, where their fonts sit on the map (in black, the ground they cover shaded) and the fonts
+            them: their name, where their fonts sit on the map with the ground they cover shaded, and the fonts
             you probably know them for. Some range over every style; others never leave one corner.
           </p>
         </header>

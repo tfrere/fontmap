@@ -32,6 +32,7 @@ export function createView({
   describe = () => '',
   onClick = (i) => { if (fonts[i].url) window.open(fonts[i].url, '_blank', 'noopener'); },
   underlay = null,
+  inset: insetFor = screenInset,
 }) {
   const ctx = canvas.getContext('2d');
   let view = { k: 1, x: 0, y: 0 };
@@ -39,16 +40,16 @@ export function createView({
   let needsDraw = false;
   let names = true;
 
-  function baseFit(W, H, inset = screenInset()) {
-    const { left = 0, top = 0 } = inset;
+  function baseFit(W, H, inset = insetFor()) {
+    const { left = 0, top = 0, bottom = 0 } = inset;
     const b = bounds();
     const bw = b[2] - b[0];
     const bh = b[3] - b[1];
-    const s = Math.min((W - left) / bw, (H - top) / bh) * FIT;
-    return { s, bx: left + (W - left - bw * s) / 2 - b[0] * s, by: top + (H - top - bh * s) / 2 - b[1] * s };
+    const s = Math.min((W - left) / bw, (H - top - bottom) / bh) * FIT;
+    return { s, bx: left + (W - left - bw * s) / 2 - b[0] * s, by: top + (H - top - bottom - bh * s) / 2 - b[1] * s };
   }
 
-  function transformFor(W, H, { v = view, inset = screenInset() } = {}) {
+  function transformFor(W, H, { v = view, inset = insetFor() } = {}) {
     const { s, bx, by } = baseFit(W, H, inset);
     return { a: s * v.k, bx: bx + s * v.x, by: by + s * v.y };
   }

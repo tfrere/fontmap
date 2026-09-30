@@ -18,7 +18,6 @@ const INTRO_MS = 2400;
 const LEGEND_VIEWS = [1e6, 1e8, 1e10];
 
 const $ = (id) => document.getElementById(id);
-const slider = $('exponent');
 
 let fonts = [];
 let order = [];
@@ -93,10 +92,8 @@ function renderLegend() {
   }).join('');
 }
 
-function setScale(t, fromSlider = false) {
+function setScale(t) {
   scaleT = t;
-  if (!fromSlider) slider.value = String(t);
-  $('exponent-label').textContent = t < 0.005 ? 'Equal size' : t > 0.995 ? 'By views, log scale' : `${Math.round(t * 100)}%`;
   $('legend').classList.toggle('is-visible', t > 0.5);
   view.requestDraw();
 }
@@ -145,7 +142,6 @@ async function init() {
     },
   });
 
-  slider.addEventListener('input', () => { cancelAnimationFrame(anim); setScale(Number(slider.value), true); });
   $('replay').addEventListener('click', () => play());
   $('names').addEventListener('change', (e) => view.setNames(e.target.checked));
   window.addEventListener('resize', renderLegend);

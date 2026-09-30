@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../shared/experiment.css" />
+  <link rel="stylesheet" href="style.css" />
   <script>
     document.documentElement.dataset.theme = localStorage.getItem('fontmap-dark-mode') === 'true' ? 'dark' : 'light';
   </script>
@@ -28,18 +29,9 @@
       The map fills up in the order Google added each font. The year's additions are in black; older ones fade back.
     </p>
 
-    <p class="year" id="year"></p>
     <dl class="stats" id="stats"></dl>
 
-    <div class="histogram" id="histogram" aria-label="Fonts added per year"></div>
-    <div class="histogram-axis" id="histogram-axis"></div>
-
-    <div class="scale">
-      <input id="time" type="range" step="0.001" aria-label="Date" />
-    </div>
-
     <div class="actions">
-      <button type="button" id="play" title="Play / pause (Space)">Pause</button>
       <label class="check"><input type="checkbox" id="names" checked /> Names</label>
       <button type="button" id="download" title="Download a 4K PNG of the map at this date">PNG</button>
       <button type="button" id="theme" class="icon" title="Toggle dark mode" aria-label="Toggle dark mode">
@@ -50,6 +42,23 @@
     <p class="source" id="source"></p>
     <a class="next" href="../designers/index.html"><span>Next experiment</span>Who drew the fonts you know? →</a>
   </aside>
+
+  <section class="timeline" aria-label="Timeline">
+    <div class="tl-now">
+      <button type="button" id="play" class="tl-play" title="Play / pause (Space)" aria-label="Pause">
+        <svg class="i-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        <svg class="i-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+      </button>
+      <div>
+        <p class="tl-year" id="year"></p>
+        <p class="tl-month" id="month"></p>
+      </div>
+    </div>
+    <div class="tl-track" id="track" role="slider" tabindex="0" aria-label="Date" aria-valuemin="2010" aria-valuemax="2026">
+      <div class="tl-cols" id="cols"></div>
+      <div class="tl-head" id="head"><span></span></div>
+    </div>
+  </section>
 
   <div class="hint">Scroll to zoom · drag to pan · double-click to reset · click a glyph to open it</div>
 

@@ -32,12 +32,14 @@ export async function mountHeroMap(canvas, signal) {
 
   function layout(W, H) {
     const wide = W > 860;
-    const left = wide ? W * 0.36 : 0;
+    const left = wide ? W * 0.56 : 0;
     const top = wide ? 40 : H * 0.42;
     const bw = bounds[2] - bounds[0];
     const bh = bounds[3] - bounds[1];
-    const s = Math.min((W - left - 24) / bw, (H - top - 24) / bh);
-    return { s, ox: left + (W - left - bw * s) / 2 - bounds[0] * s, oy: top + (H - top - bh * s) / 2 - bounds[1] * s };
+    // The bottom margin leaves room for the name under a lit glyph.
+    const bottom = 44;
+    const s = Math.min((W - left - 24) / bw, (H - top - bottom) / bh);
+    return { s, ox: left + (W - left - bw * s) / 2 - bounds[0] * s, oy: top + (H - top - bottom - bh * s) / 2 - bounds[1] * s };
   }
 
   function glyph(c, f, x, y, S, dpr) {

@@ -70,7 +70,6 @@ function RowLink({ row, children, ...props }) {
 export default function ExperimentsIndex() {
   useExperimentPage('Experiments · FontMap');
   const [heroRef] = useController(mountHeroMap);
-  const list = useRef(null);
   const [fontReady, setFontReady] = useState(false);
 
   useEffect(() => {
@@ -94,13 +93,10 @@ export default function ExperimentsIndex() {
             FontMap places all 1,465 Google Fonts by how they look. These experiments keep that layout
             and lay other data over it: how much each font is used, and who drew it.
           </p>
-          <button type="button" className="hero-cta" onClick={() => list.current?.scrollIntoView({ behavior: 'smooth' })}>
-            See them <span aria-hidden="true">↓</span>
-          </button>
         </div>
       </header>
 
-      <main className="list" ref={list}>
+      <main className="list">
         {ROWS.map((row, n) => (
           <article className="row" key={row.key}>
             <RowLink row={row} className={`row-media is-${row.key}`} tabIndex={-1} aria-hidden="true">

@@ -97,6 +97,22 @@ function label(c, text, x, y, size, pal, alpha = 1) {
   c.restore();
 }
 
+// Labels pushed down until they clear the ones already placed and the given boxes.
+function labels(c, items, size, pal, alpha, avoid = []) {
+  if (alpha <= 0) return;
+  c.save();
+  c.font = `600 ${size}px 'Source Sans Pro', sans-serif`;
+  const placed = [...avoid];
+  for (const { text, x, y: y0 } of [...items].sort((a, b) => a.y - b.y)) {
+    const w = c.measureText(text).width + 6;
+    let y = y0;
+    while (placed.some((b) => x - w / 2 < b[2] && x + w / 2 > b[0] && y < b[3] && y + size + 2 > b[1])) y += size + 2;
+    placed.push([x - w / 2, y, x + w / 2, y + size + 2]);
+    label(c, text, x, y, size, pal, alpha);
+  }
+  c.restore();
+}
+
 // Captions sit in the lower left corner and cross-fade as the story moves on.
 function caption(c, W, H, lines, pal) {
   const size = Math.round(Math.max(13, Math.min(17, W / 34)));
@@ -114,26 +130,38 @@ function caption(c, W, H, lines, pal) {
   return size;
 }
 
-// ---- Size by use: the plain map grows into the cartogram, then the few fonts that
-// take half of all views stay in ink while the rest fade.
+// ---- Size by use: always the final cartogram, where size is use. The most used fonts
+// step forward one by one with their share of all views, then the few that take half
+// of them stay in ink while the rest fade.
 
-const SIZE_LOOP = 11500;
+const SIZE_INTRO = 1600;
+const SIZE_SPOTS = 5;
+const SIZE_SPOT_MS = 1500;
+const SIZE_HALF_MS = 3200;
+const SIZE_OUTRO = 900;
+const SIZE_HALF_AT = SIZE_INTRO + SIZE_SPOTS * SIZE_SPOT_MS;
+const SIZE_LOOP = SIZE_HALF_AT + SIZE_HALF_MS + SIZE_OUTRO;
+const SIZE_FADE = 260;
 
 export function mountSizePreview(canvas, signal) {
   let fonts = [];
+  let order = [];
   let back = [];
   let top = [];
   let bounds = null;
 
-  const grow = (t) => ease(ramp(t, 1400, 3800)) * (1 - ease(ramp(t, 9200, 10600)));
-  const focus = (t) => ease(ramp(t, 4800, 5500)) * (1 - ease(ramp(t, 8400, 9100)));
+  // Weight of spotlight j at time t: fades in and out around its slot.
+  const spot = (t, j) => {
+    const a = SIZE_INTRO + j * SIZE_SPOT_MS;
+    return ramp(t, a, a + SIZE_FADE) * (1 - ramp(t, a + SIZE_SPOT_MS - SIZE_FADE, a + SIZE_SPOT_MS));
+  };
 
   runPreview(canvas, signal, {
-    stillAt: 7000,
+    stillAt: SIZE_HALF_AT + SIZE_HALF_MS / 2,
     async prepare() {
       const data = await loadMap({ popularity: true });
       fonts = data.fonts;
-      const { order } = sizeByUse(fonts, data.usage);
+      ({ order } = sizeByUse(fonts, data.usage));
       back = [...order].reverse();
       let acc = 0;
       for (const i of order) {
@@ -141,45 +169,54 @@ export function mountSizePreview(canvas, signal) {
         acc += fonts[i].share;
         top.push(i);
       }
-      const box = (key) => {
-        let b = [Infinity, Infinity, -Infinity, -Infinity];
-        for (const f of fonts) {
-          const x = key ? f.x1 : f.x0;
-          const y = key ? f.y1 : f.y0;
-          const s = (key ? f.s1 : BASE) / 2;
-          b = [Math.min(b[0], x - s), Math.min(b[1], y - s), Math.max(b[2], x + s), Math.max(b[3], y + s)];
-        }
-        return b;
-      };
-      bounds = [box(false), box(true)];
+      bounds = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const f of fonts) {
+        const r = f.s1 / 2;
+        bounds = [Math.min(bounds[0], f.x1 - r), Math.min(bounds[1], f.y1 - r), Math.max(bounds[2], f.x1 + r), Math.max(bounds[3], f.y1 + r)];
+      }
     },
     frame(c, W, H, time, pal) {
       const t = time % SIZE_LOOP;
-      const g = grow(t);
-      const k = focus(t);
+      const dimSpots = ease(ramp(t, SIZE_INTRO, SIZE_INTRO + SIZE_FADE)) * (1 - ramp(t, SIZE_HALF_AT, SIZE_HALF_AT + SIZE_FADE));
+      const half = ease(ramp(t, SIZE_HALF_AT, SIZE_HALF_AT + SIZE_FADE * 2)) * (1 - ease(ramp(t, SIZE_LOOP - SIZE_OUTRO, SIZE_LOOP)));
+      const weights = new Map();
+      for (let j = 0; j < SIZE_SPOTS; j++) weights.set(order[j], spot(t, j));
+      const isTop = new Set(top);
+
       c.fillStyle = pal.bg;
       c.fillRect(0, 0, W, H);
-      const T = fit(bounds[0].map((v, n) => lerp(v, bounds[1][n], g)), W, H, { bottom: 26 });
-      const isTop = new Set(top);
+      const T = fit(bounds, W, H, { pad: 14, bottom: 26 });
+      const at = (f) => [T.ox + f.x1 * T.s, T.oy + f.y1 * T.s, f.s1 * T.s];
       c.fillStyle = pal.ink;
       for (const i of back) {
-        const f = fonts[i];
-        c.globalAlpha = isTop.has(i) ? 1 : lerp(1, 0.1, k);
-        glyph(c, f, T.ox + lerp(f.x0, f.x1, g) * T.s, T.oy + lerp(f.y0, f.y1, g) * T.s, lerp(BASE, f.s1, g) * T.s);
+        const base = lerp(lerp(1, 0.3, dimSpots), 0.1, half);
+        const lit = Math.max(weights.get(i) || 0, isTop.has(i) ? half : 0);
+        c.globalAlpha = lerp(base, 1, lit);
+        const [x, y, S] = at(fonts[i]);
+        glyph(c, fonts[i], x, y, S);
       }
       c.globalAlpha = 1;
-      for (const i of top) {
-        const f = fonts[i];
-        const S = lerp(BASE, f.s1, g) * T.s;
-        label(c, `${f.name} ${pct(f.share)}`, T.ox + f.x1 * T.s, T.oy + f.y1 * T.s + S * 0.34, 11, pal, k);
+
+      const lines = [{ text: 'Each glyph sized by how often websites use it', alpha: 1 - dimSpots - half }];
+      for (let j = 0; j < SIZE_SPOTS; j++) {
+        const f = fonts[order[j]];
+        const w = weights.get(order[j]);
+        if (w <= 0) continue;
+        const [x, y, S] = at(f);
+        label(c, f.name, x, y + S * 0.34, 11, pal, w);
+        lines.push({ text: `#${j + 1}  ${f.name}: ${pct(f.share)} of all views`, alpha: w, strong: true });
       }
-      const plain = 1 - ramp(t, 1300, 1700) + ramp(t, 10400, 10800);
-      const sized = ramp(t, 1500, 1900) * (1 - ramp(t, 4700, 5000));
-      caption(c, W, H, [
-        { text: `${fonts.length.toLocaleString('en-US')} fonts, placed by how they look`, alpha: clamp01(plain) },
-        { text: '…sized by how often websites use them', alpha: sized },
-        { text: `${top.length} fonts get half of all views`, alpha: k, strong: true },
-      ], pal);
+      // The A fills about 60% of its box: labels go under it and around the others.
+      const inks = top.map((i) => {
+        const [x, y, S] = at(fonts[i]);
+        return [x - S * 0.3, y - S * 0.3, x + S * 0.3, y + S * 0.3];
+      });
+      labels(c, top.map((i) => {
+        const [x, y, S] = at(fonts[i]);
+        return { text: `${fonts[i].name} ${pct(fonts[i].share)}`, x, y: y + S * 0.34 };
+      }), 11, pal, half, inks);
+      lines.push({ text: `${top.length} fonts get half of all views`, alpha: half, strong: true });
+      caption(c, W, H, lines, pal);
     },
   });
 }

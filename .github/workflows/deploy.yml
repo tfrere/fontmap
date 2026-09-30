@@ -70,8 +70,10 @@ jobs:
           cd hf_space
           # The Hub rejects plain-git binaries above a small size (e.g. og-image.png),
           # so images go through LFS (bridged to Xet storage by the Hub).
+          # .gitattributes is written directly: `git lfs track` touches every indexed file
+          # matching the patterns and fails on ones this deploy removed.
           git lfs install --local
-          git lfs track "*.png" "*.jpg" "*.jpeg" "*.gif" "*.webp" "*.mp4"
+          printf '%s filter=lfs diff=lfs merge=lfs -text\n' "*.png" "*.jpg" "*.jpeg" "*.gif" "*.webp" "*.mp4" > .gitattributes
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A

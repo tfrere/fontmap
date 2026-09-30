@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Size by use · FontMap experiment</title>
-  <meta name="description" content="Every Google Font placed by how it looks and sized by how often Google Fonts serves it to websites." />
+  <title>Designers on the map · FontMap experiment</title>
+  <meta name="description" content="Where each type designer's Google Fonts land on the map: some cover every style, others stay in one corner." />
   <link rel="icon" href="../../fontmap-icon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
   </script>
 </head>
 <body>
-  <canvas id="map" aria-label="Map of Google Fonts sized by use"></canvas>
+  <canvas id="map" aria-label="Map of Google Fonts highlighting one designer's families"></canvas>
 
   <header class="brand">
     <a class="brand-title" href="../../">FontMap</a>
@@ -23,34 +23,33 @@
   </header>
 
   <aside class="panel" aria-live="polite">
-    <h1>Size by use</h1>
+    <h1>Designers on the map</h1>
     <p class="lede">
-      Each glyph is a Google Font, placed by how it looks and sized by how often Google Fonts served it
-      to websites in the last 30 days. Log scale; big glyphs push their neighbours aside instead of covering them.
+      Every Google Font of one designer or foundry, and the territory they cover. Some range over every style, others keep to one corner.
     </p>
 
-    <dl class="stats" id="stats"></dl>
-
-    <div class="scale">
-      <div class="scale-head">
-        <label for="exponent">Scale</label>
-        <output id="exponent-label" for="exponent"></output>
-      </div>
-      <input id="exponent" type="range" min="0" max="1" step="0.001" value="0" />
-      <div class="scale-ends"><span>Equal</span><span>By views</span></div>
+    <div class="search">
+      <input id="search" type="search" list="designer-list" placeholder="Find a designer…" autocomplete="off" aria-label="Designer" />
+      <datalist id="designer-list"></datalist>
     </div>
 
-    <div class="legend" id="legend">
+    <p class="designer" id="designer"></p>
+    <dl class="stats" id="stats"></dl>
+
+    <div class="picks">
       <div>
-        <span class="legend-title">Views, 30 days</span>
-        <div class="legend-items" id="legend-items"></div>
+        <h2>Widest range</h2>
+        <ul id="widest"></ul>
+      </div>
+      <div>
+        <h2>Most focused</h2>
+        <ul id="focused"></ul>
       </div>
     </div>
 
     <div class="actions">
-      <button type="button" id="replay" title="Replay (Space)">Replay</button>
       <label class="check"><input type="checkbox" id="names" checked /> Names</label>
-      <button type="button" id="download" title="Download a 4K PNG of the whole map">PNG</button>
+      <button type="button" id="download" title="Download a 4K PNG of this designer's map">PNG</button>
       <button type="button" id="theme" class="icon" title="Toggle dark mode" aria-label="Toggle dark mode">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
@@ -59,7 +58,7 @@
     <p class="source" id="source"></p>
   </aside>
 
-  <div class="hint">Scroll to zoom · drag to pan · double-click to reset · click a glyph to open it</div>
+  <div class="hint">Scroll to zoom · drag to pan · click a grey glyph to switch to its designer · click a black one to open it</div>
 
   <div class="tooltip" id="tooltip" role="tooltip"></div>
 

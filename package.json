@@ -34,7 +34,8 @@
     "overlap": "node scripts/apply-overlap-removal.mjs",
     "overlap:dry": "node scripts/apply-overlap-removal.mjs --dry-run",
     "sprite": "node scripts/build-glyph-sprite.mjs",
-    "popularity": "node scripts/fetch-popularity.mjs"
+    "popularity": "node scripts/fetch-popularity.mjs",
+    "catalog": "node scripts/fetch-catalog.mjs"
   },
   "eslintConfig": {
     "extends": [

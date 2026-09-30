@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Experiments · FontMap</title>
+  <meta name="description" content="Side projects built on the FontMap layout: the 1,465 Google Fonts placed by how they look, seen through usage, time and designers." />
+  <link rel="icon" href="../fontmap-icon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="shared/experiment.css" />
+  <script>
+    document.documentElement.dataset.theme = localStorage.getItem('fontmap-dark-mode') === 'true' ? 'dark' : 'light';
+  </script>
+  <style>
+    html, body { height: auto; overflow: auto; }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 96px 24px 48px;
+    }
+
+    .brand { position: absolute; }
+
+    .intro { max-width: 620px; margin-bottom: 40px; }
+    .intro h1 { margin: 0 0 10px; font-size: 44px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+    .intro p { margin: 0; font-size: 17px; line-height: 1.5; color: var(--ink-2); }
+    .intro a { color: inherit; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px 32px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .thumb {
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+
+    .thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    [data-theme='dark'] .thumb img { filter: invert(1) hue-rotate(180deg); }
+
+    .card:hover .thumb img { transform: scale(1.03); }
+    .card:hover .thumb { border-color: var(--ink-3); }
+
+    .kind {
+      margin: 14px 0 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+
+    .card h2 { margin: 0 0 6px; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+    .card p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--ink-2); }
+
+    footer {
+      display: flex;
+      gap: 20px;
+      margin-top: 56px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--ink-3);
+    }
+
+    footer a { color: var(--ink-2); }
+    footer a:hover { color: var(--ink); }
+
+    @media (max-width: 700px) {
+      .page { padding-top: 72px; }
+      .intro h1 { font-size: 34px; }
+      .grid { grid-template-columns: 1fr; gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="brand">
+    <a class="brand-title" href="../">FontMap</a>
+  </header>
+
+  <main class="page">
+    <div class="intro">
+      <h1>Experiments</h1>
+      <p>
+        Side projects built on the <a href="../">FontMap</a> layout: the same 1,465 Google Fonts,
+        each one placed by how it looks, seen through other data.
+      </p>
+    </div>
+
+    <ul class="grid">
+      <li>
+        <a class="card" href="popularity/index.html">
+          <div class="thumb"><img src="thumbs/popularity.jpg" alt="The map with each glyph sized by how often it is used" loading="lazy" /></div>
+          <p class="kind">Usage</p>
+          <h2>Size by use</h2>
+          <p>Each glyph grows with how often Google serves it to websites. Four fonts carry half of all the traffic.</p>
+        </a>
+      </li>
+      <li>
+        <a class="card" href="growth/index.html">
+          <div class="thumb"><img src="thumbs/growth.jpg" alt="The map partly filled, as it was in 2013" loading="lazy" /></div>
+          <p class="kind">Time</p>
+          <h2>Sixteen years of Google Fonts</h2>
+          <p>The map fills up in the order the fonts were published, from the 2010 launch to today.</p>
+        </a>
+      </li>
+      <li>
+        <a class="card" href="designers/index.html">
+          <div class="thumb"><img src="thumbs/designers.jpg" alt="One foundry's fonts highlighted with the territory they cover" loading="lazy" /></div>
+          <p class="kind">People</p>
+          <h2>Designers on the map</h2>
+          <p>Pick a designer or foundry and see how much of the map their fonts cover, from every style to one corner.</p>
+        </a>
+      </li>
+      <li>
+        <a class="card" href="../trailer/index.html">
+          <div class="thumb"><img src="thumbs/trailer.jpg" alt="A frame of the trailer: a script a drawn over construction lines" loading="lazy" /></div>
+          <p class="kind">Making-of</p>
+          <h2>The trailer</h2>
+          <p>A 19-second typographic trailer, written in plain JavaScript on a single canvas, its score synthesised in the browser.</p>
+        </a>
+      </li>
+    </ul>
+
+    <footer>
+      <a href="../">Back to the map</a>
+      <a href="https://github.com/tfrere/fontmap" target="_blank" rel="noopener">Source</a>
+    </footer>
+  </main>
+</body>
+</html>

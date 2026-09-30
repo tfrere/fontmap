@@ -29,7 +29,7 @@ Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-wor
 
 [![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo-v2.gif)](https://tfrere-font-map.static.hf.space/)
 
-[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (19 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/) · [Experiment: size by use](https://tfrere-font-map.static.hf.space/experiments/popularity/index.html) — source in [`public/experiments/popularity/`](public/experiments/popularity/)
+[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (19 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/) · [Experiments](https://tfrere-font-map.static.hf.space/experiments/index.html) (size by use, sixteen years of Google Fonts, designers on the map) — source in [`public/experiments/`](public/experiments/)
 
 ## Features
 
@@ -124,22 +124,31 @@ npm run popularity                   # 30-day views
 npm run popularity -- --range year   # 7day | 30day | 90day | year
 ```
 
+`public/data/catalog.json` holds the date each family was added to Google Fonts and its designers, from the Google Fonts catalogue. The "sixteen years" and "designers" experiments read it. Refresh it with `npm run catalog`.
+
+### Experiments
+
+[`public/experiments/`](public/experiments/) holds standalone pages built on the map layout, with no build step: they load `public/data/` directly and share a canvas view in `shared/`. Each one lives in its own folder with an `index.html` and a `main.js`; the index page links them.
+
 ## Project structure
 
 ```
 fontmap/
 ├── public/
-│   └── data/
-│       ├── sentences/            # Sentence preview SVGs
-│       ├── sprites/              # One glyph sprite per character + index.json
-│       ├── font-sprite.svg       # All "A" glyphs in a single sprite (~1 MB, ~300 KB gzip)
-│       └── typography_data.json  # Font positions + metadata
+│   ├── data/
+│   │   ├── sentences/            # Sentence preview SVGs
+│   │   ├── sprites/              # One glyph sprite per character + index.json
+│   │   ├── font-sprite.svg       # All "A" glyphs in a single sprite (~1 MB, ~300 KB gzip)
+│   │   ├── typography_data.json  # Font positions + metadata
+│   │   ├── popularity.json       # Google Fonts views per font
+│   │   └── catalog.json          # Date added + designers per font
+│   └── experiments/              # Standalone experiment pages (no build step)
 ├── src/
 │   ├── components/FontMap/       # The map app (components, hooks, styles, utils)
 │   ├── hooks/                    # Shared hooks (data and sprite loading)
 │   ├── store/                    # Zustand state management
 │   └── utils/                    # Glyph sprite loading
-├── scripts/                      # Overlap removal + glyph sprite builder (Node)
+├── scripts/                      # Overlap removal, glyph sprite builder, Google Fonts data fetchers (Node)
 ├── media/                        # Demo videos/GIFs, brand assets and the scripts that make them
 ├── pipeline/                     # Python data pipeline: FontCLIP, style tags, t-SNE
 │   ├── render/                   # Font download + SVG/PNG rendering (Node)

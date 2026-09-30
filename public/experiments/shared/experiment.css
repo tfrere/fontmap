@@ -5,6 +5,7 @@
   --ink-2: #666;
   --ink-3: #999;
   --line: #e3e0da;
+  --tint: #efe9dc;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   --ui: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
@@ -16,6 +17,7 @@
   --ink-2: #ccc;
   --ink-3: #999;
   --line: #404040;
+  --tint: #26241f;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -281,4 +283,121 @@ html, body {
   .lede, .hint { display: none; }
   .brand { top: 12px; left: 12px; }
   .brand-title { font-size: 24px; }
+}
+
+.brand-tag a { color: inherit; text-decoration: none; pointer-events: auto; }
+.brand-tag a:hover { color: var(--ink); }
+
+/* Year histogram (catalogue growth) */
+.histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 64px;
+  margin: 4px 0 2px;
+}
+
+.histogram button {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+}
+
+.histogram i {
+  display: block;
+  width: 100%;
+  border-radius: 1px 1px 0 0;
+  background: var(--line);
+  transition: background 0.15s ease;
+}
+
+.histogram button.is-past i { background: var(--ink-3); }
+.histogram button.is-current i { background: var(--ink); }
+.histogram button:hover i { background: var(--ink-2); }
+
+.histogram-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.year {
+  margin: 0 0 2px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Designer search and lists */
+.search {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.search input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px var(--ui);
+}
+
+.search input:focus { outline: none; border-color: var(--ink-3); }
+
+.picks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.picks h2 {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.picks ul { margin: 0; padding: 0; list-style: none; }
+
+.picks button {
+  display: block;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: 400 13px/1.35 var(--ui);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.picks button:hover { color: var(--ink); }
+.picks button.is-active { color: var(--ink); font-weight: 600; }
+.picks small { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+.designer {
+  margin: 0 0 2px;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }

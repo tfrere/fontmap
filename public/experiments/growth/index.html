@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Size by use · FontMap experiment</title>
-  <meta name="description" content="Every Google Font placed by how it looks and sized by how often Google Fonts serves it to websites." />
+  <title>Sixteen years of Google Fonts · FontMap experiment</title>
+  <meta name="description" content="How the Google Fonts catalogue filled the map, year by year, from 2010 to today." />
   <link rel="icon" href="../../fontmap-icon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
   </script>
 </head>
 <body>
-  <canvas id="map" aria-label="Map of Google Fonts sized by use"></canvas>
+  <canvas id="map" aria-label="Map of Google Fonts filling up by year added"></canvas>
 
   <header class="brand">
     <a class="brand-title" href="../../">FontMap</a>
@@ -23,34 +23,25 @@
   </header>
 
   <aside class="panel" aria-live="polite">
-    <h1>Size by use</h1>
+    <h1>Sixteen years of Google Fonts</h1>
     <p class="lede">
-      Each glyph is a Google Font, placed by how it looks and sized by how often Google Fonts served it
-      to websites in the last 30 days. Log scale; big glyphs push their neighbours aside instead of covering them.
+      The map fills up in the order Google added each font. The year's additions are in black; older ones fade back.
     </p>
 
+    <p class="year" id="year"></p>
     <dl class="stats" id="stats"></dl>
 
-    <div class="scale">
-      <div class="scale-head">
-        <label for="exponent">Scale</label>
-        <output id="exponent-label" for="exponent"></output>
-      </div>
-      <input id="exponent" type="range" min="0" max="1" step="0.001" value="0" />
-      <div class="scale-ends"><span>Equal</span><span>By views</span></div>
-    </div>
+    <div class="histogram" id="histogram" aria-label="Fonts added per year"></div>
+    <div class="histogram-axis" id="histogram-axis"></div>
 
-    <div class="legend" id="legend">
-      <div>
-        <span class="legend-title">Views, 30 days</span>
-        <div class="legend-items" id="legend-items"></div>
-      </div>
+    <div class="scale">
+      <input id="time" type="range" step="0.001" aria-label="Date" />
     </div>
 
     <div class="actions">
-      <button type="button" id="replay" title="Replay (Space)">Replay</button>
+      <button type="button" id="play" title="Play / pause (Space)">Pause</button>
       <label class="check"><input type="checkbox" id="names" checked /> Names</label>
-      <button type="button" id="download" title="Download a 4K PNG of the whole map">PNG</button>
+      <button type="button" id="download" title="Download a 4K PNG of the map at this date">PNG</button>
       <button type="button" id="theme" class="icon" title="Toggle dark mode" aria-label="Toggle dark mode">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>

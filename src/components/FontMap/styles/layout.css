@@ -193,10 +193,11 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm);
   border-radius: var(--border-radius-md);
   transition: all var(--transition-normal);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .about-link:hover, .source-link:hover {

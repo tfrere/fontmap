@@ -1,89 +1,12 @@
 <!doctype html>
-<html lang="en" class="is-grid">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Who drew the fonts you know? · FontMap experiment</title>
-  <meta name="description" content="The people behind Google Fonts, each on the map: their fonts in black and the ground they cover. Some range over every style, others never leave one corner." />
-  <link rel="icon" href="../../fontmap-icon.ico" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../shared/experiment.css" />
-  <link rel="stylesheet" href="style.css" />
-  <script>
-    document.documentElement.dataset.theme = localStorage.getItem('fontmap-dark-mode') === 'true' ? 'dark' : 'light';
-    if (location.hash.length > 1) document.documentElement.classList.remove('is-grid');
-  </script>
+  <title>Who drew the fonts you know? · FontMap</title>
+  <meta name="robots" content="noindex" />
+  <script>location.replace('../../#/experiments/designers' + (location.hash.length > 1 ? '/' + location.hash.slice(1) : ''));</script>
 </head>
 <body>
-  <canvas id="map" aria-label="Map of Google Fonts highlighting one designer's families"></canvas>
-
-  <nav class="topbar" aria-label="Navigation">
-    <a class="back" href="../" title="Back to all experiments"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg><span>All experiments</span></a>
-    <a class="topbar-brand" href="../../" title="Open the map">FontMap</a>
-  </nav>
-
-  <main class="gallery">
-    <header class="gallery-head">
-      <p class="kicker">Experiment · People</p>
-      <h1>Who drew the fonts<br><em>you know?</em></h1>
-      <p class="gallery-lede">
-        Google Fonts credits <strong id="designer-count">632</strong> designers and foundries. Each card puts one of them on the map:
-        their fonts in black, the ground they cover shaded. Some range over every style; others never leave one corner.
-      </p>
-    </header>
-
-    <div class="gallery-tools">
-      <input id="search" type="search" placeholder="Search a font or a designer: Montserrat, Lobster, Poppins…" autocomplete="off" aria-label="Search a font or a designer" />
-      <div class="sort" role="group" aria-label="Sort designers">
-        <button type="button" data-sort="known" class="is-active">Best known</button>
-        <button type="button" data-sort="wide">Widest range</button>
-        <button type="button" data-sort="focused">Most focused</button>
-        <button type="button" data-sort="count">Most fonts</button>
-      </div>
-      <button type="button" id="theme-grid" class="round" title="Toggle dark mode" aria-label="Toggle dark mode">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-    </div>
-
-    <p class="result-count" id="result-count"></p>
-    <ol class="cards" id="cards"></ol>
-    <button type="button" class="more" id="more"></button>
-
-    <footer class="gallery-foot">
-      <p class="source" id="source-grid"></p>
-      <a class="next-inline" href="../../trailer/index.html"><span>Next experiment</span>The trailer →</a>
-    </footer>
-  </main>
-
-  <aside class="panel focus-panel" aria-live="polite">
-    <a class="panel-back" href="#" id="panel-back">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-      All designers
-    </a>
-    <p class="designer" id="designer"></p>
-    <p class="known" id="known"></p>
-    <dl class="stats" id="stats"></dl>
-
-    <div class="font-list-head"><span>Their fonts</span><span id="views-label">Views</span></div>
-    <ol class="font-list" id="font-list"></ol>
-
-    <div class="actions">
-      <label class="check"><input type="checkbox" id="names" checked /> Names</label>
-      <button type="button" id="download" title="Download a 4K PNG of this designer's map">PNG</button>
-      <button type="button" id="theme" class="icon" title="Toggle dark mode" aria-label="Toggle dark mode">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-    </div>
-  </aside>
-
-  <div class="hint">Scroll to zoom · drag to pan · click a grey glyph to switch to its designer · Esc for all designers</div>
-
-  <div class="tooltip" id="tooltip" role="tooltip"></div>
-
-  <div class="loader" id="loader"><div class="spinner"></div></div>
-
-  <script type="module" src="main.js"></script>
+  <p>This page moved to <a href="../../#/experiments/designers">../../#/experiments/designers</a>.</p>
 </body>
 </html>

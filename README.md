@@ -29,7 +29,7 @@ Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-wor
 
 [![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo-v2.gif)](https://tfrere-font-map.static.hf.space/)
 
-[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (19 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/) · [Experiments](https://tfrere-font-map.static.hf.space/experiments/index.html) (size by use, who drew the fonts you know) — source in [`public/experiments/`](public/experiments/)
+[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (19 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/) · [Experiments](https://tfrere-font-map.static.hf.space/#/experiments) (size by use, who drew the fonts you know) — source in [`src/experiments/`](src/experiments/)
 
 ## Features
 
@@ -128,7 +128,7 @@ npm run popularity -- --range year   # 7day | 30day | 90day | year
 
 ### Experiments
 
-[`public/experiments/`](public/experiments/) holds standalone pages built on the map layout, with no build step: they load `public/data/` directly and share a canvas view in `shared/`. Each one lives in its own folder with an `index.html` and a `main.js`; the index page links them.
+The experiments are routes of the app (`#/experiments`, `#/experiments/size-by-use`, `#/experiments/designers/<name>`), loaded on demand. They live in [`src/experiments/`](src/experiments/): each one is a canvas controller (`sizeByUse.js`, `designers.js`) mounted by a small React page in `pages/`, on a shared engine in `engine/` that loads `public/data/` and handles zoom, pan, hover and the 4K PNG export. Thumbnails for the index are in `public/experiments/thumbs/`, and the old static URLs under `public/experiments/` redirect to the routes.
 
 ## Project structure
 
@@ -142,9 +142,10 @@ fontmap/
 │   │   ├── typography_data.json  # Font positions + metadata
 │   │   ├── popularity.json       # Google Fonts views per font
 │   │   └── catalog.json          # Date added + designers per font
-│   └── experiments/              # Standalone experiment pages (no build step)
+│   └── experiments/thumbs/       # Experiment thumbnails (old URLs here redirect to the app)
 ├── src/
 │   ├── components/FontMap/       # The map app (components, hooks, styles, utils)
+│   ├── experiments/              # Experiment pages and their canvas engine
 │   ├── hooks/                    # Shared hooks (data and sprite loading)
 │   ├── store/                    # Zustand state management
 │   └── utils/                    # Glyph sprite loading

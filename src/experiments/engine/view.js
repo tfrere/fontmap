@@ -1,28 +1,46 @@
 // Canvas view shared by the experiments: frames the layout, draws glyphs and names,
-// and handles zoom, pan, hover, click, theme and resize.
+// and handles zoom, pan, hover, click and resize.
 //
-// An experiment describes each glyph through glyph(i) -> { x, y, s, alpha, dim } on the
+// An experiment describes each glyph through glyph(i) -> { x, y, s, alpha } on the
 // reference canvas (null hides it), gives the draw order and the layout bounds, and
-// can paint under the glyphs (underlay) or label them.
+// can paint under the glyphs (underlay) or label them. Window listeners are bound to
+// `signal`, so aborting it tears the view down.
 
-import { lerp, ease } from './map.js';
+import { lerp, ease } from './map';
 
 const FIT = 0.94;
 const MAX_ZOOM = 30;
 const LABEL_MIN_PX = 30;
 
-export function colors() {
-  const cs = getComputedStyle(document.documentElement);
+// Theme colours are CSS variables on the experiment's root element.
+export function colors(el) {
+  const cs = getComputedStyle(el);
   const get = (n) => cs.getPropertyValue(n).trim();
   return { bg: get('--bg'), ink: get('--ink'), ink2: get('--ink-2'), ink3: get('--ink-3'), line: get('--line'), tint: get('--tint') };
+}
+
+// Same storage key and attribute as the map, so the theme follows the reader everywhere.
+export function toggleTheme() {
+  const dark = document.documentElement.dataset.theme !== 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+  localStorage.setItem('fontmap-dark-mode', String(dark));
+}
+
+export function onThemeChange(callback, signal) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  signal.addEventListener('abort', () => observer.disconnect());
 }
 
 // On wide screens the map is framed to the right of the panel.
 export const screenInset = () => ({ left: window.innerWidth > 900 ? 332 : 0, top: 0 });
 
 export function createView({
+  root,
   canvas,
   tooltip,
+  signal,
   fonts,
   order,
   glyph,
@@ -38,6 +56,7 @@ export function createView({
   let hovered = -1;
   let needsDraw = false;
   let names = true;
+  const on = (target, type, fn, opts = {}) => target.addEventListener(type, fn, { ...opts, signal });
 
   function baseFit(W, H, inset = screenInset()) {
     const { left = 0, top = 0 } = inset;
@@ -55,7 +74,7 @@ export function createView({
 
   // ui scales text and the label threshold (a 4K export draws at ui = 2.4).
   function draw(c, W, H, dpr, T, { ui = 1, showNames = names, hi = -1 } = {}) {
-    const pal = colors();
+    const pal = colors(root);
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.globalAlpha = 1;
     c.fillStyle = pal.bg;
@@ -76,7 +95,7 @@ export function createView({
       const g = S / 80;
       c.setTransform(dpr * g, 0, 0, dpr * g, dpr * (cx - S / 2), dpr * (cy - S / 2));
       c.globalAlpha = st.alpha ?? 1;
-      c.fillStyle = i === hi ? pal.ink3 : st.dim ? pal.ink3 : pal.ink;
+      c.fillStyle = i === hi ? pal.ink3 : pal.ink;
       c.fill(fonts[i].path);
       if (showNames && S >= labelMinPx * ui) {
         const text = label(i, st);
@@ -111,6 +130,7 @@ export function createView({
 
   function frame() {
     needsDraw = false;
+    if (signal.aborted || !canvas.isConnected) return;
     const dpr = window.devicePixelRatio || 1;
     const W = window.innerWidth;
     const H = window.innerHeight;
@@ -131,6 +151,7 @@ export function createView({
     const from = { ...view };
     const t0 = performance.now();
     const step = (now) => {
+      if (signal.aborted) return;
       const x = ease(Math.min(1, (now - t0) / ms));
       view = { k: lerp(from.k, target.k, x), x: lerp(from.x, target.x, x), y: lerp(from.y, target.y, x) };
       requestDraw();
@@ -179,17 +200,17 @@ export function createView({
 
   let drag = null;
 
-  canvas.addEventListener('wheel', (e) => {
+  on(canvas, 'wheel', (e) => {
     e.preventDefault();
     zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)));
   }, { passive: false });
 
-  canvas.addEventListener('pointerdown', (e) => {
+  on(canvas, 'pointerdown', (e) => {
     canvas.setPointerCapture(e.pointerId);
     drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false };
   });
 
-  canvas.addEventListener('pointermove', (e) => {
+  on(canvas, 'pointermove', (e) => {
     if (drag) {
       const dx = e.clientX - drag.x;
       const dy = e.clientY - drag.y;
@@ -208,7 +229,7 @@ export function createView({
     showTooltip(i, e.clientX, e.clientY);
   });
 
-  canvas.addEventListener('pointerup', (e) => {
+  on(canvas, 'pointerup', (e) => {
     const click = drag && !drag.moved;
     drag = null;
     canvas.classList.remove('is-dragging');
@@ -217,29 +238,21 @@ export function createView({
     if (i >= 0) onClick(i);
   });
 
-  canvas.addEventListener('pointerleave', () => { hovered = -1; showTooltip(-1); requestDraw(); });
-  canvas.addEventListener('dblclick', () => animateView({ k: 1, x: 0, y: 0 }));
-  window.addEventListener('resize', requestDraw);
-  window.addEventListener('keydown', (e) => {
+  on(canvas, 'pointerleave', () => { hovered = -1; showTooltip(-1); requestDraw(); });
+  on(canvas, 'dblclick', () => animateView({ k: 1, x: 0, y: 0 }));
+  on(window, 'resize', requestDraw);
+  on(window, 'keydown', (e) => {
     if (e.target.closest('input, button, select')) return;
     if (e.key === '0') animateView({ k: 1, x: 0, y: 0 });
   });
-
-  const themeButton = document.getElementById('theme');
-  if (themeButton) {
-    themeButton.addEventListener('click', () => {
-      const dark = document.documentElement.dataset.theme !== 'dark';
-      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      localStorage.setItem('fontmap-dark-mode', String(dark));
-      requestDraw();
-    });
-  }
+  onThemeChange(requestDraw, signal);
 
   return {
     requestDraw,
     draw,
     transformFor,
     baseFit,
+    colors: () => colors(root),
     reset: () => animateView({ k: 1, x: 0, y: 0 }),
     setNames: (v) => { names = v; requestDraw(); },
   };
@@ -258,7 +271,7 @@ export function exportPng(viewApi, { title, subtitle, source, filename, footer }
   const T = viewApi.transformFor(W, H, { v: { k: 1, x: 0, y: 0 }, inset: { left: 0, top } });
   viewApi.draw(c, W, H, 1, T, { ui });
 
-  const pal = colors();
+  const pal = viewApi.colors();
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.textAlign = 'left';
   c.textBaseline = 'alphabetic';
@@ -278,14 +291,4 @@ export function exportPng(viewApi, { title, subtitle, source, filename, footer }
   a.download = filename;
   a.href = out.toDataURL('image/png');
   a.click();
-}
-
-export function hideLoader(error) {
-  const loader = document.getElementById('loader');
-  if (error) {
-    console.error(error);
-    loader.innerHTML = '<p style="font-size:14px;color:var(--ink-2)">Could not load the map data.</p>';
-    return;
-  }
-  loader.classList.add('is-done');
 }

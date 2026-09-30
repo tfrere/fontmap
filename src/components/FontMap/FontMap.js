@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import '../FontMap.css';
 
 import { useStaticFontData } from '../../hooks/useStaticFontData';
@@ -32,6 +32,15 @@ import './styles/intro-modal.css';
 import './styles/how-it-works.css';
 
 const HOW_IT_WORKS_PATH = '/how-it-works';
+const INTRO_SEEN_KEY = 'fontmap-intro-seen';
+
+const introSeen = () => {
+  try {
+    return localStorage.getItem(INTRO_SEEN_KEY) === 'true';
+  } catch (e) {
+    return false;
+  }
+};
 
 /**
  * Main FontMap component: SVG map renderer + full UI.
@@ -60,9 +69,15 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
   const [searchTerm, setSearchTerm] = useState('');
   // Google Fonts tag highlighted on the map (e.g. "Sans/Humanist"), from search or the font panel
   const [styleTag, setStyleTag] = useState(null);
-  // What sits under the loader: the intro modal, or nothing on a direct
-  // how-it-works landing. Loading itself is tracked by useAppReady.
-  const [appState, setAppState] = useState(() => (showHowItWorks ? 'ready' : 'intro'));
+  // What sits under the loader: the intro modal on a first visit, or nothing once it has
+  // been dismissed or on a direct how-it-works landing. Loading itself is tracked by useAppReady.
+  const [appState, setAppState] = useState(() => (showHowItWorks || introSeen() ? 'ready' : 'intro'));
+  const dismissIntro = useCallback(() => {
+    setAppState('ready');
+    try {
+      localStorage.setItem(INTRO_SEEN_KEY, 'true');
+    } catch (e) {}
+  }, []);
   // html[data-theme] is resolved before first paint by public/index.html
   // (same storage key, same light default), so start from it to match the loader.
   const [darkMode, setDarkMode] = useState(() => {
@@ -167,7 +182,7 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
       if (target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName)) return;
       event.preventDefault();
       if (appState === 'intro') {
-        setAppState('ready');
+        dismissIntro();
         return;
       }
       if (showHowItWorks) return;
@@ -175,7 +190,7 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [appState, showHowItWorks, resetAll]);
+  }, [appState, showHowItWorks, resetAll, dismissIntro]);
 
   // ── Callbacks ──
   function handleFontSelect(font) {
@@ -311,14 +326,14 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
             </svg>
             How it works
           </button>
-          <a className="source-link" href="experiments/index.html" title="Side projects built on the map">
+          <Link className="source-link" to="/experiments" title="Side projects built on the map">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 3h6" />
               <path d="M10 3v6.5L4.6 18.4A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.4-2.6L14 9.5V3" />
               <path d="M7.5 15h9" />
             </svg>
             Experiments
-          </a>
+          </Link>
           <a className="source-link" href="https://github.com/tfrere/fontmap" target="_blank" rel="noopener noreferrer" title="View source on GitHub">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
@@ -391,10 +406,10 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
       {/* Overlays */}
       {appState === 'intro' && totalFonts > 0 && (
         <IntroModal
-          onStartExploring={() => setAppState('ready')}
+          onStartExploring={dismissIntro}
           onPickFont={handleFontSelect}
           onOpenHowItWorks={() => {
-            setAppState('ready');
+            dismissIntro();
             openHowItWorks();
           }}
           darkMode={darkMode}

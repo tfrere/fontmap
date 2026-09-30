@@ -1,19 +1,10 @@
-// Size by use: the FontMap layout with each glyph sized by its Google Fonts views.
-// Sizes follow a bounded log scale, and a collision pass (a Dorling-style cartogram)
-// pushes neighbours aside so big glyphs never cover small ones.
+// Size by use: the FontMap layout with each glyph sized by its Google Fonts views and
+// relaxed into a cartogram (engine/cartogram.js); the intro grows it from the plain map.
 
-import { forceSimulation, forceCollide, forceX, forceY } from 'd3';
 import { loadMap, BASE, compact, pct, lerp, ease, escapeHtml } from './engine/map';
 import { createView, exportPng } from './engine/view';
+import { sizeByUse } from './engine/cartogram';
 
-// Glyph box sizes on the reference canvas at full scale: the least used font gets
-// S_MIN, Roboto S_MAX. GAMMA > 1 keeps the long tail small so the leaders stand out.
-const S_MIN = 13;
-const S_MAX = 120;
-const GAMMA = 3;
-// Collision radius as a share of the glyph box: the A covers about 60% of it.
-const INK_RADIUS = 0.31;
-const GAP = 0.6;
 const INTRO_MS = 2400;
 const LEGEND_VIEWS = [1e6, 1e8, 1e10];
 
@@ -22,31 +13,11 @@ export async function mountSizeByUse(root, signal) {
   let fonts = [];
   let order = [];
   let meta = null;
+  let sizeForViews = null;
   let scaleT = 0;
   let bounds = [null, null];
   let anim = null;
   let view = null;
-
-  const sizeForViews = (v) => {
-    const l = Math.max(0, Math.min(1, (Math.log(v) - meta.lmin) / (meta.lmax - meta.lmin)));
-    return S_MIN + (S_MAX - S_MIN) * l ** GAMMA;
-  };
-
-  // Dorling-style relaxation: every glyph is pulled back to its map position while
-  // collisions push overlapping ones apart, so the layout keeps its neighbourhoods.
-  function relax() {
-    const nodes = fonts.map((f) => ({ x: f.x0, y: f.y0, r: f.s1 * INK_RADIUS + GAP }));
-    const sim = forceSimulation(nodes)
-      .force('x', forceX((_, i) => fonts[i].x0).strength(0.06))
-      .force('y', forceY((_, i) => fonts[i].y0).strength(0.06))
-      .force('collide', forceCollide((d) => d.r).strength(1).iterations(4))
-      .stop();
-    for (let n = 0; n < 320; n++) sim.tick();
-    // A few collision-only passes remove what the pull-back leaves.
-    sim.force('x', null).force('y', null);
-    for (let n = 0; n < 40; n++) sim.tick();
-    nodes.forEach((d, i) => { fonts[i].x1 = d.x; fonts[i].y1 = d.y; });
-  }
 
   const stateAt = (f, t) => ({ x: lerp(f.x0, f.x1, t), y: lerp(f.y0, f.y1, t), s: lerp(BASE, f.s1, t) });
 
@@ -113,17 +84,7 @@ export async function mountSizeByUse(root, signal) {
   const data = await loadMap({ popularity: true });
   if (signal.aborted) return;
   fonts = data.fonts;
-  const known = fonts.filter((f) => f.hasViews).map((f) => f.views);
-  const floor = Math.min(...known);
-  fonts.forEach((f) => { if (!f.hasViews) f.views = floor; });
-
-  const total = known.reduce((a, b) => a + b, 0);
-  order = fonts.map((_, i) => i).sort((a, b) => fonts[b].views - fonts[a].views);
-  order.forEach((i, rank) => { fonts[i].rank = rank + 1; fonts[i].share = fonts[i].hasViews ? fonts[i].views / total : 0; });
-  meta = { total, fetched: data.usage.fetched, lmin: Math.log(floor), lmax: Math.log(Math.max(...known)), ranked: known.length };
-
-  fonts.forEach((f) => { f.s1 = sizeForViews(f.views); });
-  relax();
+  ({ order, meta, sizeForViews } = sizeByUse(fonts, data.usage));
   bounds = [boundsAt(0), boundsAt(1)];
 
   view = createView({

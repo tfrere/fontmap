@@ -6,6 +6,7 @@
 
 import { loadMap, BASE, compact, pct, ease, lerp, escapeHtml } from './engine/map';
 import { createView, colors, exportPng, onThemeChange } from './engine/view';
+import { indexDesigners, paintTerritory } from './engine/territory';
 
 // Designers with fewer families than MIN_FONTS only show up in search results.
 const MIN_FONTS = 3;
@@ -28,23 +29,6 @@ export const USAGE_TIERS = [
 const inTier = (d, tier) => !tier || (d.views >= (tier.min ?? 0) && d.views < (tier.max ?? Infinity));
 
 export const designerPath = (name) => `/experiments/designers/${encodeURIComponent(name)}`;
-
-function hull(points) {
-  const p = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-  if (p.length < 3) return p;
-  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-  const lower = [];
-  for (const q of p) {
-    while (lower.length >= 2 && cross(lower.at(-2), lower.at(-1), q) <= 0) lower.pop();
-    lower.push(q);
-  }
-  const upper = [];
-  for (const q of [...p].reverse()) {
-    while (upper.length >= 2 && cross(upper.at(-2), upper.at(-1), q) <= 0) upper.pop();
-    upper.push(q);
-  }
-  return lower.slice(0, -1).concat(upper.slice(0, -1));
-}
 
 function ordinal(n) {
   const s = ['th', 'st', 'nd', 'rd'];
@@ -94,25 +78,14 @@ export async function mountDesigners(root, signal, { go }) {
 
   function buildIndex() {
     const all = fonts;
-    designers = new Map();
-    all.forEach((f, i) => {
-      for (const name of f.designers || []) {
-        if (!designers.has(name)) designers.set(name, { name, fonts: [] });
-        designers.get(name).fonts.push(i);
-      }
-    });
-
+    designers = new Map(indexDesigners(all).map((d) => [d.name, d]));
     const b = layoutBounds;
     const diag = Math.hypot(b[2] - b[0], b[3] - b[1]);
     for (const d of designers.values()) {
-      d.fonts.sort((a, c) => all[c].views - all[a].views);
-      const pts = d.fonts.map((i) => [all[i].x0, all[i].y0]);
+      const pts = d.points;
       const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
       const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
       d.spread = pts.reduce((s, p) => s + Math.hypot(p[0] - cx, p[1] - cy), 0) / pts.length / diag;
-      d.hull = hull(pts);
-      d.set = new Set(d.fonts);
-      d.views = d.fonts.reduce((s, i) => s + all[i].views, 0);
       d.search = [d.name, ...d.fonts.map((i) => all[i].name)].join('\n').toLowerCase();
       const years = d.fonts.map((i) => all[i].added).filter(Boolean).map((a) => Number(a.slice(0, 4)));
       d.years = years.length ? [Math.min(...years), Math.max(...years)] : null;
@@ -273,35 +246,6 @@ export async function mountDesigners(root, signal, { go }) {
     const s = inSet(selected, i) ? (i === listHover ? HOVER_SIZE : SELECTED_SIZE) : 1;
     const s0 = previous ? (inSet(previous, i) ? SELECTED_SIZE : 1) : s;
     return { x: f.x0, y: f.y0, s: BASE * lerp(s0, s, t), alpha: lerp(a0, a, t) };
-  }
-
-  // A blob around each font shows where the designer actually works; the dashed convex hull
-  // only marks how far apart those places are.
-  function paintTerritory(c, d, project, radius, ui, pal) {
-    c.save();
-    c.fillStyle = pal.tint;
-    c.beginPath();
-    for (const i of d.fonts) {
-      const [x, y] = project(fonts[i].x0, fonts[i].y0);
-      c.moveTo(x + radius, y);
-      c.arc(x, y, radius, 0, Math.PI * 2);
-    }
-    c.fill();
-    if (d.hull.length > 1) {
-      c.beginPath();
-      d.hull.forEach(([hx, hy], n) => {
-        const [x, y] = project(hx, hy);
-        if (n === 0) c.moveTo(x, y); else c.lineTo(x, y);
-      });
-      c.closePath();
-      c.lineJoin = 'round';
-      c.setLineDash([3 * ui, 3 * ui]);
-      c.lineWidth = ui;
-      c.strokeStyle = pal.ink3;
-      c.globalAlpha *= 0.8;
-      c.stroke();
-    }
-    c.restore();
   }
 
   function paintHull(c, d, T, alpha, pal, ui) {

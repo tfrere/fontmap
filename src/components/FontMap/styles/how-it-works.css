@@ -1224,6 +1224,11 @@
   stroke-linecap: round;
 }
 
+.hiw-iso-line.is-ghost {
+  stroke-opacity: 0.3;
+  pointer-events: none;
+}
+
 .hiw-iso-accent-fill {
   fill: var(--hiw-accent);
 }

@@ -888,17 +888,23 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 20px 50px -20px rgba(0, 0, 0, 0.18);
 }
 
-.exp-index .row-media img {
+.exp-index .row-media canvas, .exp-index .row-media video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-[data-theme='dark'] .exp-index .row-media img { filter: invert(1) hue-rotate(180deg); }
+.exp-index .row-media canvas { opacity: 0; transition: opacity 0.6s ease; }
 
-.exp-index .row:hover .row-media img { transform: scale(1.035); }
+.exp-index .row-media canvas.is-in { opacity: 1; }
+
+.exp-index .row-media video { transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+/* The trailer is black on white; inverted it matches the dark theme. */
+[data-theme='dark'] .exp-index .row-media video { filter: invert(1) hue-rotate(180deg); }
+
+.exp-index .row:hover .row-media video { transform: scale(1.035); }
 
 .exp-index .row-num {
   margin: 0 0 18px;

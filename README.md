@@ -128,7 +128,7 @@ npm run popularity -- --range year   # 7day | 30day | 90day | year
 
 ### Experiments
 
-The experiments are routes of the app (`#/experiments`, `#/experiments/size-by-use`, `#/experiments/designers/<name>`), loaded on demand. They live in [`src/experiments/`](src/experiments/): each one is a canvas controller (`sizeByUse.js`, `designers.js`) mounted by a small React page in `pages/`, on a shared engine in `engine/` that loads `public/data/` and handles zoom, pan, hover and the 4K PNG export. Thumbnails for the index are in `public/experiments/thumbs/`, and the old static URLs under `public/experiments/` redirect to the routes.
+The experiments are routes of the app (`#/experiments`, `#/experiments/size-by-use`, `#/experiments/designers/<name>`), loaded on demand. They live in [`src/experiments/`](src/experiments/): each one is a canvas controller (`sizeByUse.js`, `designers.js`) mounted by a small React page in `pages/`, on a shared engine in `engine/` that loads `public/data/` and handles zoom, pan, hover and the 4K PNG export. The index previews each experiment with a live loop drawn from the same data (`previews.js`, the trailer as a muted clip in `public/experiments/previews/`), and the old static URLs under `public/experiments/` redirect to the routes.
 
 ## Project structure
 
@@ -142,7 +142,7 @@ fontmap/
 │   │   ├── typography_data.json  # Font positions + metadata
 │   │   ├── popularity.json       # Google Fonts views per font
 │   │   └── catalog.json          # Date added + designers per font
-│   └── experiments/thumbs/       # Experiment thumbnails (old URLs here redirect to the app)
+│   └── experiments/previews/     # Trailer preview clip (old URLs here redirect to the app)
 ├── src/
 │   ├── components/FontMap/       # The map app (components, hooks, styles, utils)
 │   ├── experiments/              # Experiment pages and their canvas engine

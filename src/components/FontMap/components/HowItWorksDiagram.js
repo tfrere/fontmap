@@ -329,6 +329,13 @@ const HowItWorksDiagram = ({ focus, specimens, fonts, glyphFor, specimenFor = ()
       </g>
 
 
+      {/* The whole axis again, faint and on top, so its stretches behind the stages still show */}
+      <path
+        className="hiw-iso-line is-ghost"
+        d={`M${onAxis(lineT).join(',')} L${onAxis(PROJ_T).join(',')}`}
+        style={{ strokeDashoffset: 0 }}
+      />
+
       {num(1, highlighted * SPECIMEN_GAP, -SPECIMEN_W / 2 - 24, SPECIMEN_H / 2 + 30)}
       {num(2, PATCH_T, -PATCH_SPAN / 2 - 16, PATCH_SPAN / 2 + 28)}
       {num(3, EMBED_T, -EMBED_SIZE / 2 - 16, EMBED_SIZE / 2 + 30)}

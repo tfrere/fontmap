@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { mountHeroMap } from '../heroMap';
+import { mountDesignersPreview, mountSizePreview } from '../previews';
 import { displayFontReady, ThemeButton, Topbar, useController, useExperimentPage } from './shared';
 
 const ROWS = [
   {
     to: '/experiments/size-by-use',
-    thumb: 'popularity',
+    key: 'size',
+    preview: { mount: mountSizePreview, label: 'Preview: the map grows into a cartogram sized by use' },
     kicker: 'Usage',
     title: 'Size by use',
     desc: 'Each glyph grows with how often Google serves it to websites. Log scale, and big glyphs push their neighbours aside instead of covering them.',
@@ -16,7 +18,8 @@ const ROWS = [
   },
   {
     to: '/experiments/designers',
-    thumb: 'designers',
+    key: 'designers',
+    preview: { mount: mountDesignersPreview, label: 'Preview: designers light up one after another on the map' },
     kicker: 'People',
     title: 'Who drew the fonts you know?',
     desc: 'Search Montserrat, Poppins or Lobster and meet the people behind them, each drawn on the map with everything else they made.',
@@ -26,7 +29,8 @@ const ROWS = [
   },
   {
     href: 'trailer/index.html',
-    thumb: 'trailer',
+    key: 'trailer',
+    video: { src: 'experiments/previews/trailer.mp4', poster: 'experiments/previews/trailer.jpg' },
     kicker: 'Making-of',
     title: 'The trailer',
     desc: 'A typographic trailer for FontMap, written in plain JavaScript on a single canvas, with its score synthesised in the browser.',
@@ -35,6 +39,28 @@ const ROWS = [
     cta: 'Watch the trailer',
   },
 ];
+
+function CanvasPreview({ mount, label }) {
+  const [ref] = useController(mount);
+  return <canvas ref={ref} role="img" aria-label={label} />;
+}
+
+// Muted so it may autoplay; it only loads and plays while on screen.
+function VideoPreview({ src, poster }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const video = ref.current;
+    video.muted = true;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) video.play().catch(() => {});
+      else video.pause();
+    }, { threshold: 0.2 });
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+  return <video ref={ref} src={src} poster={poster} muted loop playsInline preload="none" aria-hidden="true" />;
+}
 
 // The trailer is a standalone page outside the app, so it gets a plain link.
 function RowLink({ row, children, ...props }) {
@@ -76,9 +102,9 @@ export default function ExperimentsIndex() {
 
       <main className="list" ref={list}>
         {ROWS.map((row, n) => (
-          <article className="row" key={row.thumb}>
-            <RowLink row={row} className="row-media" tabIndex={-1} aria-hidden="true">
-              <img src={`experiments/thumbs/${row.thumb}.jpg`} alt="" loading="lazy" />
+          <article className="row" key={row.key}>
+            <RowLink row={row} className={`row-media is-${row.key}`} tabIndex={-1} aria-hidden="true">
+              {row.preview ? <CanvasPreview {...row.preview} /> : <VideoPreview {...row.video} />}
             </RowLink>
             <div className="row-text">
               <p className="row-num">{String(n + 1).padStart(2, '0')}</p>

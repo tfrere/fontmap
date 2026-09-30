@@ -3,19 +3,29 @@ import { Link } from 'react-router-dom';
 import { toggleTheme } from '../engine/view';
 import '../experiments.css';
 
-// Only the experiments use the display serif, so it is fetched on first visit.
-function ensureDisplayFont() {
-  if (document.getElementById('experiments-fonts')) return;
-  const link = document.createElement('link');
-  link.id = 'experiments-fonts';
-  link.rel = 'stylesheet';
-  link.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&display=swap';
-  document.head.appendChild(link);
+const DISPLAY_FONT_TIMEOUT = 1500;
+let displayFont = null;
+
+// Only the experiments use the display serif, so it is fetched on first visit. Titles wait
+// for it (up to a timeout) rather than flash in the fallback serif and swap.
+export function displayFontReady() {
+  if (!displayFont) {
+    const loaded = new Promise((resolve) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&display=swap';
+      link.onload = () => document.fonts.load("italic 400 1em 'Playfair Display'").then(resolve, resolve);
+      link.onerror = resolve;
+      document.head.appendChild(link);
+    });
+    displayFont = Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, DISPLAY_FONT_TIMEOUT))]);
+  }
+  return displayFont;
 }
 
 export function useExperimentPage(title) {
   useEffect(() => {
-    ensureDisplayFont();
+    displayFontReady();
     const previous = document.title;
     return () => { document.title = previous; };
   }, []);

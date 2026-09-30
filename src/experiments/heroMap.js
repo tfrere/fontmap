@@ -1,13 +1,18 @@
-// Hero of the experiments index: the whole map in faint ink, lit up around the cursor.
-// Without a pointer the light drifts on its own, unless the reader prefers reduced motion.
+// Hero of the experiments index: the whole map in faint ink, with a few soft lights that
+// wander from font to font on their own. With reduced motion the lights hold still.
+//
+// The faint map is rendered once per size and theme; each frame only redraws the glyphs
+// near a light on top of it.
 
-import { loadMap, BASE } from './engine/map';
+import { loadMap, BASE, ease } from './engine/map';
 import { colors, onThemeChange } from './engine/view';
 
 const BASE_ALPHA = 0.14;
-const RADIUS = 170;
+const RADIUS = 150;
 const GROW = 0.7;
-const FOLLOW = 0.12;
+const LIGHTS = 2;
+const TRAVEL_MS = 3600;
+const DWELL_MS = 900;
 
 export async function mountHeroMap(canvas, signal) {
   const ctx = canvas.getContext('2d');
@@ -17,8 +22,8 @@ export async function mountHeroMap(canvas, signal) {
 
   let fonts = [];
   let bounds = null;
-  let pointer = null;
-  let light = { x: -1e4, y: -1e4 };
+  let base = null;
+  let lights = [];
   let visible = true;
   let raf = null;
 
@@ -32,6 +37,42 @@ export async function mountHeroMap(canvas, signal) {
     return { s, ox: left + (W - left - bw * s) / 2 - bounds[0] * s, oy: top + (H - top - bh * s) / 2 - bounds[1] * s };
   }
 
+  function glyph(c, f, x, y, S, dpr) {
+    const g = S / 80;
+    c.setTransform(dpr * g, 0, 0, dpr * g, dpr * (x - S / 2), dpr * (y - S / 2));
+    c.fill(f.path);
+  }
+
+  function baseLayer(W, H, dpr, T, ink) {
+    const key = `${W}x${H}@${dpr}:${ink}`;
+    if (base?.key === key) return base.canvas;
+    const off = document.createElement('canvas');
+    off.width = Math.round(W * dpr);
+    off.height = Math.round(H * dpr);
+    const c = off.getContext('2d');
+    c.fillStyle = ink;
+    c.globalAlpha = BASE_ALPHA;
+    const size = BASE * T.s * 0.95;
+    for (const f of fonts) glyph(c, f, T.ox + f.x0 * T.s, T.oy + f.y0 * T.s, size, dpr);
+    base = { key, canvas: off };
+    return off;
+  }
+
+  // Lights travel between fonts picked at random, so they visit every part of the map.
+  const pick = () => fonts[Math.floor(Math.random() * fonts.length)];
+
+  function lightAt(l, time) {
+    let t = (time - l.t0) / TRAVEL_MS;
+    while (t >= 1 + DWELL_MS / TRAVEL_MS) {
+      l.from = l.to;
+      l.to = pick();
+      l.t0 += TRAVEL_MS + DWELL_MS;
+      t = (time - l.t0) / TRAVEL_MS;
+    }
+    const k = ease(Math.max(0, Math.min(1, t)));
+    return { x: l.from.x0 + (l.to.x0 - l.from.x0) * k, y: l.from.y0 + (l.to.y0 - l.from.y0) * k };
+  }
+
   function draw(time) {
     raf = null;
     if (signal.aborted) return;
@@ -43,46 +84,41 @@ export async function mountHeroMap(canvas, signal) {
       canvas.height = Math.round(H * dpr);
     }
     const T = layout(W, H);
-    const target = pointer || (still
-      ? { x: -1e4, y: -1e4 }
-      : { x: T.ox + (bounds[0] + bounds[2]) / 2 * T.s + Math.sin(time / 3100) * (bounds[2] - bounds[0]) * T.s * 0.38,
-          y: T.oy + (bounds[1] + bounds[3]) / 2 * T.s + Math.sin(time / 1900) * (bounds[3] - bounds[1]) * T.s * 0.3 });
-    light = light.x < -1e3 ? { ...target } : { x: light.x + (target.x - light.x) * FOLLOW, y: light.y + (target.y - light.y) * FOLLOW };
-
     const pal = colors(hero);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = pal.ink;
+    ctx.drawImage(baseLayer(W, H, dpr, T, pal.ink), 0, 0);
+
+    const spots = lights.map((l) => {
+      const p = lightAt(l, time);
+      return { x: T.ox + p.x * T.s, y: T.oy + p.y * T.s };
+    });
     const size = BASE * T.s * 0.95;
+    ctx.fillStyle = pal.ink;
     for (const f of fonts) {
       const x = T.ox + f.x0 * T.s;
       const y = T.oy + f.y0 * T.s;
-      const d = Math.hypot(x - light.x, y - light.y);
-      const t = d < RADIUS ? (1 - d / RADIUS) ** 2 : 0;
-      const S = size * (1 + GROW * t);
-      ctx.globalAlpha = BASE_ALPHA + (1 - BASE_ALPHA) * t;
-      const g = S / 80;
-      ctx.setTransform(dpr * g, 0, 0, dpr * g, dpr * (x - S / 2), dpr * (y - S / 2));
-      ctx.fill(f.path);
+      let t = 0;
+      for (const s of spots) {
+        const d = Math.hypot(x - s.x, y - s.y);
+        if (d < RADIUS) t = Math.max(t, (1 - d / RADIUS) ** 2);
+      }
+      if (t < 0.02) continue;
+      ctx.globalAlpha = t;
+      glyph(ctx, f, x, y, size * (1 + GROW * t), dpr);
     }
     ctx.globalAlpha = 1;
 
-    const moving = Math.abs(target.x - light.x) + Math.abs(target.y - light.y) > 0.5;
-    if (visible && (moving || (!pointer && !still))) raf = requestAnimationFrame(draw);
+    if (visible && !still) raf = requestAnimationFrame(draw);
   }
 
   const wake = () => { if (!raf && fonts.length && !signal.aborted) raf = requestAnimationFrame(draw); };
 
-  on(hero, 'pointermove', (e) => {
-    const r = hero.getBoundingClientRect();
-    pointer = { x: e.clientX - r.left, y: e.clientY - r.top };
-    wake();
-  });
-  on(hero, 'pointerleave', () => { pointer = null; wake(); });
   on(window, 'resize', wake);
   const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; wake(); });
   observer.observe(hero);
-  onThemeChange(() => { if (still) draw(0); else wake(); }, signal);
+  onThemeChange(wake, signal);
   signal.addEventListener('abort', () => {
     observer.disconnect();
     cancelAnimationFrame(raf);
@@ -95,8 +131,12 @@ export async function mountHeroMap(canvas, signal) {
   for (const f of fonts) {
     bounds = [Math.min(bounds[0], f.x0), Math.min(bounds[1], f.y0), Math.max(bounds[2], f.x0), Math.max(bounds[3], f.y0)];
   }
-  canvas.style.opacity = '0';
-  canvas.style.transition = 'opacity 0.8s ease';
-  draw(performance.now());
-  requestAnimationFrame(() => { canvas.style.opacity = '1'; });
+  const now = performance.now();
+  lights = Array.from({ length: LIGHTS }, (_, n) => {
+    const from = pick();
+    // Staggered so the lights never move in step.
+    return { from, to: still ? from : pick(), t0: now - n * (TRAVEL_MS / 2) };
+  });
+  draw(now);
+  canvas.classList.add('is-in');
 }

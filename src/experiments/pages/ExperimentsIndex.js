@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { mountHeroMap } from '../heroMap';
-import { ThemeButton, Topbar, useController, useExperimentPage } from './shared';
+import { displayFontReady, ThemeButton, Topbar, useController, useExperimentPage } from './shared';
 
 const ROWS = [
   {
@@ -45,9 +45,16 @@ export default function ExperimentsIndex() {
   useExperimentPage('Experiments · FontMap');
   const [heroRef] = useController(mountHeroMap);
   const list = useRef(null);
+  const [fontReady, setFontReady] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    displayFontReady().then(() => { if (live) setFontReady(true); });
+    return () => { live = false; };
+  }, []);
 
   return (
-    <div className="exp exp-index">
+    <div className={`exp exp-index${fontReady ? ' is-ready' : ''}`}>
       <Topbar to="/" label="Back to the map">
         <ThemeButton className="round" size={15} />
       </Topbar>

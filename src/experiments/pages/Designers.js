@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { mountDesigners, designerPath } from '../designers';
-import { Loader, ThemeButton, Topbar, useExperimentPage } from './shared';
+import { mountDesigners, designerPath, USAGE_TIERS } from '../designers';
+import { displayFontReady, Loader, ThemeButton, Topbar, useExperimentPage } from './shared';
 
 const GRID = '/experiments/designers';
 
@@ -20,8 +20,8 @@ export default function Designers() {
   useEffect(() => {
     const controller = new AbortController();
     const go = (next) => nav.current(next ? designerPath(next) : GRID);
-    mountDesigners(ref.current, controller.signal, { go })
-      .then((controls) => {
+    Promise.all([mountDesigners(ref.current, controller.signal, { go }), displayFontReady()])
+      .then(([controls]) => {
         if (!controls) return;
         api.current = controls;
         if (!controls.show(current.current)) nav.current(GRID, { replace: true });
@@ -60,13 +60,27 @@ export default function Designers() {
 
         <div className="gallery-tools">
           <input id="search" type="search" placeholder="Search a font or a designer: Montserrat, Lobster, Poppins…" autoComplete="off" aria-label="Search a font or a designer" />
-          <div className="sort" role="group" aria-label="Sort designers">
-            <button type="button" data-sort="known" className="is-active">Best known</button>
-            <button type="button" data-sort="wide">Widest range</button>
-            <button type="button" data-sort="focused">Most focused</button>
-            <button type="button" data-sort="count">Most fonts</button>
-          </div>
           <ThemeButton className="round" size={15} />
+          <div className="filters">
+            <div className="filter">
+              <span className="filter-label">Usage</span>
+              <div className="segmented usage" role="group" aria-label="Filter designers by how much their fonts are used">
+                <button type="button" data-usage="all" className="is-active">All <span className="n" /></button>
+                {USAGE_TIERS.map((t) => (
+                  <button type="button" data-usage={t.key} key={t.key} title={`Designers ${t.phrase}`}>{t.label} <span className="n" /></button>
+                ))}
+              </div>
+            </div>
+            <div className="filter">
+              <span className="filter-label">Sort</span>
+              <div className="segmented sort" role="group" aria-label="Sort designers">
+                <button type="button" data-sort="known" className="is-active">Most viewed</button>
+                <button type="button" data-sort="wide">Widest range</button>
+                <button type="button" data-sort="focused">Most focused</button>
+                <button type="button" data-sort="count">Most fonts</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <p className="result-count" id="result-count" />

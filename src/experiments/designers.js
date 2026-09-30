@@ -17,6 +17,15 @@ const HULL_PAD = 1;
 const FADE_MS = 450;
 const CARD = { pad: 14, hull: 11, dot: 5, glyph: 13, lead: 18 };
 const KNOWN_ON_CARD = 3;
+// Usage tiers on a designer's total Google Fonts views over 30 days. Buttons in the page
+// carry the same keys.
+export const USAGE_TIERS = [
+  { key: 'everywhere', label: 'Everywhere', min: 1e10, phrase: 'whose fonts get over 10B views a month' },
+  { key: 'popular', label: 'Popular', min: 1e9, max: 1e10, phrase: 'whose fonts get 1B to 10B views a month' },
+  { key: 'common', label: 'Common', min: 1e8, max: 1e9, phrase: 'whose fonts get 100M to 1B views a month' },
+  { key: 'niche', label: 'Niche', max: 1e8, phrase: 'whose fonts get under 100M views a month' },
+];
+const inTier = (d, tier) => !tier || (d.views >= (tier.min ?? 0) && d.views < (tier.max ?? Infinity));
 
 export const designerPath = (name) => `/experiments/designers/${encodeURIComponent(name)}`;
 
@@ -73,6 +82,7 @@ export async function mountDesigners(root, signal, { go }) {
   let listHover = -1;
   let sort = 'known';
   let query = '';
+  let usage = null;
   let limit = PAGE;
   let gridScroll = 0;
   let layoutBounds = null;
@@ -176,8 +186,10 @@ export async function mountDesigners(root, signal, { go }) {
     }
   }
 
+  const searched = () => (query ? [...designers.values()].filter((d) => d.search.includes(query)) : ranked);
+
   function visibleDesigners() {
-    const pool = query ? [...designers.values()].filter((d) => d.search.includes(query)) : ranked;
+    const pool = searched().filter((d) => inTier(d, usage));
     const unranked = (d) => (d.rank == null ? 1 : 0);
     const by = {
       known: (a, b) => b.views - a.views,
@@ -205,7 +217,10 @@ export async function mountDesigners(root, signal, { go }) {
       : `<span class="meter" title="Range: ${rangeLabel(d)}"><i><b style="width:${Math.round(100 - (d.rank / (ranked.length - 1)) * 100)}%"></b></i>${d.rank < ranked.length / 2 ? 'Wide' : 'Focused'}</span>`;
     return `<li><a class="card" href="#${designerPath(d.name)}">
       <div class="card-head">
-        <h3 class="card-name">${escapeHtml(d.name)}</h3>
+        <div class="card-title">
+          <h3 class="card-name">${escapeHtml(d.name)}</h3>
+          <p class="card-views" title="Google Fonts views of all their families, last 30 days"><b>${compact.format(d.views)}</b>views</p>
+        </div>
         <p class="card-meta"><span>${d.fonts.length} ${d.fonts.length === 1 ? 'family' : 'families'}${years ? ` · ${years}` : ''}</span>${meter}</p>
       </div>
       <canvas aria-hidden="true"></canvas>
@@ -216,15 +231,26 @@ export async function mountDesigners(root, signal, { go }) {
     </a></li>`;
   }
 
+  function renderUsageCounts() {
+    const pool = searched();
+    root.querySelectorAll('.usage button').forEach((b) => {
+      const tier = USAGE_TIERS.find((t) => t.key === b.dataset.usage);
+      b.querySelector('.n').textContent = pool.filter((d) => inTier(d, tier)).length;
+    });
+  }
+
   function renderCards() {
     const list = visibleDesigners();
     const shown = list.slice(0, limit);
+    const who = `${list.length} ${list.length === 1 ? 'designer' : 'designers'}`;
     $('cards').innerHTML = shown.length
       ? shown.map(cardHtml).join('')
-      : `<li class="empty">No designer or font matches “${escapeHtml(query)}”.</li>`;
-    $('result-count').textContent = query
-      ? `${list.length} ${list.length === 1 ? 'designer' : 'designers'} for “${query}”`
-      : `${list.length} designers and foundries with at least ${MIN_FONTS} families`;
+      : `<li class="empty">No designer ${query ? `or font matches “${escapeHtml(query)}”` : 'matches'}${usage ? ` at this usage level` : ''}.</li>`;
+    $('result-count').textContent = [
+      query ? `${who} for “${query}”` : `${who} and foundries with at least ${MIN_FONTS} families`,
+      usage?.phrase,
+    ].filter(Boolean).join(', ');
+    renderUsageCounts();
     $('more').hidden = list.length <= limit;
     $('more').textContent = `Show all ${list.length}`;
     drawCards(shown);
@@ -293,6 +319,7 @@ export async function mountDesigners(root, signal, { go }) {
     $('known').textContent = `Known for ${listSentence(known)}${d.fonts.length > known.length ? ', among others' : ''}.`;
     const rows = [
       ['Families', d.fonts.length.toLocaleString('en-US')],
+      ['Views, 30 days', compact.format(d.views)],
       ['Range', rangeLabel(d)],
       ['Published', yearsLabel(d) || '—'],
       ['Styles', mixLabel(d)],
@@ -407,6 +434,14 @@ export async function mountDesigners(root, signal, { go }) {
   on($('search'), 'input', (e) => {
     query = e.target.value.trim().toLowerCase();
     limit = PAGE;
+    renderCards();
+  });
+  on(root.querySelector('.usage'), 'click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    usage = USAGE_TIERS.find((t) => t.key === b.dataset.usage) || null;
+    limit = PAGE;
+    root.querySelectorAll('.usage button').forEach((x) => x.classList.toggle('is-active', x === b));
     renderCards();
   });
   on(root.querySelector('.sort'), 'click', (e) => {

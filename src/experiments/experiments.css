@@ -56,7 +56,7 @@
   justify-content: space-between;
   align-items: center;
   pointer-events: none;
-  z-index: 5;
+  z-index: 6;
 }
 
 .exp .topbar a, .exp .topbar button { pointer-events: auto; }
@@ -281,6 +281,7 @@
 .exp .loader {
   position: fixed;
   inset: 0;
+  z-index: 5;
   display: grid;
   place-items: center;
   background: var(--bg);
@@ -394,7 +395,24 @@
 
 .exp-designers .gallery-tools input:focus { outline: none; border-color: var(--ink-3); }
 
-.exp-designers .sort {
+.exp-designers .filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  flex-basis: 100%;
+}
+
+.exp-designers .filter { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.exp-designers .filter-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.exp-designers .segmented {
   display: flex;
   padding: 3px;
   border: 1px solid var(--line);
@@ -402,8 +420,8 @@
   background: var(--bg);
 }
 
-.exp-designers .sort button {
-  height: 34px;
+.exp-designers .segmented button {
+  height: 32px;
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
@@ -414,9 +432,11 @@
   white-space: nowrap;
 }
 
-.exp-designers .sort button:hover { color: var(--ink); }
+.exp-designers .segmented button:hover { color: var(--ink); }
 
-.exp-designers .sort button.is-active { background: var(--ink); color: var(--bg); }
+.exp-designers .segmented button.is-active { background: var(--ink); color: var(--bg); }
+
+.exp-designers .segmented .n { margin-left: 3px; font-weight: 400; opacity: 0.6; font-variant-numeric: tabular-nums; }
 
 .exp-designers .round {
   display: grid;
@@ -468,8 +488,38 @@
 
 .exp-designers .card-head { padding: 16px 16px 12px; }
 
+.exp-designers .card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.exp-designers .card-views {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 2px 0 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  color: var(--ink-3);
+}
+
+.exp-designers .card-views b {
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
 .exp-designers .card-name {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -690,7 +740,7 @@
 .exp-designers .font-list .views { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 700px) {
-  .exp-designers .gallery { padding: 72px 16px 32px; } .exp-designers .gallery-tools { margin: 0 -16px; padding: 10px 16px; } .exp-designers .sort { overflow-x: auto; max-width: 100%; } .exp-designers .focus-panel { top: auto; max-height: 55vh; } .exp-designers .gallery-foot { flex-direction: column; align-items: flex-start; } .exp-designers .next-inline { align-items: flex-start; }
+  .exp-designers .gallery { padding: 72px 16px 32px; } .exp-designers .gallery-tools { margin: 0 -16px; padding: 10px 16px; } .exp-designers .gallery-tools input { flex-basis: 0; min-width: 0; } .exp-designers .filter { max-width: 100%; } .exp-designers .segmented { overflow-x: auto; max-width: 100%; } .exp-designers .focus-panel { top: auto; max-height: 55vh; } .exp-designers .gallery-foot { flex-direction: column; align-items: flex-start; } .exp-designers .next-inline { align-items: flex-start; }
 }
 
 /* Index */
@@ -742,7 +792,11 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease;
 }
+
+.exp-index #hero-map.is-in { opacity: 1; }
 
 .exp-index .hero-text {
   position: relative;
@@ -751,6 +805,15 @@
   margin: 0 auto;
   padding: 120px 32px 80px;
   pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.exp-index.is-ready .hero-text { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .exp-index .hero-text { transform: none; }
 }
 
 .exp-index .hero-text a, .exp-index .hero-text button { pointer-events: auto; }

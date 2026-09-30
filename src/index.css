@@ -29,3 +29,10 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Set for one frame while the theme changes (utils/themeSwitch.js). The sun/moon icon keeps its turn. */
+html.theme-switching *:not(.dark-mode-toggle-icon),
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}

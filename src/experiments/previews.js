@@ -105,8 +105,9 @@ function labels(c, items, size, pal, alpha, avoid = []) {
   const placed = [...avoid];
   for (const { text, x, y: y0 } of [...items].sort((a, b) => a.y - b.y)) {
     const w = c.measureText(text).width + 6;
+    const hits = (top) => placed.some((b) => x - w / 2 < b[2] && x + w / 2 > b[0] && top < b[3] && top + size + 2 > b[1]);
     let y = y0;
-    while (placed.some((b) => x - w / 2 < b[2] && x + w / 2 > b[0] && y < b[3] && y + size + 2 > b[1])) y += size + 2;
+    while (hits(y)) y += size + 2;
     placed.push([x - w / 2, y, x + w / 2, y + size + 2]);
     label(c, text, x, y, size, pal, alpha);
   }

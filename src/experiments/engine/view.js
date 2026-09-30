@@ -7,6 +7,7 @@
 // `signal`, so aborting it tears the view down.
 
 import { lerp, ease } from './map';
+import { withoutTransitions } from '../../utils/themeSwitch';
 
 const FIT = 0.94;
 const MAX_ZOOM = 30;
@@ -22,8 +23,10 @@ export function colors(el) {
 // Same storage key and attribute as the map, so the theme follows the reader everywhere.
 export function toggleTheme() {
   const dark = document.documentElement.dataset.theme !== 'dark';
-  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+  withoutTransitions(() => {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+  });
   localStorage.setItem('fontmap-dark-mode', String(dark));
 }
 

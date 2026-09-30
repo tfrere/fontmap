@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import '../FontMap.css';
 
@@ -13,6 +13,7 @@ import { useGlyphSprite } from '../../hooks/useGlyphSprite';
 import { filterFonts } from './utils/fontUtils';
 import { buildStyleIndex } from './utils/fontSearch';
 import { DEFAULT_GLYPH, GLYPHS } from '../../utils/glyphSprites';
+import { withoutTransitions } from '../../utils/themeSwitch';
 
 import FilterControls from './components/controls/FilterControls';
 import SearchBar from './components/controls/SearchBar';
@@ -89,12 +90,16 @@ const FontMap = ({ darkMode: darkModeProp = false }) => {
   const [iconRotation, setIconRotation] = useState(0);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
-  useEffect(() => {
+  // Layout effect: it runs before paint, so the dark-mode classes React just committed and
+  // the html theme switch are both styled with transitions off.
+  useLayoutEffect(() => {
     localStorage.setItem('fontmap-dark-mode', String(darkMode));
     const theme = darkMode ? 'dark' : 'light';
     const root = document.documentElement;
-    root.dataset.theme = theme;
-    root.style.colorScheme = theme;
+    withoutTransitions(() => {
+      root.dataset.theme = theme;
+      root.style.colorScheme = theme;
+    });
     const themeColor = document.querySelector('meta[name="theme-color"]');
     if (themeColor) themeColor.content = darkMode ? '#121110' : '#fcfbf8';
   }, [darkMode]);

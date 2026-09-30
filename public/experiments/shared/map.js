@@ -49,6 +49,7 @@ export async function loadMap({ popularity = false, catalog = false } = {}) {
         url: f.google_fonts_url,
         x0: (f.x - xMin) * s + ox,
         y0: (yMax - f.y) * s + oy,
+        d,
         path: new Path2D(d),
       };
       if (usage) {

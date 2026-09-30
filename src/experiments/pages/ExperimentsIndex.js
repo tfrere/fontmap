@@ -9,34 +9,22 @@ const ROWS = [
     to: '/experiments/size-by-use',
     key: 'size',
     preview: { mount: mountSizePreview, label: 'Preview: the map grows into a cartogram sized by use' },
-    kicker: 'Usage',
     title: 'Size by use',
-    desc: 'Each glyph grows with how often Google serves it to websites. Log scale, and big glyphs push their neighbours aside instead of covering them.',
-    figure: '4 fonts',
-    figureText: 'get half of all Google Fonts views. Roboto alone gets a quarter.',
-    cta: 'Open the experiment',
+    desc: 'The same map, with every glyph sized by how often websites use it.',
   },
   {
     to: '/experiments/designers',
     key: 'designers',
     preview: { mount: mountDesignersPreview, label: 'Preview: designers light up one after another on the map' },
-    kicker: 'People',
     title: 'Who drew the fonts you know?',
-    desc: 'Search Montserrat, Poppins or Lobster and meet the people behind them, each drawn on the map with everything else they made.',
-    figure: '632',
-    figureText: 'designers and foundries. Some range over every style, others never leave one corner.',
-    cta: 'Open the experiment',
+    desc: 'Search a font and meet the people behind it, with everything else they drew.',
   },
   {
     href: 'trailer/index.html',
     key: 'trailer',
     video: { src: 'experiments/previews/trailer.mp4', poster: 'experiments/previews/trailer.jpg' },
-    kicker: 'Making-of',
     title: 'The trailer',
-    desc: 'A typographic trailer for FontMap, written in plain JavaScript on a single canvas, with its score synthesised in the browser.',
-    figure: '19 s',
-    figureText: 'at 128 BPM, every frame a pure function of time.',
-    cta: 'Watch the trailer',
+    desc: 'Nineteen seconds of type in motion, written in code on a single canvas.',
   },
 ];
 
@@ -107,20 +95,16 @@ export default function ExperimentsIndex() {
       </header>
 
       <main className="list">
-        {ROWS.map((row, n) => (
-          <article className="row" key={row.key}>
-            <RowLink row={row} className={`row-media is-${row.key}`} tabIndex={-1} aria-hidden="true">
+        {ROWS.map((row) => (
+          <RowLink row={row} className="row" key={row.key}>
+            <div className={`row-media is-${row.key}`} aria-hidden="true">
               {row.preview ? <CanvasPreview {...row.preview} /> : <VideoPreview {...row.video} />}
-            </RowLink>
-            <div className="row-text">
-              <p className="row-num">{String(n + 1).padStart(2, '0')}</p>
-              <p className="kicker">{row.kicker}</p>
-              <h2><RowLink row={row}>{row.title}</RowLink></h2>
-              <p className="row-desc">{row.desc}</p>
-              <p className="figure"><strong>{row.figure}</strong><span>{row.figureText}</span></p>
-              <RowLink row={row} className="row-cta">{row.cta} <span aria-hidden="true">→</span></RowLink>
             </div>
-          </article>
+            <div className="row-text">
+              <h2><span className="row-title">{row.title}</span> <span className="row-arrow" aria-hidden="true">→</span></h2>
+              <p className="row-desc">{row.desc}</p>
+            </div>
+          </RowLink>
         ))}
       </main>
 

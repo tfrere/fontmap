@@ -943,6 +943,32 @@
   color: var(--ink-2);
 }
 
+.exp-index .figure {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 420px;
+  margin: 28px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.exp-index .figure strong {
+  flex: none;
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.exp-index .figure span {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
 .exp-index .foot {
   display: flex;
   align-items: baseline;

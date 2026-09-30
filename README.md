@@ -29,7 +29,7 @@ Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-wor
 
 [![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo-v2.gif)](https://tfrere-font-map.static.hf.space/)
 
-[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (19 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/)
+[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (19 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/) · [Experiment: size by use](https://tfrere-font-map.static.hf.space/experiments/popularity/index.html) — source in [`public/experiments/popularity/`](public/experiments/popularity/)
 
 ## Features
 
@@ -114,6 +114,15 @@ npm run sprite -- --chars a-z,A-Z # upper-<c>, digit-<d>, u<HEX4> for other char
 ```
 
 The downloaded fonts, renders, embeddings and font index (`pipeline/input/`, `pipeline/output/`) are not checked in.
+
+### Usage data
+
+`public/data/popularity.json` holds how often Google Fonts served each font on the map to websites, from the public data behind [Google Fonts Analytics](https://fonts.google.com/analytics). A map entry adds up the views of the families folded into it. The "size by use" experiment reads it. Refresh it with:
+
+```bash
+npm run popularity                   # 30-day views
+npm run popularity -- --range year   # 7day | 30day | 90day | year
+```
 
 ## Project structure
 

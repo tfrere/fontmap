@@ -33,7 +33,8 @@
     "pipeline:sentences": "mkdir -p public/data/sentences && cp pipeline/output/svgs/*_sentence.svg public/data/sentences/",
     "overlap": "node scripts/apply-overlap-removal.mjs",
     "overlap:dry": "node scripts/apply-overlap-removal.mjs --dry-run",
-    "sprite": "node scripts/build-glyph-sprite.mjs"
+    "sprite": "node scripts/build-glyph-sprite.mjs",
+    "popularity": "node scripts/fetch-popularity.mjs"
   },
   "eslintConfig": {
     "extends": [

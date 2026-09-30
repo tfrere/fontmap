@@ -29,7 +29,7 @@ Inspired by [IDEO's Font Map](https://medium.com/ideo-stories/organizing-the-wor
 
 [![FontMap demo](https://raw.githubusercontent.com/tfrere/fontmap/main/media/demo-v2.gif)](https://tfrere-font-map.static.hf.space/)
 
-[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (19 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/) · [Experiments](https://tfrere-font-map.static.hf.space/experiments/index.html) (size by use, sixteen years of Google Fonts, who drew the fonts you know) — source in [`public/experiments/`](public/experiments/)
+[Full demo video (52 s)](https://github.com/tfrere/fontmap/blob/main/media/demo-v2.mp4) · [Typographic trailer (19 s)](https://tfrere-font-map.static.hf.space/trailer/index.html) — source in [`trailer/`](trailer/) · [Experiments](https://tfrere-font-map.static.hf.space/experiments/index.html) (size by use, who drew the fonts you know) — source in [`public/experiments/`](public/experiments/)
 
 ## Features
 
@@ -124,7 +124,7 @@ npm run popularity                   # 30-day views
 npm run popularity -- --range year   # 7day | 30day | 90day | year
 ```
 
-`public/data/catalog.json` holds the date each family was added to Google Fonts and its designers, from the Google Fonts catalogue. The "sixteen years" and "designers" experiments read it. Refresh it with `npm run catalog`.
+`public/data/catalog.json` holds the date each family was added to Google Fonts and its designers, from the Google Fonts catalogue. The "who drew the fonts you know" experiment reads it. Refresh it with `npm run catalog`.
 
 ### Experiments
 

@@ -1,5 +1,8 @@
-// Size by use: the FontMap layout with each glyph's area following its Google Fonts views.
-// At scale 1 the total ink matches the regular map (every glyph at BASE), shared out by views.
+// Size by use: the FontMap layout with each glyph sized by its Google Fonts views.
+// Sizes follow a bounded log scale, and a collision pass (a Dorling-style cartogram)
+// pushes neighbours aside so big glyphs never cover small ones.
+
+import { forceSimulation, forceCollide, forceX, forceY } from 'https://cdn.jsdelivr.net/npm/d3-force@3/+esm';
 
 const DATA = '../../data/';
 // Same reference canvas, padding and glyph size as the app's map.
@@ -7,11 +10,19 @@ const REF_W = 1600;
 const REF_H = 900;
 const PAD = 40;
 const BASE = 20;
-const FIT = 0.92;
-const MIN_PX = 1.2;
-const MAX_ZOOM = 40;
-const INTRO_MS = 2600;
-const LABEL_MIN_PX = 44;
+// Glyph box sizes on the reference canvas at full scale: the least used font gets
+// S_MIN, Roboto S_MAX. GAMMA > 1 keeps the long tail small so the leaders stand out.
+const S_MIN = 13;
+const S_MAX = 120;
+const GAMMA = 3;
+// Collision radius as a share of the glyph box: the A covers about 60% of it.
+const INK_RADIUS = 0.31;
+const GAP = 0.6;
+const FIT = 0.94;
+const MAX_ZOOM = 30;
+const INTRO_MS = 2400;
+const LABEL_MIN_PX = 30;
+const LEGEND_VIEWS = [1e6, 1e8, 1e10];
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('map');
@@ -20,12 +31,13 @@ const slider = $('exponent');
 const tooltip = $('tooltip');
 const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
 const pct = (x) => `${(x * 100).toFixed(x < 0.01 ? 2 : 1)}%`;
+const lerp = (a, b, t) => a + (b - a) * t;
 
 let fonts = [];
 let order = [];
-let sizes = new Float32Array(0);
 let meta = null;
 let scaleT = 0;
+let bounds = [null, null];
 let view = { k: 1, x: 0, y: 0 };
 let showNames = true;
 let hovered = -1;
@@ -36,6 +48,11 @@ function lookupPath(paths, font) {
   const key = (font.imageName || font.name || '').toLowerCase();
   return paths[`${font.id}_a`] || paths[font.id] || paths[`${key}_a`] || paths[key];
 }
+
+const sizeForViews = (v) => {
+  const l = Math.max(0, Math.min(1, (Math.log(v) - meta.lmin) / (meta.lmax - meta.lmin)));
+  return S_MIN + (S_MAX - S_MIN) * l ** GAMMA;
+};
 
 async function load() {
   const [map, spriteText, popularity] = await Promise.all([
@@ -67,8 +84,8 @@ async function load() {
       name: f.name,
       family: f.family,
       url: f.google_fonts_url,
-      wx: (f.x - xMin) * s + ox,
-      wy: (yMax - f.y) * s + oy,
+      x0: (f.x - xMin) * s + ox,
+      y0: (yMax - f.y) * s + oy,
       views: popularity.views[f.id] ?? floor,
       hasViews: f.id in popularity.views,
       path: new Path2D(d),
@@ -80,18 +97,44 @@ async function load() {
   meta = {
     total,
     fetched: popularity.fetched,
-    vmax: fonts[order[0]].views,
+    lmin: Math.log(floor),
+    lmax: Math.log(Math.max(...known)),
     ranked: fonts.filter((f) => f.hasViews).length,
   };
-  sizes = new Float32Array(fonts.length);
+
+  fonts.forEach((f) => { f.s1 = sizeForViews(f.views); });
+  relax();
+  bounds = [boundsAt(0), boundsAt(1)];
 }
 
-function computeSizes(t) {
-  // Area weights views^t: t = 0 is the regular map, t = 1 makes area proportional to views.
-  let sum = 0;
-  const w = fonts.map((f) => { const x = (f.views / meta.vmax) ** t; sum += x; return x; });
-  const k = fonts.length / sum;
-  w.forEach((x, i) => { sizes[i] = BASE * Math.sqrt(k * x); });
+// Dorling-style relaxation: every glyph is pulled back to its map position while
+// collisions push overlapping ones apart, so the layout keeps its neighbourhoods.
+function relax() {
+  const nodes = fonts.map((f) => ({ x: f.x0, y: f.y0, r: f.s1 * INK_RADIUS + GAP }));
+  const sim = forceSimulation(nodes)
+    .force('x', forceX((_, i) => fonts[i].x0).strength(0.06))
+    .force('y', forceY((_, i) => fonts[i].y0).strength(0.06))
+    .force('collide', forceCollide((d) => d.r).strength(1).iterations(4))
+    .stop();
+  for (let n = 0; n < 320; n++) sim.tick();
+  // A few collision-only passes remove what the pull-back leaves.
+  sim.force('x', null).force('y', null);
+  for (let n = 0; n < 40; n++) sim.tick();
+  nodes.forEach((d, i) => { fonts[i].x1 = d.x; fonts[i].y1 = d.y; });
+}
+
+function stateAt(f, t) {
+  return { x: lerp(f.x0, f.x1, t), y: lerp(f.y0, f.y1, t), s: lerp(BASE, f.s1, t) };
+}
+
+function boundsAt(t) {
+  let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const f of fonts) {
+    const { x, y, s } = stateAt(f, t);
+    x0 = Math.min(x0, x - s / 2); y0 = Math.min(y0, y - s / 2);
+    x1 = Math.max(x1, x + s / 2); y1 = Math.max(y1, y + s / 2);
+  }
+  return [x0, y0, x1, y1];
 }
 
 function renderStats() {
@@ -116,78 +159,86 @@ function renderStats() {
 
 function setScale(t, fromSlider = false) {
   scaleT = t;
-  computeSizes(t);
   if (!fromSlider) slider.value = String(t);
-  $('exponent-label').textContent = t < 0.005 ? 'Equal size' : t > 0.995 ? 'Area ∝ views' : `Area ∝ views^${t.toFixed(2)}`;
+  $('exponent-label').textContent = t < 0.005 ? 'Equal size' : t > 0.995 ? 'By views, log scale' : `${Math.round(t * 100)}%`;
+  $('legend').classList.toggle('is-visible', t > 0.5);
   requestDraw();
 }
 
-// ── View: reference canvas -> CSS pixels ──
+// ── View: reference canvas -> CSS pixels, framed on the layout's bounds at scale t ──
 // On wide screens the map is framed to the right of the panel.
 const screenInset = () => ({ left: window.innerWidth > 900 ? 332 : 0, top: 0 });
 
-function baseFit(W, H, { left = 0, top = 0 } = screenInset()) {
-  const s = Math.min((W - left) / REF_W, (H - top) / REF_H) * FIT;
-  return { s, bx: left + (W - left - REF_W * s) / 2, by: top + (H - top - REF_H * s) / 2 };
+function baseFit(W, H, t = scaleT, { left = 0, top = 0 } = screenInset()) {
+  const b = bounds[0].map((v, i) => lerp(v, bounds[1][i], t));
+  const bw = b[2] - b[0];
+  const bh = b[3] - b[1];
+  const s = Math.min((W - left) / bw, (H - top) / bh) * FIT;
+  return { s, bx: left + (W - left - bw * s) / 2 - b[0] * s, by: top + (H - top - bh * s) / 2 - b[1] * s };
 }
 
-function transformFor(W, H, v = view, inset = screenInset()) {
-  const { s, bx, by } = baseFit(W, H, inset);
+function transformFor(W, H, v = view, t = scaleT, inset = screenInset()) {
+  const { s, bx, by } = baseFit(W, H, t, inset);
   return { a: s * v.k, bx: bx + s * v.x, by: by + s * v.y };
 }
 
 function colors() {
   const cs = getComputedStyle(document.documentElement);
-  return { bg: cs.getPropertyValue('--bg').trim(), ink: cs.getPropertyValue('--ink').trim(), ink2: cs.getPropertyValue('--ink-2').trim() };
+  const get = (n) => cs.getPropertyValue(n).trim();
+  return { bg: get('--bg'), ink: get('--ink'), ink2: get('--ink-2'), ink3: get('--ink-3') };
 }
 
-// ui scales text, halos and the label threshold (the 4K export draws at ui = 2.4).
-function draw(c, W, H, dpr, T, { names, hi = -1, ui = 1 }) {
-  const { bg, ink, ink2 } = colors();
+// ui scales text and the label threshold (the 4K export draws at ui = 2.4).
+function draw(c, W, H, dpr, T, { names, hi = -1, t = scaleT, ui = 1 }) {
+  const { bg, ink, ink2, ink3 } = colors();
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.fillStyle = bg;
   c.fillRect(0, 0, W * dpr, H * dpr);
-  c.lineJoin = 'round';
-  c.strokeStyle = bg;
 
   const labels = [];
   for (const i of order) {
     const f = fonts[i];
-    const S = Math.max(MIN_PX, sizes[i] * T.a);
-    const cx = T.a * f.wx + T.bx;
-    const cy = T.a * f.wy + T.by;
+    const st = stateAt(f, t);
+    const S = st.s * T.a;
+    const cx = T.a * st.x + T.bx;
+    const cy = T.a * st.y + T.by;
     if (cx + S < 0 || cy + S < 0 || cx - S > W || cy - S > H) continue;
     const g = S / 80;
     c.setTransform(dpr * g, 0, 0, dpr * g, dpr * (cx - S / 2), dpr * (cy - S / 2));
-    c.fillStyle = i === hi ? ink2 : ink;
-    if (S > 6) {
-      // A halo in the background colour keeps small glyphs readable on top of big ones.
-      c.lineWidth = Math.min(3 * ui, S * 0.05) / g;
-      c.stroke(f.path);
-    }
+    c.fillStyle = i === hi ? ink3 : ink;
     c.fill(f.path);
     if (names && S >= LABEL_MIN_PX * ui) labels.push({ f, S, cx, cy });
   }
 
-  if (!names) return;
+  if (!names || !labels.length) return;
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
   c.textAlign = 'center';
   c.textBaseline = 'top';
+  c.lineJoin = 'round';
   const placed = [];
   for (const { f, S, cx, cy } of labels) {
-    const size = Math.max(10 * ui, Math.min(22 * ui, S * 0.08));
+    const size = Math.round(Math.max(10 * ui, Math.min(14 * ui, S * 0.16)));
     c.font = `600 ${size}px 'Source Sans Pro', sans-serif`;
     const w = c.measureText(f.name).width;
-    const y = cy + S * 0.3;
-    const box = [cx - w / 2 - 3, y - 2, cx + w / 2 + 3, y + size + 2];
+    const y = cy + S * 0.32;
+    const box = [cx - w / 2 - 2, y - 1, cx + w / 2 + 2, y + size + 1];
     if (placed.some((b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1])) continue;
     placed.push(box);
-    c.lineWidth = Math.max(3, size * 0.3);
+    c.lineWidth = Math.max(3, size * 0.35);
     c.strokeStyle = bg;
     c.strokeText(f.name, cx, y);
     c.fillStyle = ink2;
     c.fillText(f.name, cx, y);
   }
+}
+
+function renderLegend() {
+  const { s } = baseFit(window.innerWidth, window.innerHeight, 1);
+  // The sprite draws the A at 60px in an 80px box.
+  $('legend-items').innerHTML = LEGEND_VIEWS.map((v) => {
+    const px = sizeForViews(v) * s * 0.75;
+    return `<span class="legend-item"><span class="legend-glyph" style="font-size:${px.toFixed(1)}px">A</span>${compact.format(v)}</span>`;
+  }).join('');
 }
 
 function frame() {
@@ -227,23 +278,23 @@ function animateView(target, ms = 600) {
   const t0 = performance.now();
   const step = (now) => {
     const x = ease(Math.min(1, (now - t0) / ms));
-    view = { k: from.k + (target.k - from.k) * x, x: from.x + (target.x - from.x) * x, y: from.y + (target.y - from.y) * x };
+    view = { k: lerp(from.k, target.k, x), x: lerp(from.x, target.x, x), y: lerp(from.y, target.y, x) };
     requestDraw();
     if (x < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
 }
 
-// ── Picking ──
+// ── Picking: smallest first, they are drawn on top ──
 function pick(px, py) {
   const T = transformFor(window.innerWidth, window.innerHeight);
   for (let n = order.length - 1; n >= 0; n--) {
     const i = order[n];
-    const f = fonts[i];
-    const S = Math.max(MIN_PX, sizes[i] * T.a);
-    const r = Math.max(4, S * 0.32);
-    const dx = px - (T.a * f.wx + T.bx);
-    const dy = py - (T.a * f.wy + T.by);
+    const st = stateAt(fonts[i], scaleT);
+    const S = st.s * T.a;
+    const r = Math.max(4, S * INK_RADIUS);
+    const dx = px - (T.a * st.x + T.bx);
+    const dy = py - (T.a * st.y + T.by);
     if (dx * dx + dy * dy <= r * r) return i;
   }
   return -1;
@@ -268,7 +319,7 @@ function showTooltip(i, px, py) {
 function zoomAt(px, py, factor) {
   const { s, bx, by } = baseFit(window.innerWidth, window.innerHeight);
   const k = Math.min(MAX_ZOOM, Math.max(1, view.k * factor));
-  // Keep the reference-canvas point under the cursor fixed.
+  // Keep the point under the cursor fixed.
   const wx = ((px - bx) / s - view.x) / view.k;
   const wy = ((py - by) / s - view.y) / view.k;
   view = k === 1 ? { k: 1, x: 0, y: 0 } : { k, x: (px - bx) / s - wx * k, y: (py - by) / s - wy * k };
@@ -317,7 +368,7 @@ canvas.addEventListener('pointerup', (e) => {
 
 canvas.addEventListener('pointerleave', () => { hovered = -1; showTooltip(-1); requestDraw(); });
 canvas.addEventListener('dblclick', () => animateView({ k: 1, x: 0, y: 0 }));
-window.addEventListener('resize', requestDraw);
+window.addEventListener('resize', () => { renderLegend(); requestDraw(); });
 
 slider.addEventListener('input', () => { cancelAnimationFrame(anim); setScale(Number(slider.value), true); });
 $('replay').addEventListener('click', () => play());
@@ -335,16 +386,18 @@ window.addEventListener('keydown', (e) => {
   if (e.key === '0') animateView({ k: 1, x: 0, y: 0 });
 });
 
-// ── 4K export of the whole map, with its caption ──
+// ── 4K export of the whole map, with its caption and size key ──
 $('download').addEventListener('click', () => {
   const W = 3840;
   const H = 2160;
-  const top = 260;
+  const ui = W / 1600;
+  const top = 280;
   const out = document.createElement('canvas');
   out.width = W;
   out.height = H;
   const c = out.getContext('2d');
-  draw(c, W, H, 1, transformFor(W, H, { k: 1, x: 0, y: 0 }, { left: 0, top }), { names: showNames, ui: W / 1600 });
+  const T = transformFor(W, H, { k: 1, x: 0, y: 0 }, scaleT, { left: 0, top });
+  draw(c, W, H, 1, T, { names: showNames, ui });
 
   const { ink, ink2 } = colors();
   c.setTransform(1, 0, 0, 1, 0, 0);
@@ -355,10 +408,31 @@ $('download').addEventListener('click', () => {
   c.fillText('Google Fonts, sized by use', 120, 170);
   c.fillStyle = ink2;
   c.font = "400 40px 'Source Sans Pro', sans-serif";
-  c.fillText(`${fonts.length.toLocaleString('en-US')} fonts placed by how they look. ${scaleT > 0.995 ? 'Area proportional to' : 'Size follows'} how often Google Fonts served each one to websites in the last 30 days.`, 120, 232);
+  c.fillText(`${fonts.length.toLocaleString('en-US')} fonts placed by how they look, sized by how often Google Fonts served them to websites in the last 30 days (log scale).`, 120, 234);
+
+  if (scaleT > 0.5) {
+    const s = T.a;
+    let x = 120;
+    const base = H - 90;
+    c.font = "600 30px 'Source Sans Pro', sans-serif";
+    c.fillText('Views, 30 days', x, base - 150);
+    for (const v of LEGEND_VIEWS) {
+      const px = sizeForViews(v) * s * 0.75;
+      c.fillStyle = ink;
+      c.font = `400 ${px}px 'Source Sans Pro', sans-serif`;
+      c.fillText('A', x, base - 40);
+      const w = c.measureText('A').width;
+      c.fillStyle = ink2;
+      c.font = "400 30px 'Source Sans Pro', sans-serif";
+      c.fillText(compact.format(v), x, base);
+      x += Math.max(w, c.measureText(compact.format(v)).width) + 60;
+    }
+  }
+
   c.textAlign = 'right';
+  c.fillStyle = ink2;
   c.font = "400 30px 'Source Sans Pro', sans-serif";
-  c.fillText(`Data: Google Fonts Analytics, fetched ${meta.fetched} · Layout: FontCLIP + t-SNE · huggingface.co/spaces/tfrere/font-map`, W - 120, H - 70);
+  c.fillText(`Data: Google Fonts Analytics, fetched ${meta.fetched} · Layout: FontCLIP + t-SNE · huggingface.co/spaces/tfrere/font-map`, W - 120, H - 90);
 
   const a = document.createElement('a');
   a.download = `fontmap-size-by-use-${meta.fetched}.png`;
@@ -370,6 +444,7 @@ load()
   .then(() => document.fonts.ready)
   .then(() => {
     renderStats();
+    renderLegend();
     setScale(0);
     $('loader').classList.add('is-done');
     setTimeout(() => play(), 500);

@@ -25,8 +25,8 @@
   <aside class="panel" aria-live="polite">
     <h1>Size by use</h1>
     <p class="lede">
-      Each glyph is a Google Font, placed by how it looks. At full scale its area follows how often
-      Google Fonts served it to websites in the last 30 days: the same ink as the regular map, shared out by traffic.
+      Each glyph is a Google Font, placed by how it looks and sized by how often Google Fonts served it
+      to websites in the last 30 days. Log scale; big glyphs push their neighbours aside instead of covering them.
     </p>
 
     <dl class="stats" id="stats"></dl>
@@ -37,7 +37,14 @@
         <output id="exponent-label" for="exponent"></output>
       </div>
       <input id="exponent" type="range" min="0" max="1" step="0.001" value="0" />
-      <div class="scale-ends"><span>Equal</span><span>Proportional</span></div>
+      <div class="scale-ends"><span>Equal</span><span>By views</span></div>
+    </div>
+
+    <div class="legend" id="legend">
+      <div>
+        <span class="legend-title">Views, 30 days</span>
+        <div class="legend-items" id="legend-items"></div>
+      </div>
     </div>
 
     <div class="actions">

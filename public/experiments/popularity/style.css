@@ -142,6 +142,48 @@ html, body {
   color: var(--ink-3);
 }
 
+.legend {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.3s ease, opacity 0.3s ease;
+}
+
+.legend.is-visible { grid-template-rows: 1fr; opacity: 1; }
+.legend > * { overflow: hidden; }
+
+.legend-title {
+  display: block;
+  margin-top: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.legend-items {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  padding-top: 6px;
+}
+
+.legend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 11px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.legend-glyph {
+  line-height: 1;
+  color: var(--ink);
+  font-weight: 400;
+}
+
 .actions {
   display: flex;
   align-items: center;

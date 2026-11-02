@@ -414,6 +414,16 @@
 
   const shown = (b, start, end) => clamp((b - start) / 0.5) * (1 - clamp((b - end) / 0.5));
 
+  // After the caption, one family lights up per beat while the rest of the map steps back.
+  function familyLight(b) {
+    const F = T.SEA.families;
+    if (b < F[0].beat || b >= T.SEA.release + 0.25) return null;
+    let k = 0;
+    while (k + 1 < F.length && b >= F[k + 1].beat) k++;
+    const dim = clamp((b - F[0].beat) / 0.15) * (1 - clamp((b - T.SEA.release) / 0.25));
+    return { mark: F[k], since: secOf(b - F[k].beat), dim, labelAlpha: clamp((b - F[k].beat) / 0.12) * (1 - clamp((b - (F[k + 1] ? F[k + 1].beat : T.SEA.release) + 0.12) / 0.12)) };
+  }
+
   function field(ctx, b, t) {
     const A = T.APP, S = T.SEA;
     if (b >= A.ui + 0.4) return app(ctx, b, t);
@@ -425,8 +435,9 @@
     if (entering) windowFrame(ctx, WIN, cubicInOut(b - A.enter));
 
     const sprites = seaSprites(b, t);
+    const lit = entering ? null : familyLight(b);
     // Captions over the glyphs get a soft clearing of paper behind them.
-    const veil = 0.88 * Math.max(shown(b, S.caption, S.tide - 0.5), shown(b, S.charted, A.enter - 0.5));
+    const veil = 0.88 * Math.max(shown(b, S.caption, S.tide - 0.5), shown(b, S.charted - 0.4, A.enter - 0.5));
     ctx.fillStyle = INK;
     for (const s of sprites) {
       const g = glyphs[s.i];
@@ -440,6 +451,10 @@
       }
       if (X < -bs || X > W + bs || Y < -bs || Y > H + bs) continue;
       let alpha = s.alpha;
+      if (lit) {
+        if (fonts[s.i].family === lit.mark.family) bs *= 1 + 0.22 * lit.dim * Math.exp(-lit.since * 9);
+        else alpha *= 1 - 0.72 * lit.dim;
+      }
       if (veil) alpha *= 1 - veil * Math.exp(-(((X - W / 2) / 640) ** 2) - (((Y - H / 2) / 190) ** 2));
       ctx.globalAlpha = alpha;
       glyph(ctx, paths.A[s.i], X, Y, bs, s.rot);
@@ -450,7 +465,18 @@
 
     if (b >= s0 + 0.5 && b < S.tide) counter(ctx, b, t);
     phrase(ctx, b, t, S.caption, S.tide - 0.5, 'A sea of ', 'type.', H / 2 + 40);
-    phrase(ctx, b, t, S.charted, A.enter - 0.5, 'Like finds ', 'like.', H / 2 + 40);
+    phrase(ctx, b, t, S.charted, A.enter - 0.5, 'Like finds ', 'like.', H / 2 + 40, 118, 30, S.likeGap);
+    if (lit && lit.labelAlpha > 0) {
+      const m = lit.mark;
+      font(ctx, 56, m.font);
+      ctx.textAlign = 'center';
+      const dy = reveal(ctx, lit.since, 0.16);
+      ctx.globalAlpha *= 0.8 * lit.labelAlpha;
+      ctx.fillStyle = INK;
+      withHalo(ctx, PAPER, 18, (draw) => draw(m.label, W / 2, H / 2 + 150 + dy));
+      ctx.textAlign = 'left';
+      resetFx(ctx);
+    }
   }
 
   function windowFrame(ctx, r, a) {
@@ -637,7 +663,7 @@
   }
 
   // A two-part line, roman then italic half a beat later, centred on the frame.
-  function phrase(ctx, b, t, start, end, roman, italic, y, size = 118, halo = 30) {
+  function phrase(ctx, b, t, start, end, roman, italic, y, size = 118, halo = 30, gap = 0.25) {
     if (b < start || b >= end + 0.5) return;
     const out = clamp((b - end) / 0.5);
     font(ctx, size, 'Playfair Display');
@@ -645,7 +671,7 @@
     font(ctx, size, 'Playfair Display', 400, 'italic');
     const w1 = ctx.measureText(italic).width;
     let x = W / 2 - (w0 + w1) / 2;
-    [[roman, 0, 'normal', w0], [italic, 0.25, 'italic', w1]].forEach(([text, at, style, w]) => {
+    [[roman, 0, 'normal', w0], [italic, gap, 'italic', w1]].forEach(([text, at, style, w]) => {
       const since = t - secOf(start + at);
       if (since >= 0) {
         font(ctx, size, 'Playfair Display', 400, style);

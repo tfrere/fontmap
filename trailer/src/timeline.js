@@ -38,7 +38,9 @@
 
   // Bars 3-5, a sea of type: the camera pulls back from the A into 1,465 A's rolling
   // like water under a slow swell, then the tide goes out in one long move and
-  // leaves the map as islands, landing on the downbeat of bar 5.
+  // leaves the map as islands, landing on the downbeat of bar 5. The map lands
+  // alone, the caption is typed a beat later, one word group per beat, then one
+  // family lights up per beat to show what the islands are.
   const SEA = {
     pull: 3,
     caption: 9.5,
@@ -46,7 +48,15 @@
     spread: 0.4,
     travel: 3,
     land: 16,
-    charted: 16,
+    charted: 17,
+    likeGap: 1,
+    families: [
+      { beat: 18, family: 'serif', label: 'Serif', font: 'Playfair Display' },
+      { beat: 19, family: 'handwriting', label: 'Script', font: 'Great Vibes' },
+      { beat: 20, family: 'monospace', label: 'Mono', font: 'Space Mono' },
+      { beat: 21, family: 'sans-serif', label: 'Sans', font: 'Libre Franklin' },
+    ],
+    release: 21.75,
   };
 
   // Into the real app: the sorted map lands on the app's own map, framed as a

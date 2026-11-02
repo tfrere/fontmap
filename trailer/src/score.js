@@ -295,6 +295,14 @@
     chord(b(E.tide), [146.83, 220, 293.66, 349.23], 0.07, 0.03, 0.3);
     thump(b(E.land), 0.7);
     chord(b(E.land), [146.83, 220, 293.66, 369.99], 0.08, 0.015, 0.25);
+    typeText(b(E.charted), 'Like finds', 0.25, 0.035);
+    typeText(b(E.charted + E.likeGap), 'like.', 0.28, 0.035);
+    // One note per family as it lights up, climbing the D major chord.
+    [293.66, 369.99, 440, 587.33].forEach((f, i) => {
+      const at = b(E.families[i].beat);
+      pluck(at, f, 0.11, (i - 1.5) * 0.25);
+      key(at, 0.18, 1.3, (i - 1.5) * 0.25, 0.06);
+    });
 
     // Bars 6-9: into the app. A light pulse of keys on the beat, a thud per bar;
     // each action gets its own click or key and a note.
